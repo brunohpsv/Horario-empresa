@@ -1,0 +1,346 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | HORÁRIO</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .login-btn {
+            background-color: #4CAF50;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+        
+        .login-btn:hover {
+            background-color: #45a049;
+        }
+
+        /* Container principal */
+        .main-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        /* Estilos dos formulários */
+        .auth-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .auth-container h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+        
+        .auth-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .auth-container button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        .auth-container button:hover {
+            background-color: #45a049;
+        }
+        
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .toggle-form a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Mensagens de erro */
+        .error-message {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Loader */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">HORÁRIO</div>
+        <nav>
+            <ul>
+                <li><a href="https://horario.site">Início</a></li>
+                <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <div class="auth-container">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="text" id="loginInput" placeholder="E-mail ou CPF/CNPJ cadastrado" required>
+                <div class="error-message" id="loginError"></div>
+                
+                <input type="password" id="senha" placeholder="Senha" required>
+                <div class="error-message" id="passwordError"></div>
+                
+                <button type="submit" id="loginBtn">
+                    <span id="btnText">Entrar</span>
+                    <div class="loader" id="loader"></div>
+                </button>
+            </form>
+            
+            <div class="toggle-form">
+                <p>Não tem uma conta? <a href="https://horario.site/cadastro.html">Cadastre-se</a></p>
+                <p><a href="#" id="forgotPassword">Esqueci minha senha</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do Firebase (mesmo do cadastro)
+        const firebaseConfig = {
+            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
+            authDomain: "horariosite-669d1.firebaseapp.com",
+            projectId: "horariosite-669d1",
+            storageBucket: "horariosite-669d1.appspot.com",
+            messagingSenderId: "154976451283",
+            appId: "1:154976451283:web:c4a75ce9c78e67d5a17226"
+        };
+
+        // Inicialize o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Função para mostrar/ocultar loader
+        function toggleLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+            document.getElementById('btnText').style.display = show ? 'none' : 'block';
+            document.getElementById('loginBtn').disabled = show;
+        }
+
+        // Função para verificar se é CPF ou CNPJ
+        function isCpfOrCnpj(input) {
+            const cleaned = input.replace(/\D/g, '');
+            return cleaned.length === 11 || cleaned.length === 14;
+        }
+
+        // Busca usuário no Firestore por CPF/CNPJ
+        async function findUserByCpfCnpj(cpfCnpj) {
+            try {
+                const querySnapshot = await db.collection('usuarios')
+                    .where('identificacao', '==', cpfCnpj)
+                    .limit(1)
+                    .get();
+                
+                if (!querySnapshot.empty) {
+                    return querySnapshot.docs[0].data();
+                }
+                return null;
+            } catch (error) {
+                console.error("Erro ao buscar usuário:", error);
+                return null;
+            }
+        }
+
+        // Login com Firebase (aceita e-mail ou CPF/CNPJ)
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Limpa mensagens de erro
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('passwordError').style.display = 'none';
+            
+            // Valores dos campos
+            const loginInput = document.getElementById('loginInput').value.trim();
+            const senha = document.getElementById('senha').value;
+            
+            // Validação básica
+            if (!loginInput) {
+                document.getElementById('loginError').textContent = 'Digite seu e-mail ou CPF/CNPJ';
+                document.getElementById('loginError').style.display = 'block';
+                return;
+            }
+            
+            if (senha.length < 6) {
+                document.getElementById('passwordError').textContent = 'Senha deve ter pelo menos 6 caracteres';
+                document.getElementById('passwordError').style.display = 'block';
+                return;
+            }
+            
+            try {
+                toggleLoader(true);
+                
+                let emailToLogin = loginInput;
+                
+                // Se o input for CPF/CNPJ, busca o e-mail no Firestore
+                if (isCpfOrCnpj(loginInput)) {
+                    const cleanedCpfCnpj = loginInput.replace(/\D/g, '');
+                    const userData = await findUserByCpfCnpj(cleanedCpfCnpj);
+                    
+                    if (!userData) {
+                        throw new Error('CPF/CNPJ não encontrado');
+                    }
+                    
+                    emailToLogin = userData.email;
+                }
+                
+                // Autenticação com Firebase
+                const userCredential = await auth.signInWithEmailAndPassword(emailToLogin, senha);
+                
+                // Busca dados adicionais no Firestore
+                const userDoc = await db.collection('usuarios').doc(userCredential.user.uid).get();
+                
+                if (userDoc.exists) {
+                    // Salva dados no localStorage para uso no painel
+                    const userData = userDoc.data();
+                    userData.uid = userCredential.user.uid;
+                    localStorage.setItem('userData', JSON.stringify(userData));
+                    
+                    // Redireciona para o painel
+                    window.location.href = 'https://horario.site/painel.html';
+                } else {
+                    throw new Error('Dados do usuário não encontrados');
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                let errorMessage = 'Erro ao fazer login';
+                
+                // Tratamento de erros específicos
+                if (error.message === 'CPF/CNPJ não encontrado') {
+                    errorMessage = 'CPF/CNPJ não cadastrado';
+                    document.getElementById('loginError').textContent = errorMessage;
+                    document.getElementById('loginError').style.display = 'block';
+                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = 'E-mail/CPF/CNPJ ou senha incorretos';
+                    document.getElementById('passwordError').textContent = errorMessage;
+                    document.getElementById('passwordError').style.display = 'block';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = 'Muitas tentativas. Tente novamente mais tarde';
+                    document.getElementById('passwordError').textContent = errorMessage;
+                    document.getElementById('passwordError').style.display = 'block';
+                } else {
+                    document.getElementById('passwordError').textContent = errorMessage;
+                    document.getElementById('passwordError').style.display = 'block';
+                }
+            } finally {
+                toggleLoader(false);
+            }
+        });
+
+        // Recuperação de senha (só funciona com e-mail)
+        document.getElementById('forgotPassword').addEventListener('click', async function(e) {
+            e.preventDefault();
+            const email = prompt('Digite o e-mail cadastrado para redefinir a senha:');
+            
+            if (email) {
+                try {
+                    await auth.sendPasswordResetEmail(email);
+                    alert('E-mail de redefinição enviado! Verifique sua caixa de entrada.');
+                } catch (error) {
+                    console.error('Erro ao enviar e-mail de redefinição:', error);
+                    alert('Erro ao enviar e-mail. Verifique se o e-mail está correto.');
+                }
+            }
+        });
+
+        // Verifica se o usuário já está logado
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Usuário já está autenticado, redireciona para o painel
+                window.location.href = 'https://horario.site/painel.html';
+            }
+        });
+    </script>
+</body>
+</html>
