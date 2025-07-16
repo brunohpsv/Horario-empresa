@@ -19,10 +19,6 @@
         // Cache de dados
         let cachedData = {
             usuarios: [],
-            horarios: [],
-            turmas: [],
-            aulas: [],
-            professores: [],
             lastUpdated: null
         };
 
@@ -31,33 +27,23 @@
             try {
                 console.log("Iniciando atualização de dados...");
                 
-                const collections = ["usuarios", "horarios", "turmas", "aulas", "professores"];
-                const newData = {};
-                
-                // Carrega todas as coleções em paralelo
-                await Promise.all(collections.map(async (collectionName) => {
-                    try {
-                        const snapshot = await db.collection(collectionName).get();
-                        newData[collectionName] = snapshot.docs.map(doc => ({
-                            id: doc.id,
-                            data: doc.data()
-                        }));
-                    } catch (error) {
-                        console.error(`Erro na coleção ${collectionName}:`, error);
-                        newData[collectionName] = [];
-                    }
+                // Carrega apenas a coleção 'usuarios' que é necessária para o index.html
+                const snapshot = await db.collection("usuarios").get();
+                const usuarios = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    data: doc.data()
                 }));
 
                 // Atualiza o cache
                 cachedData = {
-                    ...newData,
+                    usuarios,
                     lastUpdated: new Date().toISOString()
                 };
                 
                 console.log("Dados atualizados com sucesso em:", cachedData.lastUpdated);
                 
             } catch (error) {
-                console.error("Erro geral ao atualizar dados:", error);
+                console.error("Erro ao atualizar dados:", error);
             }
         }
 
@@ -71,50 +57,43 @@
                 status: "success",
                 lastUpdated: cachedData.lastUpdated,
                 data: {
-                    usuarios: cachedData.usuarios,
-                    horarios: cachedData.horarios,
-                    turmas: cachedData.turmas,
-                    aulas: cachedData.aulas,
-                    professores: cachedData.professores
+                    usuarios: cachedData.usuarios
                 }
             };
+        }
+
+        // Função para lidar com mensagens de outros frames
+        window.addEventListener('message', function(event) {
+            // Verifica se a mensagem é uma solicitação de dados
+            if (event.data && event.data.type === 'REQUEST_FIREBASE_DATA') {
+                // Envia os dados de volta
+                event.source.postMessage({
+                    type: 'FIREBASE_DATA_RESPONSE',
+                    data: getFormattedData()
+                }, event.origin);
+            }
+        });
+
+        // Se acessado diretamente, retorna os dados em JSON
+        if (window === window.top) {
+            document.write(JSON.stringify(getFormattedData()));
+            document.close();
         }
     </script>
 </head>
 <body>
+    <!-- Conteúdo apenas para visualização direta -->
+    <h1>API de Dados Firestore</h1>
+    <p>Esta página serve como endpoint para os dados.</p>
+    <p>Última atualização: <span id="last-update">${cachedData.lastUpdated || 'N/A'}</span></p>
+    <p>Status: <span id="status">Carregando...</span></p>
+    
     <script>
-        // Configura o cabeçalho para retornar JSON
-        document.write(`
-            <script>
-                // Verifica se é uma requisição fetch
-                if (window.parent !== window) {
-                    const data = getFormattedData();
-                    const jsonData = JSON.stringify(data);
-                    
-                    // Envia os dados para o parent
-                    parent.postMessage({
-                        type: 'FIREBASE_DATA',
-                        data: data
-                    }, '*');
-                    
-                    // Escreve o JSON diretamente no documento
-                    document.write(jsonData);
-                    document.close();
-                } else {
-                    // Modo de visualização direta (para debug)
-                    document.body.innerHTML = '<h1>API de Dados Firestore</h1>' +
-                        '<p>Esta página serve como endpoint para os dados.</p>' +
-                        '<p>Última atualização: <span id="last-update">${cachedData.lastUpdated || 'N/A'}</span></p>' +
-                        '<p>Status: <span id="status">Carregando...</span></p>';
-                    
-                    // Atualiza o status periodicamente
-                    setInterval(() => {
-                        document.getElementById('last-update').textContent = cachedData.lastUpdated || 'N/A';
-                        document.getElementById('status').textContent = cachedData.lastUpdated ? 'Ativo' : 'Carregando...';
-                    }, 1000);
-                }
-            </script>
-        `);
+        // Atualiza o status periodicamente
+        setInterval(() => {
+            document.getElementById('last-update').textContent = cachedData.lastUpdated || 'N/A';
+            document.getElementById('status').textContent = cachedData.lastUpdated ? 'Ativo' : 'Carregando...';
+        }, 1000);
     </script>
 </body>
 </html>
