@@ -1,27 +1,9 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Backend de Dados</title>
+    <title>API de Dados</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        #status { margin-top: 20px; padding: 10px; background: #f0f0f0; }
-    </style>
-</head>
-<body>
-    <h1>Backend de Dados</h1>
-    <div id="password-section">
-        <input type="password" id="password" placeholder="Digite a senha de acesso">
-        <button onclick="checkPassword()">Acessar</button>
-    </div>
-    <div id="content" style="display:none;">
-        <button onclick="loadAllCollections()">Carregar Dados do Firestore</button>
-        <div id="status">Status: Aguardando autenticação...</div>
-    </div>
-
     <script>
         // Configuração do Firebase
         const firebaseConfig = {
@@ -30,74 +12,69 @@
             projectId: "horariosite-669d1"
         };
 
+        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth();
-        const ACCESS_PASSWORD = "baratavelha0325";
-        let loadedData = {};
-
-        function checkPassword() {
-            if (document.getElementById('password').value === ACCESS_PASSWORD) {
-                document.getElementById('password-section').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-                authenticate();
-            } else {
-                alert("Senha incorreta!");
-            }
-        }
-
-        function authenticate() {
-            auth.signInAnonymously()
-                .then(() => updateStatus("Autenticado e pronto para carregar dados"))
-                .catch(error => updateStatus("Erro de autenticação: " + error.message));
-        }
-
-        async function loadAllCollections() {
-            updateStatus("Carregando dados...");
-            
+        
+        // Variável para armazenar os dados
+        let firebaseData = {};
+        
+        // Função para carregar todos os dados
+        async function loadAllData() {
             try {
-                const collectionsToCheck = ["usuarios", "horarios", "turmas", "aulas", "professores"];
-                loadedData = {};
+                const collections = ["usuarios", "horarios", "turmas", "aulas", "professores"];
+                const newData = {};
                 
-                for (const collectionName of collectionsToCheck) {
+                for (const collectionName of collections) {
                     try {
                         const snapshot = await db.collection(collectionName).get();
-                        if (!snapshot.empty) {
-                            loadedData[collectionName] = snapshot.docs.map(doc => ({
-                                id: doc.id,
-                                data: doc.data()
-                            }));
-                        }
+                        newData[collectionName] = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            data: doc.data()
+                        }));
                     } catch (error) {
-                        console.error(`Erro na coleção ${collectionName}:`, error);
+                        console.error(`Erro ao carregar ${collectionName}:`, error);
                     }
                 }
                 
-                updateStatus("Dados carregados com sucesso! Pronto para compartilhar.");
-                listenForRequests();
+                firebaseData = newData;
+                console.log("Dados atualizados em:", new Date());
             } catch (error) {
-                updateStatus("Erro ao carregar dados: " + error.message);
+                console.error("Erro ao atualizar dados:", error);
             }
         }
-
-        function listenForRequests() {
-            window.addEventListener('message', (event) => {
-                // Verifica a origem para segurança
-                if (event.origin !== window.location.origin) return;
-                
-                if (event.data === 'REQUEST_DATA') {
-                    updateStatus("Enviando dados para o index.html...");
-                    event.source.postMessage({
-                        type: 'FIREBASE_DATA',
-                        data: loadedData
-                    }, event.origin);
-                }
-            });
-        }
-
-        function updateStatus(message) {
-            document.getElementById('status').textContent = "Status: " + message;
-        }
+        
+        // Atualiza os dados a cada 5 segundos
+        loadAllData(); // Carrega imediatamente
+        setInterval(loadAllData, 5000); // Atualiza a cada 5 segundos
+        
+        // Função para responder às requisições
+        window.getFirebaseData = function() {
+            return firebaseData;
+        };
+    </script>
+</head>
+<body>
+    <!-- Página vazia, funciona apenas como endpoint -->
+    <script>
+        // Esta parte é necessária para o GitHub Pages
+        // Transforma a página em um endpoint que retorna JSON
+        const dataToSend = {
+            usuarios: window.getFirebaseData().usuarios || [],
+            horarios: window.getFirebaseData().horarios || [],
+            turmas: window.getFirebaseData().turmas || [],
+            aulas: window.getFirebaseData().aulas || [],
+            professores: window.getFirebaseData().professores || []
+        };
+        
+        document.write(`
+            <script>
+                parent.postMessage({
+                    type: 'FIREBASE_DATA',
+                    data: ${JSON.stringify(dataToSend)}
+                }, '*');
+            </script>
+        `);
     </script>
 </body>
 </html>
