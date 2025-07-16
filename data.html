@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backend de Dados</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #status { margin-top: 20px; padding: 10px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>Backend de Dados</h1>
+    <div id="password-section">
+        <input type="password" id="password" placeholder="Digite a senha de acesso">
+        <button onclick="checkPassword()">Acessar</button>
+    </div>
+    <div id="content" style="display:none;">
+        <button onclick="loadAllCollections()">Carregar Dados do Firestore</button>
+        <div id="status">Status: Aguardando autenticação...</div>
+    </div>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
+            authDomain: "horariosite-669d1.firebaseapp.com",
+            projectId: "horariosite-669d1"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const ACCESS_PASSWORD = "baratavelha0325";
+        let loadedData = {};
+
+        function checkPassword() {
+            if (document.getElementById('password').value === ACCESS_PASSWORD) {
+                document.getElementById('password-section').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                authenticate();
+            } else {
+                alert("Senha incorreta!");
+            }
+        }
+
+        function authenticate() {
+            auth.signInAnonymously()
+                .then(() => updateStatus("Autenticado e pronto para carregar dados"))
+                .catch(error => updateStatus("Erro de autenticação: " + error.message));
+        }
+
+        async function loadAllCollections() {
+            updateStatus("Carregando dados...");
+            
+            try {
+                const collectionsToCheck = ["usuarios", "horarios", "turmas", "aulas", "professores"];
+                loadedData = {};
+                
+                for (const collectionName of collectionsToCheck) {
+                    try {
+                        const snapshot = await db.collection(collectionName).get();
+                        if (!snapshot.empty) {
+                            loadedData[collectionName] = snapshot.docs.map(doc => ({
+                                id: doc.id,
+                                data: doc.data()
+                            }));
+                        }
+                    } catch (error) {
+                        console.error(`Erro na coleção ${collectionName}:`, error);
+                    }
+                }
+                
+                updateStatus("Dados carregados com sucesso! Pronto para compartilhar.");
+                listenForRequests();
+            } catch (error) {
+                updateStatus("Erro ao carregar dados: " + error.message);
+            }
+        }
+
+        function listenForRequests() {
+            window.addEventListener('message', (event) => {
+                // Verifica a origem para segurança
+                if (event.origin !== window.location.origin) return;
+                
+                if (event.data === 'REQUEST_DATA') {
+                    updateStatus("Enviando dados para o index.html...");
+                    event.source.postMessage({
+                        type: 'FIREBASE_DATA',
+                        data: loadedData
+                    }, event.origin);
+                }
+            });
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = "Status: " + message;
+        }
+    </script>
+</body>
+</html>
