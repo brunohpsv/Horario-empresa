@@ -295,11 +295,14 @@
     <script>
         // URL da página de dados
         const DATA_URL = "https://brunohpsv.github.io/firestore-hidden-access/data.html";
+        const ALLOWED_ORIGIN = "https://brunohpsv.github.io";
         
         // Variáveis globais
         let todasEmpresas = [];
         let estadosDisponiveis = new Set();
         let servicosDisponiveis = new Set();
+        let dataLoadAttempts = 0;
+        const MAX_ATTEMPTS = 3;
 
         // Função para formatar texto
         function formatarTexto(texto) {
@@ -324,19 +327,33 @@
         // Função para buscar os dados do data.html
         async function buscarDadosEmpresas() {
             try {
+                dataLoadAttempts++;
+                console.log(`Tentativa ${dataLoadAttempts} de carregar dados...`);
+                
                 document.getElementById('empresas-lista').innerHTML = '<div class="loading">Carregando empresas...</div>';
                 
                 // Cria um iframe invisível para acessar os dados
                 const iframe = document.createElement('iframe');
                 iframe.src = DATA_URL;
                 iframe.style.display = 'none';
+                iframe.id = 'data-iframe';
                 document.body.appendChild(iframe);
                 
                 // Configura o listener para receber a resposta
                 window.addEventListener('message', function handler(event) {
+                    // Verifica a origem da mensagem
+                    if (event.origin !== ALLOWED_ORIGIN) {
+                        console.warn('Mensagem de origem não permitida:', event.origin);
+                        return;
+                    }
+                    
                     if (event.data && event.data.type === 'FIREBASE_DATA_RESPONSE') {
+                        console.log('Dados recebidos com sucesso:', event.data);
+                        
                         // Remove o iframe após receber os dados
-                        document.body.removeChild(iframe);
+                        const iframe = document.getElementById('data-iframe');
+                        if (iframe) document.body.removeChild(iframe);
+                        
                         window.removeEventListener('message', handler);
                         
                         // Processa os dados recebidos
@@ -346,18 +363,54 @@
                 
                 // Envia a solicitação após um pequeno delay para garantir que o iframe está pronto
                 setTimeout(() => {
-                    iframe.contentWindow.postMessage({ type: 'REQUEST_FIREBASE_DATA' }, '*');
-                }, 500);
+                    const iframe = document.getElementById('data-iframe');
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({ 
+                            type: 'REQUEST_FIREBASE_DATA',
+                            requestId: Date.now()
+                        }, ALLOWED_ORIGIN);
+                    } else {
+                        console.error('Iframe não está pronto para enviar mensagem');
+                        if (dataLoadAttempts < MAX_ATTEMPTS) {
+                            setTimeout(buscarDadosEmpresas, 2000);
+                        } else {
+                            mostrarErro("Falha ao carregar dados. Por favor, recarregue a página.");
+                        }
+                    }
+                }, 1000);
+                
+                // Timeout para caso não receba resposta
+                setTimeout(() => {
+                    const iframe = document.getElementById('data-iframe');
+                    if (iframe && document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                        if (dataLoadAttempts < MAX_ATTEMPTS) {
+                            buscarDadosEmpresas();
+                        } else {
+                            mostrarErro("Tempo esgotado ao carregar dados. Por favor, recarregue a página.");
+                        }
+                    }
+                }, 10000);
                 
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
-                mostrarErro("Erro ao carregar dados. Tente recarregar a página.");
+                if (dataLoadAttempts < MAX_ATTEMPTS) {
+                    setTimeout(buscarDadosEmpresas, 2000);
+                } else {
+                    mostrarErro("Erro ao carregar dados. Tente recarregar a página.");
+                }
             }
         }
 
         // Processa os dados recebidos
         function processarDadosEmpresas(firebaseData) {
             try {
+                console.log('Processando dados:', firebaseData);
+                
+                if (!firebaseData || !firebaseData.usuarios) {
+                    throw new Error('Dados recebidos são inválidos');
+                }
+                
                 todasEmpresas = [];
                 estadosDisponiveis = new Set();
                 servicosDisponiveis = new Set();
@@ -366,7 +419,7 @@
                 const usuarios = firebaseData.usuarios || [];
                 
                 usuarios.forEach(empresa => {
-                    if (empresa.data.nomeFantasia && empresa.data.status !== 'pendente') {
+                    if (empresa.data && empresa.data.nomeFantasia && empresa.data.status !== 'pendente') {
                         const empresaFormatada = {
                             id: empresa.id,
                             nome: formatarTexto(empresa.data.nomeFantasia) || 'Nome não informado',
@@ -385,12 +438,13 @@
                     }
                 });
                 
+                console.log(`Total de empresas carregadas: ${todasEmpresas.length}`);
                 atualizarFiltros();
                 exibirEmpresas(todasEmpresas);
                 
             } catch (error) {
                 console.error("Erro ao processar dados:", error);
-                mostrarErro("Erro ao processar dados recebidos.");
+                mostrarErro("Erro ao processar dados recebidos. Tente recarregar a página.");
             }
         }
 
@@ -512,9 +566,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Carrega os dados imediatamente
             buscarDadosEmpresas();
-            
-            // Configura o intervalo para atualizar os dados periodicamente (a cada 10 segundos)
-            setInterval(buscarDadosEmpresas, 10000);
             
             // Configura listeners para os filtros
             document.getElementById('estado').addEventListener('change', function() {
