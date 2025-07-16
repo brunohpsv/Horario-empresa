@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro | HORÁRIO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .login-btn {
+            background-color: #4CAF50;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            display: flex;
+            gap: 30px;
+        }
+        
+        .form-container {
+            flex: 2;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .plano-container {
+            flex: 1;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="file"],
+        input[type="number"],
+        input[type="password"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .plano-box {
+            border: 2px solid #4CAF50;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .plano-preco {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+        
+        .plano-descricao {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .plano-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .plano-info h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .plano-info p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #555;
+        }
+        
+        .termos {
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .termos a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        
+        .btn-enviar {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .btn-enviar:hover {
+            background-color: #45a049;
+        }
+        
+        .mensagem-sucesso {
+            display: none;
+            background: #dff0d8;
+            color: #3c763d;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .credenciais-acesso {
+            display: none;
+            background: #e7f3fe;
+            color: #31708f;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #31708f;
+        }
+        
+        .exemplo {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .senha-input-container {
+            position: relative;
+        }
+
+        .senha-input-container input {
+            padding-right: 40px;
+        }
+
+        .btn-toggle-senha {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .btn-toggle-senha:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">HORÁRIO</div>
+        <nav>
+            <ul>
+                <li><a href="https://horario.site">Início</a></li>
+                <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="form-container">
+            <h1>Cadastro de Usuário</h1>
+            <form id="formCadastro">
+                <div class="form-group">
+                    <label for="tipo-pessoa">Tipo de Pessoa</label>
+                    <select id="tipo-pessoa" required>
+                        <option value="">Selecione...</option>
+                        <option value="pf">Pessoa Física (CPF)</option>
+                        <option value="pj">Pessoa Jurídica (CNPJ)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="identificacao" id="label-identificacao">CPF/CNPJ</label>
+                    <input type="text" id="identificacao" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nome-fantasia" id="label-nome-fantasia">Nome Fantasia (Empresa) ou Nome Completo (Pessoa Física)</label>
+                    <input type="text" id="nome-fantasia" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="endereco">Endereço</label>
+                    <input type="text" id="endereco" placeholder="Rua" required>
+                </div>
+                
+                <div class="form-group">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 3;">
+                            <label for="bairro">Bairro/Setor</label>
+                            <input type="text" id="bairro" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="numero">Número</label>
+                            <input type="text" id="numero" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 2;">
+                            <label for="cidade">Cidade</label>
+                            <input type="text" id="cidade" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="estado">Estado</label>
+                            <input type="text" id="estado" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="cep">CEP</label>
+                            <input type="text" id="cep" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="telefone">Telefone/Celular do Responsável</label>
+                    <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <div class="senha-input-container">
+                        <input type="password" id="senha" minlength="6" required>
+                        <button type="button" class="btn-toggle-senha">👁️</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmarSenha">Confirmar Senha</label>
+                    <div class="senha-input-container">
+                        <input type="password" id="confirmarSenha" minlength="6" required>
+                        <button type="button" class="btn-toggle-senha">👁️</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="maquinas">Quantas máquinas irão usar? (Máximo 30)</label>
+                    <input type="number" id="maquinas" min="1" max="30" value="1" required>
+                    <div class="exemplo">Para mais de 30 máquinas, entre em contato para negociar o valor</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="servicos">Quais serviços sua empresa presta?</label>
+                    <textarea id="servicos" rows="3" required></textarea>
+                    <div class="exemplo">Exemplo: Clínica médica geral / Odontologia / Dermatologia / Psicologia - Separe os serviços com barras (/)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="documento">Documento de Identificação</label>
+                    <input type="file" id="documento" required>
+                    <small>Envie Identidade, CNH ou Cartão CNPJ (PDF ou imagem)</small>
+                </div>
+                
+                <div class="termos">
+                    <input type="checkbox" id="concordo" required>
+                    <label for="concordo">Concordo com os <a href="#">termos</a> adotados para utilização dessa plataforma, respeitando todos os direitos do site</label>
+                </div>
+                
+                <button type="submit" class="btn-enviar">Enviar Cadastro</button>
+                
+                <div id="mensagemSucesso" class="mensagem-sucesso">
+                    Seu cadastro está em análise, por 24h. Neste período a nossa equipe entrará em contato para efetivar seu cadastro.
+                </div>
+                
+                <div id="credenciaisAcesso" class="credenciais-acesso">
+                    <h3>Suas Credenciais de Acesso</h3>
+                    <p><strong>E-mail:</strong> <span id="cred-email"></span></p>
+                    <p><strong>Senha:</strong> <span id="cred-senha"></span></p>
+                    <p>Guarde essas informações em local seguro. Você poderá alterar a senha após o primeiro login.</p>
+                </div>
+            </form>
+        </div>
+        
+        <div class="plano-container">
+            <div class="plano-box">
+                <h3>Plano Único</h3>
+                <div class="plano-preco">R$ 30,00/mês</div>
+                <div class="plano-descricao">
+                    Acesso completo à plataforma com todos os recursos disponíveis para seu negócio.
+                </div>
+            </div>
+            
+            <div class="plano-info">
+                <h4>Sobre seu Plano</h4>
+                <p>O seu plano te dá direito a usar até 30 máquinas com 1 administrador. Isso significa que:</p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">Se seu estabelecimento tem até 30 profissionais que precisam de agendamentos individuais, cada um terá seu perfil próprio</li>
+                    <li style="margin-bottom: 8px;">Se sua empresa oferece vários serviços, você poderá criar uma página personalizada onde os clientes escolhem o serviço e o profissional desejado</li>
+                    <li>Ideal para clínicas, consultórios, salões e outros negócios com múltiplos prestadores de serviço</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Importação do Firebase v9 (modular via CDN) -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            doc,
+            setDoc,
+            collection,
+            addDoc
+        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
+            authDomain: "horariosite-669d1.firebaseapp.com",
+            projectId: "horariosite-669d1",
+            storageBucket: "horariosite-669d1.appspot.com",
+            messagingSenderId: "154976451283",
+            appId: "1:154976451283:web:c4a75ce9c78e67d5a17226"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Alternar entre CPF e CNPJ
+        document.getElementById('tipo-pessoa').addEventListener('change', function() {
+            const label = document.getElementById('label-identificacao');
+            const nomeLabel = document.getElementById('label-nome-fantasia');
+            
+            if (this.value === 'pj') {
+                label.textContent = 'CNPJ';
+                nomeLabel.textContent = 'Nome Fantasia da Empresa';
+            } else {
+                label.textContent = 'CPF';
+                nomeLabel.textContent = 'Nome Completo (Titular do CPF)';
+            }
+        });
+
+        // Função para gerar horários baseados na configuração
+        function gerarHorariosPadrao(config) {
+            const horarios = [];
+            let horaAtual = new Date();
+            horaAtual.setHours(parseInt(config.horarioAbertura.split(':')[0]), 0, 0, 0);
+
+            const horaFim = new Date();
+            horaFim.setHours(parseInt(config.horarioFechamento.split(':')[0]), 0, 0, 0);
+
+            while (horaAtual < horaFim) {
+                horarios.push(horaAtual.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+                horaAtual.setMinutes(horaAtual.getMinutes() + config.intervaloAtendimento);
+            }
+
+            return horarios;
+        }
+
+        // Envio do formulário para o Firebase
+        document.getElementById('formCadastro').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            const btnOriginalText = btn.textContent;
+            btn.textContent = 'Enviando...';
+            btn.disabled = true;
+            
+            try {
+                // Coletar dados do formulário
+                const email = document.getElementById('email').value;
+                const senha = document.getElementById('senha').value;
+                
+                const formData = {
+                    tipoPessoa: document.getElementById('tipo-pessoa').value,
+                    identificacao: document.getElementById('identificacao').value,
+                    nomeFantasia: document.getElementById('nome-fantasia').value,
+                    endereco: document.getElementById('endereco').value,
+                    bairro: document.getElementById('bairro').value,
+                    numero: document.getElementById('numero').value,
+                    cidade: document.getElementById('cidade').value,
+                    estado: document.getElementById('estado').value,
+                    cep: document.getElementById('cep').value,
+                    telefone: document.getElementById('telefone').value,
+                    email: email,
+                    maquinas: document.getElementById('maquinas').value,
+                    servicos: document.getElementById('servicos').value,
+                    documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
+                    dataCadastro: new Date().toISOString(),
+                    status: 'pendente'
+                };
+
+                // 1. Criar usuário no Authentication
+                const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+                const userId = userCredential.user.uid;
+                
+                // Configuração padrão de horários
+                const horariosConfig = {
+                    diasFuncionamento: ["1", "2", "3", "4", "5"], // Segunda a Sexta
+                    horarioAbertura: "08:00",
+                    horarioFechamento: "18:00",
+                    duracaoAtendimento: 30,
+                    intervaloAtendimento: 15
+                };
+
+                // 2. Salvar dados no Firestore com a configuração de horários
+                await setDoc(doc(db, "usuarios", userId), {
+                    ...formData,
+                    horariosConfig: horariosConfig
+                });
+
+                // 3. Criar um documento de exemplo na subcoleção "horarios" (para a data atual)
+                const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+                await setDoc(doc(db, "usuarios", userId, "horarios", dataAtual), {
+                    horariosDisponiveis: gerarHorariosPadrao(horariosConfig),
+                    horariosAgendados: []
+                });
+                
+                // 4. Mostrar mensagem de sucesso
+                document.getElementById('mensagemSucesso').style.display = 'block';
+                document.getElementById('credenciaisAcesso').style.display = 'block';
+                document.getElementById('cred-email').textContent = email;
+                document.getElementById('cred-senha').textContent = senha;
+                
+                // 5. Limpar formulário
+                document.getElementById('formCadastro').reset();
+                window.scrollTo(0, document.body.scrollHeight);
+                
+            } catch (error) {
+                console.error("Erro ao enviar cadastro:", error);
+                alert("Ocorreu um erro ao enviar seu cadastro: " + error.message);
+            } finally {
+                btn.textContent = btnOriginalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Máscaras para os campos
+        document.getElementById('telefone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 2) {
+                value = `(${value.substring(0,2)}) ${value.substring(2)}`;
+            }
+            if (value.length > 10) {
+                value = `${value.substring(0,10)}-${value.substring(10,14)}`;
+            }
+            e.target.value = value;
+        });
+
+        document.getElementById('cep').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 5) {
+                value = `${value.substring(0,5)}-${value.substring(5,8)}`;
+            }
+            e.target.value = value;
+        });
+
+        // Função para mostrar/esconder senha
+        document.querySelectorAll('.btn-toggle-senha').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    this.textContent = '👁️';
+                } else {
+                    input.type = 'password';
+                    this.textContent = '👁️';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
