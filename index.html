@@ -293,15 +293,14 @@
     </section>
 
     <script>
-        // URL da página com os dados (ajuste para seu repositório)
-        const DATA_PAGE_URL = "https://brunohpsv.github.io/firestore-hidden-access/data.html";
-        const ACCESS_PASSWORD = "baratavelha0325";
-
+        // URL da página de dados no GitHub
+        const DATA_URL = "https://brunohpsv.github.io/firestore-hidden-access/data.html";
+        
         // Variáveis globais
         let todasEmpresas = [];
         let estadosDisponiveis = new Set();
         let servicosDisponiveis = new Set();
-        let dataWindow = null;
+        let dataRefreshInterval;
 
         // Função para formatar texto
         function formatarTexto(texto) {
@@ -323,76 +322,20 @@
                 .join(' ');
         }
 
-        // Quando o DOM estiver carregado
-        document.addEventListener('DOMContentLoaded', function() {
-            iniciarConexaoDados();
-            
-            // Configura listeners para os filtros
-            document.getElementById('estado').addEventListener('change', function() {
-                atualizarCidades(this.value);
-                filtrarEmpresas();
-            });
-            
-            document.getElementById('cidade').addEventListener('change', filtrarEmpresas);
-            document.getElementById('servico').addEventListener('change', filtrarEmpresas);
-            document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
-        });
-
-        // Inicia a conexão com a página de dados
-        function iniciarConexaoDados() {
-            const listaEmpresas = document.getElementById('empresas-lista');
-            listaEmpresas.innerHTML = '<div class="loading">Conectando ao banco de dados...</div>';
-
-            // Abre a página de dados em uma nova aba (será fechada automaticamente)
-            dataWindow = window.open(DATA_PAGE_URL, '_blank');
-            
-            if (!dataWindow) {
-                mostrarErro("Pop-up bloqueado. Por favor, permita pop-ups para este site.");
-                return;
-            }
-
-            // Configura o listener para receber os dados
-            window.addEventListener('message', receberDadosEmpresas);
-
-            // Verifica periodicamente se a página está pronta
-            const checkInterval = setInterval(() => {
-                try {
-                    // Envia a senha para autenticação
-                    dataWindow.postMessage({
-                        type: 'AUTH_REQUEST',
-                        password: ACCESS_PASSWORD
-                    }, '*');
-                    
-                    // Se chegou aqui, a conexão está estabelecida
-                    listaEmpresas.innerHTML = '<div class="loading">Carregando dados das empresas...</div>';
-                } catch (e) {
-                    // Ainda não está pronto, continua tentando
-                    return;
-                }
-                
-                clearInterval(checkInterval);
-            }, 500);
-        }
-
-        // Recebe os dados das empresas da página de dados
-        function receberDadosEmpresas(event) {
-            // Verifica se a mensagem é do tipo esperado
-            if (event.data.type === 'FIREBASE_DATA') {
-                processarDadosEmpresas(event.data.data);
-                
-                // Fecha a janela de dados após receber as informações
-                if (dataWindow) {
-                    dataWindow.close();
-                }
-            } else if (event.data.type === 'AUTH_ERROR') {
-                mostrarErro("Erro de autenticação: " + event.data.message);
+        // Função para buscar os dados do data.html
+        async function buscarDadosEmpresas() {
+            try {
+                const response = await fetch(DATA_URL);
+                const data = await response.json();
+                processarDadosEmpresas(data);
+            } catch (error) {
+                console.error("Erro ao buscar dados:", error);
+                mostrarErro("Erro ao carregar dados. Tente recarregar a página.");
             }
         }
 
-        // Processa os dados recebidos do Firebase
+        // Processa os dados recebidos
         function processarDadosEmpresas(firebaseData) {
-            const listaEmpresas = document.getElementById('empresas-lista');
-            
             try {
                 todasEmpresas = [];
                 estadosDisponiveis = new Set();
@@ -543,6 +486,25 @@
             const listaEmpresas = document.getElementById('empresas-lista');
             listaEmpresas.innerHTML = `<div class="error-message">${mensagem}</div>`;
         }
+
+        // Quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carrega os dados imediatamente
+            buscarDadosEmpresas();
+            
+            // Configura o intervalo para atualizar os dados periodicamente (a cada 10 segundos)
+            setInterval(buscarDadosEmpresas, 10000);
+            
+            // Configura listeners para os filtros
+            document.getElementById('estado').addEventListener('change', function() {
+                atualizarCidades(this.value);
+                filtrarEmpresas();
+            });
+            
+            document.getElementById('cidade').addEventListener('change', filtrarEmpresas);
+            document.getElementById('servico').addEventListener('change', filtrarEmpresas);
+            document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
+        });
     </script>
 </body>
 </html>
