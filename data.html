@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>API de Dados</title>
+    <title>API de Dados Firestore</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
@@ -16,16 +16,26 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        // Variável para armazenar os dados
-        let firebaseData = {};
-        
+        // Cache de dados
+        let cachedData = {
+            usuarios: [],
+            horarios: [],
+            turmas: [],
+            aulas: [],
+            professores: [],
+            lastUpdated: null
+        };
+
         // Função para carregar todos os dados
         async function loadAllData() {
             try {
+                console.log("Iniciando atualização de dados...");
+                
                 const collections = ["usuarios", "horarios", "turmas", "aulas", "professores"];
                 const newData = {};
                 
-                for (const collectionName of collections) {
+                // Carrega todas as coleções em paralelo
+                await Promise.all(collections.map(async (collectionName) => {
                     try {
                         const snapshot = await db.collection(collectionName).get();
                         newData[collectionName] = snapshot.docs.map(doc => ({
@@ -33,46 +43,76 @@
                             data: doc.data()
                         }));
                     } catch (error) {
-                        console.error(`Erro ao carregar ${collectionName}:`, error);
+                        console.error(`Erro na coleção ${collectionName}:`, error);
+                        newData[collectionName] = [];
                     }
-                }
+                }));
+
+                // Atualiza o cache
+                cachedData = {
+                    ...newData,
+                    lastUpdated: new Date().toISOString()
+                };
                 
-                firebaseData = newData;
-                console.log("Dados atualizados em:", new Date());
+                console.log("Dados atualizados com sucesso em:", cachedData.lastUpdated);
+                
             } catch (error) {
-                console.error("Erro ao atualizar dados:", error);
+                console.error("Erro geral ao atualizar dados:", error);
             }
         }
-        
-        // Atualiza os dados a cada 5 segundos
-        loadAllData(); // Carrega imediatamente
-        setInterval(loadAllData, 5000); // Atualiza a cada 5 segundos
-        
-        // Função para responder às requisições
-        window.getFirebaseData = function() {
-            return firebaseData;
-        };
+
+        // Atualiza os dados imediatamente e a cada 5 segundos
+        loadAllData().catch(console.error);
+        setInterval(() => loadAllData().catch(console.error), 5000);
+
+        // Função para retornar os dados formatados
+        function getFormattedData() {
+            return {
+                status: "success",
+                lastUpdated: cachedData.lastUpdated,
+                data: {
+                    usuarios: cachedData.usuarios,
+                    horarios: cachedData.horarios,
+                    turmas: cachedData.turmas,
+                    aulas: cachedData.aulas,
+                    professores: cachedData.professores
+                }
+            };
+        }
     </script>
 </head>
 <body>
-    <!-- Página vazia, funciona apenas como endpoint -->
     <script>
-        // Esta parte é necessária para o GitHub Pages
-        // Transforma a página em um endpoint que retorna JSON
-        const dataToSend = {
-            usuarios: window.getFirebaseData().usuarios || [],
-            horarios: window.getFirebaseData().horarios || [],
-            turmas: window.getFirebaseData().turmas || [],
-            aulas: window.getFirebaseData().aulas || [],
-            professores: window.getFirebaseData().professores || []
-        };
-        
+        // Configura o cabeçalho para retornar JSON
         document.write(`
             <script>
-                parent.postMessage({
-                    type: 'FIREBASE_DATA',
-                    data: ${JSON.stringify(dataToSend)}
-                }, '*');
+                // Verifica se é uma requisição fetch
+                if (window.parent !== window) {
+                    const data = getFormattedData();
+                    const jsonData = JSON.stringify(data);
+                    
+                    // Envia os dados para o parent
+                    parent.postMessage({
+                        type: 'FIREBASE_DATA',
+                        data: data
+                    }, '*');
+                    
+                    // Escreve o JSON diretamente no documento
+                    document.write(jsonData);
+                    document.close();
+                } else {
+                    // Modo de visualização direta (para debug)
+                    document.body.innerHTML = '<h1>API de Dados Firestore</h1>' +
+                        '<p>Esta página serve como endpoint para os dados.</p>' +
+                        '<p>Última atualização: <span id="last-update">${cachedData.lastUpdated || 'N/A'}</span></p>' +
+                        '<p>Status: <span id="status">Carregando...</span></p>';
+                    
+                    // Atualiza o status periodicamente
+                    setInterval(() => {
+                        document.getElementById('last-update').textContent = cachedData.lastUpdated || 'N/A';
+                        document.getElementById('status').textContent = cachedData.lastUpdated ? 'Ativo' : 'Carregando...';
+                    }, 1000);
+                }
             </script>
         `);
     </script>
