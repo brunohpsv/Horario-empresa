@@ -293,14 +293,13 @@
     </section>
 
     <script>
-        // URL da página de dados no GitHub
+        // URL da página de dados
         const DATA_URL = "https://brunohpsv.github.io/firestore-hidden-access/data.html";
         
         // Variáveis globais
         let todasEmpresas = [];
         let estadosDisponiveis = new Set();
         let servicosDisponiveis = new Set();
-        let dataRefreshInterval;
 
         // Função para formatar texto
         function formatarTexto(texto) {
@@ -325,9 +324,31 @@
         // Função para buscar os dados do data.html
         async function buscarDadosEmpresas() {
             try {
-                const response = await fetch(DATA_URL);
-                const data = await response.json();
-                processarDadosEmpresas(data);
+                document.getElementById('empresas-lista').innerHTML = '<div class="loading">Carregando empresas...</div>';
+                
+                // Cria um iframe invisível para acessar os dados
+                const iframe = document.createElement('iframe');
+                iframe.src = DATA_URL;
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                
+                // Configura o listener para receber a resposta
+                window.addEventListener('message', function handler(event) {
+                    if (event.data && event.data.type === 'FIREBASE_DATA_RESPONSE') {
+                        // Remove o iframe após receber os dados
+                        document.body.removeChild(iframe);
+                        window.removeEventListener('message', handler);
+                        
+                        // Processa os dados recebidos
+                        processarDadosEmpresas(event.data.data);
+                    }
+                });
+                
+                // Envia a solicitação após um pequeno delay para garantir que o iframe está pronto
+                setTimeout(() => {
+                    iframe.contentWindow.postMessage({ type: 'REQUEST_FIREBASE_DATA' }, '*');
+                }, 500);
+                
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
                 mostrarErro("Erro ao carregar dados. Tente recarregar a página.");
