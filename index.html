@@ -393,7 +393,8 @@
                             cep: data.cep || '',
                             cidade: formatarTexto(data.cidade) || '',
                             estado: formatarTexto(data.estado) || '',
-                            servico: formatarTexto(servico)
+                            servico: formatarTexto(servico),
+                            numero: data.numero || ''
                         };
                         
                         todasEmpresas.push(empresa);
@@ -517,9 +518,10 @@
             const gridEmpresas = document.getElementById('empresas-grid');
             
             empresas.forEach(empresa => {
-                // Formata o endereço completo
+                // Formata o endereço completo com todas as informações
                 let enderecoCompleto = '';
                 if (empresa.endereco) enderecoCompleto += empresa.endereco;
+                if (empresa.numero) enderecoCompleto += (enderecoCompleto ? ', ' : '') + empresa.numero;
                 if (empresa.bairro) enderecoCompleto += (enderecoCompleto ? ', ' : '') + empresa.bairro;
                 if (empresa.cidade) enderecoCompleto += (enderecoCompleto ? ', ' : '') + empresa.cidade;
                 if (empresa.estado) enderecoCompleto += (enderecoCompleto ? ' - ' : '') + empresa.estado;
