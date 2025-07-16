@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HORÁRIO - Lista de Empresas</title>
-    <!-- Ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -69,17 +68,12 @@
             background-color: white;
             padding: 20px 40px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 100%;
         }
 
         .filtro-container {
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
         }
 
         .filtro-item {
@@ -102,98 +96,69 @@
             border-radius: 0;
         }
 
-        .filtro-geo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .filtro-geo i {
-            color: #555;
-            cursor: pointer;
-        }
-
         /* Lista de empresas */
         .empresas-container {
-            padding: 0 40px 20px 40px;
-            width: 100%;
-            max-width: 100%;
+            padding: 20px 40px;
         }
 
         .empresas-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            width: 100%;
-            max-width: 100%;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
         }
 
         .empresa-item {
             background-color: white;
-            padding: 15px 20px;
+            padding: 15px;
             border: 1px solid #eee;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            text-align: left;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .empresa-item:hover {
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-
-        .empresa-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 5px;
         }
 
         .empresa-nome {
             font-size: 18px;
             font-weight: bold;
             color: #333;
+            margin-bottom: 5px;
         }
 
         .servico-tag {
+            display: inline-block;
             font-size: 12px;
             color: #d32f2f;
             font-weight: bold;
+            margin-bottom: 10px;
         }
 
         .empresa-info {
-            font-family: Arial;
-            font-size: 13px;
+            font-size: 14px;
             color: #666;
             line-height: 1.5;
-            margin-top: 3px;
         }
 
         .empresa-contato {
-            font-family: Arial;
-            font-size: 13px;
+            font-size: 14px;
             color: #444;
-            margin-top: 5px;
+            margin-top: 10px;
             display: flex;
             align-items: center;
             gap: 5px;
         }
 
         .divider {
-            margin: 8px 0;
+            margin: 10px 0;
             height: 1px;
             background-color: #eee;
-            width: 100%;
         }
 
         .loading {
             text-align: center;
             padding: 40px;
             color: #666;
-            grid-column: 1 / -1;
         }
 
         .error-message {
@@ -203,17 +168,11 @@
             background-color: #fde8e8;
             border-radius: 0;
             margin: 20px;
-            grid-column: 1 / -1;
         }
 
-        /* Responsivo */
         @media (max-width: 768px) {
             .filtro-container {
                 flex-direction: column;
-            }
-            
-            .filtro-item {
-                width: 100%;
             }
             
             header {
@@ -232,11 +191,6 @@
             }
             
             .empresas-container {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-            
-            .empresa-item {
                 padding: 15px;
             }
         }
@@ -253,23 +207,8 @@
         </nav>
     </header>
     
-    <!-- Seção de Filtros -->
     <section class="filtro-section">
         <div class="filtro-container">
-            <div class="filtro-item">
-                <label for="estado">Estado</label>
-                <select id="estado">
-                    <option value="">Todos os estados</option>
-                </select>
-            </div>
-            
-            <div class="filtro-item">
-                <label for="cidade">Cidade</label>
-                <select id="cidade" disabled>
-                    <option value="">Selecione um estado</option>
-                </select>
-            </div>
-            
             <div class="filtro-item">
                 <label for="servico">Tipo de Serviço</label>
                 <select id="servico">
@@ -279,235 +218,36 @@
             
             <div class="filtro-item">
                 <label for="nome-empresa">Nome da Empresa</label>
-                <div class="filtro-geo">
-                    <input type="text" id="nome-empresa" placeholder="Digite o nome">
-                    <i class="fas fa-search"></i>
-                </div>
+                <input type="text" id="nome-empresa" placeholder="Digite o nome">
             </div>
         </div>
     </section>
     
-    <!-- Lista de Empresas -->
     <section class="empresas-container">
         <div id="empresas-lista" class="loading">Carregando empresas...</div>
     </section>
 
     <script>
-        // URL da página de dados
-        const DATA_URL = "https://brunohpsv.github.io/dados/";
-        
+        // Dados de exemplo (substituir pela chamada real à API)
+        const empresasData = [
+            {
+                id: "L4kx302OLYb0MglF1RzA4AaENuR2",
+                nome: "Bastião",
+                servico: "Barbearia",
+                cidade: "Goiânia",
+                estado: "GO",
+                telefone: "(62) 32659-8321",
+                endereco: "Rua 1, 3",
+                bairro: "Bairro 2"
+            },
+            // Adicione mais empresas conforme necessário
+        ];
+
         // Variáveis globais
         let todasEmpresas = [];
-        let estadosDisponiveis = new Set();
         let servicosDisponiveis = new Set();
-        let dataLoadAttempts = 0;
-        const MAX_ATTEMPTS = 3;
 
-        // Função para formatar texto
-        function formatarTexto(texto) {
-            if (!texto) return '';
-            
-            // Converte siglas de estados para maiúsculas
-            const siglasEstados = ['ac', 'al', 'ap', 'am', 'ba', 'ce', 'df', 'es', 'go', 
-                                  'ma', 'mt', 'ms', 'mg', 'pa', 'pb', 'pr', 'pe', 'pi', 
-                                  'rj', 'rn', 'rs', 'ro', 'rr', 'sc', 'sp', 'se', 'to'];
-            
-            if (siglasEstados.includes(texto.toLowerCase())) {
-                return texto.toUpperCase();
-            }
-            
-            // Capitaliza palavras
-            return texto.toLowerCase()
-                .split(' ')
-                .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
-                .join(' ');
-        }
-
-        // Função para buscar os dados do data.html
-        async function buscarDadosEmpresas() {
-            try {
-                dataLoadAttempts++;
-                console.log(`Tentativa ${dataLoadAttempts} de carregar dados...`);
-                
-                document.getElementById('empresas-lista').innerHTML = '<div class="loading">Carregando empresas...</div>';
-                
-                const response = await fetch(DATA_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Extrai os dados das coleções
-                const firebaseData = {
-                    usuarios: []
-                };
-                
-                // Processa a coleção de usuários
-                const usuariosElements = doc.querySelectorAll('.collection-container');
-                usuariosElements.forEach(collection => {
-                    const collectionName = collection.querySelector('h2').textContent.replace('Coleção: ', '').trim();
-                    
-                    if (collectionName === 'usuarios') {
-                        const documents = collection.querySelectorAll('.document-card');
-                        documents.forEach(doc => {
-                            const docId = doc.querySelector('h5').textContent.replace('Documento ID: ', '').trim();
-                            const fields = {};
-                            
-                            doc.querySelectorAll('tr').forEach(row => {
-                                const key = row.querySelector('.field-name').textContent.trim();
-                                let value = row.querySelector('td:not(.field-name)').textContent.trim();
-                                
-                                // Tenta converter valores especiais
-                                if (value === 'null') value = null;
-                                else if (value === 'undefined') value = undefined;
-                                else if (!isNaN(value) && value !== '') value = Number(value);
-                                else if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
-                                
-                                fields[key] = value;
-                            });
-                            
-                            firebaseData.usuarios.push({
-                                id: docId,
-                                data: fields
-                            });
-                        });
-                    }
-                });
-                
-                console.log('Dados extraídos:', firebaseData);
-                processarDadosEmpresas(firebaseData);
-                
-            } catch (error) {
-                console.error("Erro ao buscar dados:", error);
-                if (dataLoadAttempts < MAX_ATTEMPTS) {
-                    setTimeout(buscarDadosEmpresas, 2000);
-                } else {
-                    mostrarErro("Erro ao carregar dados. Tente recarregar a página.");
-                }
-            }
-        }
-
-        // Processa os dados recebidos
-        function processarDadosEmpresas(firebaseData) {
-            try {
-                console.log('Processando dados:', firebaseData);
-                
-                if (!firebaseData || !firebaseData.usuarios) {
-                    throw new Error('Dados recebidos são inválidos');
-                }
-                
-                todasEmpresas = [];
-                estadosDisponiveis = new Set();
-                servicosDisponiveis = new Set();
-                
-                // Processa os usuários (empresas)
-                const usuarios = firebaseData.usuarios || [];
-                
-                usuarios.forEach(empresa => {
-                    if (empresa.data && empresa.data.nomeFantasia && empresa.data.status !== 'pendente') {
-                        const empresaFormatada = {
-                            id: empresa.id,
-                            nome: formatarTexto(empresa.data.nomeFantasia) || 'Nome não informado',
-                            cidade: formatarTexto(empresa.data.cidade) || 'Cidade não informada',
-                            estado: formatarTexto(empresa.data.estado) || 'Estado não informado',
-                            servico: formatarTexto(empresa.data.servicos || empresa.data.servico || 'Serviço não informado'),
-                            telefone: empresa.data.telefone || '',
-                            endereco: empresa.data.endereco ? 
-                                `${formatarTexto(empresa.data.endereco)}${empresa.data.numero ? ', ' + empresa.data.numero : ''}` : '',
-                            bairro: formatarTexto(empresa.data.bairro) || '',
-                            horarios: empresa.data.horariosConfig || {}
-                        };
-                        
-                        todasEmpresas.push(empresaFormatada);
-                        estadosDisponiveis.add(empresaFormatada.estado);
-                        servicosDisponiveis.add(empresaFormatada.servico);
-                    }
-                });
-                
-                console.log(`Total de empresas carregadas: ${todasEmpresas.length}`);
-                atualizarFiltros();
-                exibirEmpresas(todasEmpresas);
-                
-            } catch (error) {
-                console.error("Erro ao processar dados:", error);
-                mostrarErro("Erro ao processar dados recebidos. Tente recarregar a página.");
-            }
-        }
-
-        // Atualiza os filtros com os dados disponíveis
-        function atualizarFiltros() {
-            const selectEstado = document.getElementById('estado');
-            const selectServico = document.getElementById('servico');
-            
-            // Limpa e adiciona estados
-            selectEstado.innerHTML = '<option value="">Todos os estados</option>';
-            Array.from(estadosDisponiveis).sort().forEach(estado => {
-                const option = document.createElement('option');
-                option.value = estado;
-                option.textContent = estado;
-                selectEstado.appendChild(option);
-            });
-            
-            // Limpa e adiciona serviços
-            selectServico.innerHTML = '<option value="">Todos os serviços</option>';
-            Array.from(servicosDisponiveis).sort().forEach(servico => {
-                const option = document.createElement('option');
-                option.value = servico;
-                option.textContent = servico;
-                selectServico.appendChild(option);
-            });
-        }
-
-        // Atualiza as cidades baseado no estado selecionado
-        function atualizarCidades(estadoSelecionado) {
-            const selectCidade = document.getElementById('cidade');
-            
-            if (!estadoSelecionado) {
-                selectCidade.innerHTML = '<option value="">Selecione um estado</option>';
-                selectCidade.disabled = true;
-                return;
-            }
-            
-            const cidadesDoEstado = new Set();
-            todasEmpresas.forEach(empresa => {
-                if (empresa.estado === estadoSelecionado) {
-                    cidadesDoEstado.add(empresa.cidade);
-                }
-            });
-            
-            selectCidade.innerHTML = '<option value="">Todas as cidades</option>';
-            Array.from(cidadesDoEstado).sort().forEach(cidade => {
-                const option = document.createElement('option');
-                option.value = cidade;
-                option.textContent = cidade;
-                selectCidade.appendChild(option);
-            });
-            
-            selectCidade.disabled = false;
-        }
-
-        // Filtra as empresas baseado nos critérios
-        function filtrarEmpresas() {
-            const estado = document.getElementById('estado').value;
-            const cidade = document.getElementById('cidade').value;
-            const servico = document.getElementById('servico').value;
-            const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
-            
-            const empresasFiltradas = todasEmpresas.filter(empresa => {
-                // Aplica todos os filtros
-                return (!estado || empresa.estado === estado) &&
-                       (!cidade || empresa.cidade === cidade) &&
-                       (!servico || empresa.servico === servico) &&
-                       (!nomeEmpresa || empresa.nome.toLowerCase().includes(nomeEmpresa));
-            });
-            
-            exibirEmpresas(empresasFiltradas);
-        }
-
-        // Exibe as empresas na tela
+        // Função para exibir empresas
         function exibirEmpresas(empresas) {
             const listaEmpresas = document.getElementById('empresas-lista');
             
@@ -523,18 +263,11 @@
                 const empresaElement = document.createElement('div');
                 empresaElement.className = 'empresa-item';
                 
-                empresaElement.addEventListener('click', function() {
-                    window.location.href = `empresa.html?id=${empresa.id}`;
-                });
-                
-                // Monta o HTML com informações essenciais
                 empresaElement.innerHTML = `
-                    <div class="empresa-header">
-                        <div class="empresa-nome">${empresa.nome}</div>
-                        <div class="servico-tag">${empresa.servico}</div>
-                    </div>
+                    <div class="empresa-nome">${empresa.nome}</div>
+                    <div class="servico-tag">${empresa.servico}</div>
                     <div class="empresa-info">
-                        ${empresa.endereco ? `${empresa.endereco}${empresa.bairro ? ' - ' + empresa.bairro : ''}<br>` : ''}
+                        ${empresa.endereco}${empresa.bairro ? ' - ' + empresa.bairro : ''}<br>
                         ${empresa.cidade} - ${empresa.estado}
                     </div>
                     ${empresa.telefone ? `<div class="empresa-contato"><i class="fas fa-phone"></i> ${empresa.telefone}</div>` : ''}
@@ -545,27 +278,47 @@
             });
         }
 
-        // Mostra mensagem de erro
-        function mostrarErro(mensagem) {
-            const listaEmpresas = document.getElementById('empresas-lista');
-            listaEmpresas.innerHTML = `<div class="error-message">${mensagem}</div>`;
-        }
-
-        // Quando o DOM estiver carregado
-        document.addEventListener('DOMContentLoaded', function() {
-            // Carrega os dados imediatamente
-            buscarDadosEmpresas();
+        // Função para filtrar empresas
+        function filtrarEmpresas() {
+            const servico = document.getElementById('servico').value;
+            const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
             
-            // Configura listeners para os filtros
-            document.getElementById('estado').addEventListener('change', function() {
-                atualizarCidades(this.value);
-                filtrarEmpresas();
+            const empresasFiltradas = todasEmpresas.filter(empresa => {
+                return (!servico || empresa.servico === servico) &&
+                       (!nomeEmpresa || empresa.nome.toLowerCase().includes(nomeEmpresa));
             });
             
-            document.getElementById('cidade').addEventListener('change', filtrarEmpresas);
-            document.getElementById('servico').addEventListener('change', filtrarEmpresas);
-            document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
-        });
+            exibirEmpresas(empresasFiltradas);
+        }
+
+        // Função para carregar dados
+        function carregarDados() {
+            // Simulando carregamento de dados
+            setTimeout(() => {
+                todasEmpresas = empresasData;
+                servicosDisponiveis = new Set(todasEmpresas.map(e => e.servico));
+                
+                // Atualiza filtro de serviços
+                const selectServico = document.getElementById('servico');
+                selectServico.innerHTML = '<option value="">Todos os serviços</option>';
+                Array.from(servicosDisponiveis).sort().forEach(servico => {
+                    const option = document.createElement('option');
+                    option.value = servico;
+                    option.textContent = servico;
+                    selectServico.appendChild(option);
+                });
+                
+                // Exibe todas as empresas inicialmente
+                exibirEmpresas(todasEmpresas);
+                
+                // Configura listeners para os filtros
+                document.getElementById('servico').addEventListener('change', filtrarEmpresas);
+                document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
+            }, 1000);
+        }
+
+        // Inicia quando a página carrega
+        document.addEventListener('DOMContentLoaded', carregarDados);
     </script>
 </body>
 </html>
