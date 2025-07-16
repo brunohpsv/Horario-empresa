@@ -1,9 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>API de Dados Firestore</title>
+    <title>Firestore Data Viewer</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #444;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .collection {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #fafafa;
+        }
+        .collection-name {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .document {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid #3498db;
+            background-color: white;
+        }
+        .document-id {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .field {
+            margin: 5px 0;
+        }
+        .field-name {
+            font-weight: bold;
+        }
+        .timestamp {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            text-align: right;
+        }
+        .error {
+            color: #e74c3c;
+            padding: 10px;
+            background-color: #fdecea;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Firestore Data Viewer</h1>
+        <div id="loading">Carregando dados do Firestore...</div>
+        <div id="data-container"></div>
+    </div>
+
     <script>
         // Configuração do Firebase
         const firebaseConfig = {
@@ -15,74 +85,111 @@
         // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
-        // Cache de dados
-        let cachedData = {
-            usuarios: [],
-            lastUpdated: null
-        };
 
-        // Função para carregar todos os dados
-        async function loadAllData() {
+        // Função para carregar todas as coleções e documentos
+        async function loadAllCollections() {
             try {
-                console.log("Iniciando atualização de dados...");
+                console.log("Iniciando carregamento de dados...");
                 
-                const snapshot = await db.collection("usuarios").get();
-                const usuarios = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    data: doc.data()
-                }));
-
-                cachedData = {
-                    usuarios,
-                    lastUpdated: new Date().toISOString()
-                };
+                // Obtém todas as coleções
+                const collections = await db.listCollections();
+                const dataContainer = document.getElementById('data-container');
+                dataContainer.innerHTML = '';
                 
-                console.log("Dados atualizados com sucesso. Total:", usuarios.length);
+                if (collections.length === 0) {
+                    dataContainer.innerHTML = '<p>Nenhuma coleção encontrada no banco de dados.</p>';
+                    return;
+                }
+                
+                // Para cada coleção, obtém todos os documentos
+                for (const collectionRef of collections) {
+                    const collectionName = collectionRef.id;
+                    console.log(`Processando coleção: ${collectionName}`);
+                    
+                    const snapshot = await collectionRef.get();
+                    const documents = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        data: doc.data()
+                    }));
+                    
+                    // Cria elemento HTML para a coleção
+                    const collectionDiv = document.createElement('div');
+                    collectionDiv.className = 'collection';
+                    collectionDiv.innerHTML = `<h2 class="collection-name">Coleção: ${collectionName}</h2>`;
+                    
+                    if (documents.length === 0) {
+                        collectionDiv.innerHTML += '<p>Nenhum documento nesta coleção.</p>';
+                    } else {
+                        documents.forEach(doc => {
+                            const docDiv = document.createElement('div');
+                            docDiv.className = 'document';
+                            docDiv.innerHTML = `
+                                <div class="document-id">Documento ID: ${doc.id}</div>
+                                <div class="document-data">
+                                    ${formatDocumentData(doc.data)}
+                                </div>
+                            `;
+                            collectionDiv.appendChild(docDiv);
+                        });
+                    }
+                    
+                    dataContainer.appendChild(collectionDiv);
+                }
+                
+                document.getElementById('loading').style.display = 'none';
+                console.log("Dados carregados com sucesso.");
                 
             } catch (error) {
-                console.error("Erro ao atualizar dados:", error);
-                cachedData.lastUpdated = "Erro: " + new Date().toISOString();
+                console.error("Erro ao carregar dados:", error);
+                document.getElementById('data-container').innerHTML = `
+                    <div class="error">
+                        <strong>Erro ao carregar dados:</strong> ${error.message}
+                    </div>
+                `;
+                document.getElementById('loading').style.display = 'none';
             }
         }
 
-        // Carrega os dados imediatamente
-        loadAllData().catch(console.error);
-        // Atualiza a cada 5 segundos
-        setInterval(() => loadAllData().catch(console.error), 5000);
-
-        function getFormattedData() {
-            return {
-                status: "success",
-                lastUpdated: cachedData.lastUpdated,
-                data: {
-                    usuarios: cachedData.usuarios
-                }
-            };
+        // Função para formatar os dados do documento em HTML
+        function formatDocumentData(data) {
+            let html = '';
+            for (const [key, value] of Object.entries(data)) {
+                html += `
+                    <div class="field">
+                        <span class="field-name">${key}:</span> 
+                        <span class="field-value">${formatValue(value)}</span>
+                    </div>
+                `;
+            }
+            return html;
         }
 
-        // Função para lidar com mensagens
-        window.addEventListener('message', function(event) {
-            // Verifica a origem da mensagem
-            if (event.origin !== "https://brunohpsv.github.io") return;
+        // Função para formatar valores especiais (como timestamps)
+        function formatValue(value) {
+            if (value === null || value === undefined) {
+                return 'null';
+            }
             
-            if (event.data && event.data.type === 'REQUEST_FIREBASE_DATA') {
-                console.log("Recebida solicitação de dados de:", event.origin);
-                event.source.postMessage({
-                    type: 'FIREBASE_DATA_RESPONSE',
-                    data: getFormattedData()
-                }, event.origin);
+            // Verifica se é um objeto Timestamp do Firestore
+            if (typeof value === 'object' && 'toDate' in value) {
+                return value.toDate().toLocaleString();
             }
-        });
-
-        // Se acessado diretamente
-        if (window === window.top) {
-            document.write(JSON.stringify(getFormattedData()));
-            document.close();
+            
+            // Verifica se é um objeto GeoPoint do Firestore
+            if (typeof value === 'object' && 'latitude' in value && 'longitude' in value) {
+                return `GeoPoint(lat: ${value.latitude}, lng: ${value.longitude})`;
+            }
+            
+            // Verifica se é um objeto (mas não array)
+            if (typeof value === 'object' && !Array.isArray(value)) {
+                return JSON.stringify(value, null, 2);
+            }
+            
+            return value;
         }
+
+        // Carrega os dados quando a página é carregada
+        document.addEventListener('DOMContentLoaded', loadAllCollections);
     </script>
-</head>
-<body>
-    <!-- (Conteúdo mantido igual) -->
 </body>
 </html>
