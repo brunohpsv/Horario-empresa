@@ -169,9 +169,16 @@
 
         .empresa-endereco {
             font-family: Arial;
-            font-size: 10px;
+            font-size: 12px;
             color: #666;
             line-height: 1.5;
+        }
+
+        .empresa-contato {
+            font-family: Arial;
+            font-size: 12px;
+            color: #444;
+            margin-top: 5px;
         }
 
         .divider {
@@ -276,14 +283,6 @@
                     <i class="fas fa-search"></i>
                 </div>
             </div>
-            
-            <div class="filtro-item">
-                <label>Geolocalização</label>
-                <div class="filtro-geo">
-                    <input type="text" id="geolocalizacao" placeholder="Buscar por localização" style="flex: 1;">
-                    <i class="fas fa-map-marker-alt"></i>
-                </div>
-            </div>
         </div>
     </section>
     
@@ -293,7 +292,7 @@
     </section>
 
     <script>
-        // 1. Configuração do Firebase
+        // Configuração do Firebase com as credenciais fornecidas
         const firebaseConfig = {
             apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
             authDomain: "horariosite-669d1.firebaseapp.com",
@@ -303,7 +302,7 @@
             appId: "1:154976451283:web:c4a75ce9c78e67d5a17226"
         };
 
-        // 2. Inicialização do Firebase
+        // Inicialização do Firebase
         try {
             firebase.initializeApp(firebaseConfig);
         } catch (error) {
@@ -314,13 +313,13 @@
 
         const db = firebase.firestore();
 
-        // 3. Variáveis globais
+        // Variáveis globais
         let todasEmpresas = [];
         let estadosDisponiveis = [];
         let cidadesDisponiveis = [];
         let servicosDisponiveis = [];
 
-        // Função para formatar texto (capitalizar e corrigir siglas)
+        // Função para formatar texto
         function formatarTexto(texto) {
             if (!texto) return '';
             
@@ -333,14 +332,14 @@
                 return texto.toUpperCase();
             }
             
-            // Capitaliza palavras (primeira letra maiúscula)
+            // Capitaliza palavras
             return texto.toLowerCase()
                 .split(' ')
                 .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
                 .join(' ');
         }
 
-        // 4. Quando o DOM estiver carregado
+        // Quando o DOM estiver carregado
         document.addEventListener('DOMContentLoaded', function() {
             carregarTodasEmpresas();
             
@@ -353,15 +352,9 @@
             document.getElementById('cidade').addEventListener('change', filtrarEmpresas);
             document.getElementById('servico').addEventListener('change', filtrarEmpresas);
             document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
-            
-            // Geolocalização - simulação (não implementada completamente)
-            document.querySelector('.fa-map-marker-alt').addEventListener('click', function() {
-                alert('Geolocalização ativada - buscando empresas próximas...');
-                // Aqui você implementaria a lógica real de geolocalização
-            });
         });
 
-        // 5. Carrega todas as empresas do banco de dados
+        // Carrega todas as empresas do banco de dados
         async function carregarTodasEmpresas() {
             const listaEmpresas = document.getElementById('empresas-lista');
             
@@ -381,25 +374,19 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.nomeFantasia) {
-                        // Obtém o serviço - verifica tanto 'servico' quanto 'servicos'
                         const servico = data.servicos || data.servico || 'Serviço não informado';
                         
-                        // Formata os dados
                         const empresa = {
                             id: doc.id,
                             nome: formatarTexto(data.nomeFantasia) || 'Nome não informado',
-                            endereco: formatarTexto(data.endereco) || '',
-                            bairro: formatarTexto(data.bairro) || '',
-                            cep: data.cep || '',
                             cidade: formatarTexto(data.cidade) || '',
                             estado: formatarTexto(data.estado) || '',
                             servico: formatarTexto(servico),
-                            numero: data.numero || ''
+                            telefone: data.telefone || ''
                         };
                         
                         todasEmpresas.push(empresa);
                         
-                        // Adiciona aos filtros
                         if (empresa.estado && empresa.estado !== '') {
                             estadosDisponiveis.add(empresa.estado);
                         }
@@ -410,10 +397,7 @@
                     }
                 });
                 
-                // Atualiza os filtros
                 atualizarFiltros();
-                
-                // Exibe todas as empresas inicialmente
                 exibirEmpresas(todasEmpresas);
                 
             } catch (error) {
@@ -422,12 +406,11 @@
             }
         }
 
-        // 6. Atualiza os filtros com os dados disponíveis
+        // Atualiza os filtros com os dados disponíveis
         function atualizarFiltros() {
             const selectEstado = document.getElementById('estado');
             const selectServico = document.getElementById('servico');
             
-            // Limpa e adiciona estados
             selectEstado.innerHTML = '<option value="">Todos os estados</option>';
             Array.from(estadosDisponiveis).sort().forEach(estado => {
                 const option = document.createElement('option');
@@ -436,7 +419,6 @@
                 selectEstado.appendChild(option);
             });
             
-            // Limpa e adiciona serviços
             selectServico.innerHTML = '<option value="">Todos os serviços</option>';
             Array.from(servicosDisponiveis).sort().forEach(servico => {
                 const option = document.createElement('option');
@@ -446,7 +428,7 @@
             });
         }
 
-        // 7. Atualiza as cidades baseado no estado selecionado
+        // Atualiza as cidades baseado no estado selecionado
         function atualizarCidades(estadoSelecionado) {
             const selectCidade = document.getElementById('cidade');
             
@@ -456,7 +438,6 @@
                 return;
             }
             
-            // Filtra cidades do estado selecionado
             const cidadesDoEstado = new Set();
             todasEmpresas.forEach(empresa => {
                 if (empresa.estado === estadoSelecionado && empresa.cidade) {
@@ -464,7 +445,6 @@
                 }
             });
             
-            // Atualiza o select de cidades
             selectCidade.innerHTML = '<option value="">Todas as cidades</option>';
             Array.from(cidadesDoEstado).sort().forEach(cidade => {
                 const option = document.createElement('option');
@@ -476,7 +456,7 @@
             selectCidade.disabled = false;
         }
 
-        // 8. Filtra as empresas baseado nos critérios
+        // Filtra as empresas baseado nos critérios
         function filtrarEmpresas() {
             const estado = document.getElementById('estado').value;
             const cidade = document.getElementById('cidade').value;
@@ -484,27 +464,19 @@
             const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
             
             const empresasFiltradas = todasEmpresas.filter(empresa => {
-                // Filtro por estado
                 if (estado && empresa.estado !== estado) return false;
-                
-                // Filtro por cidade
                 if (cidade && empresa.cidade !== cidade) return false;
-                
-                // Filtro por serviço
                 if (servico && empresa.servico !== servico) return false;
-                
-                // Filtro por nome
                 if (nomeEmpresa && !empresa.nome.toLowerCase().includes(nomeEmpresa)) {
                     return false;
                 }
-                
                 return true;
             });
             
             exibirEmpresas(empresasFiltradas);
         }
 
-        // 9. Exibe as empresas na tela
+        // Exibe as empresas na tela com informações essenciais
         function exibirEmpresas(empresas) {
             const listaEmpresas = document.getElementById('empresas-lista');
             
@@ -513,35 +485,26 @@
                 return;
             }
             
-            // Cria um container grid para as empresas
             listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid"></div>';
             const gridEmpresas = document.getElementById('empresas-grid');
             
             empresas.forEach(empresa => {
-                // Formata o endereço completo com todas as informações
-                let enderecoCompleto = '';
-                if (empresa.endereco) enderecoCompleto += empresa.endereco;
-                if (empresa.numero) enderecoCompleto += (enderecoCompleto ? ', ' : '') + empresa.numero;
-                if (empresa.bairro) enderecoCompleto += (enderecoCompleto ? ', ' : '') + empresa.bairro;
-                if (empresa.cidade) enderecoCompleto += (enderecoCompleto ? ', ' : '') + empresa.cidade;
-                if (empresa.estado) enderecoCompleto += (enderecoCompleto ? ' - ' : '') + empresa.estado;
-                if (empresa.cep) enderecoCompleto += (enderecoCompleto ? ', CEP: ' : 'CEP: ') + empresa.cep;
-                
                 const empresaElement = document.createElement('div');
                 empresaElement.className = 'empresa-item';
                 
-                // Adiciona evento de clique para redirecionar para a página da empresa
                 empresaElement.addEventListener('click', function() {
                     window.location.href = `empresa.html?id=${empresa.id}`;
                 });
                 
+                // Informações essenciais: Nome, Serviço, Cidade/Estado e Telefone
                 empresaElement.innerHTML = `
                     <div class="empresa-header">
                         <div class="empresa-nome">${empresa.nome}</div>
                         ${empresa.servico ? `<div class="servico-tag">${empresa.servico}</div>` : ''}
                     </div>
+                    <div class="empresa-endereco">${empresa.cidade} - ${empresa.estado}</div>
+                    ${empresa.telefone ? `<div class="empresa-contato"><i class="fas fa-phone"></i> ${empresa.telefone}</div>` : ''}
                     <div class="divider"></div>
-                    <div class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</div>
                 `;
                 
                 gridEmpresas.appendChild(empresaElement);
