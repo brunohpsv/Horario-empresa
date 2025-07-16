@@ -1,0 +1,24 @@
+
+.plano-aceite {
+    margin-top: 15px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.plano-aceite input[type="checkbox"] {
+    margin-right: 10px;
+    margin-top: 3px;
+}
+
+.plano-aceite label {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.boleto-info {
+    font-size: 12px;
+    color: #666;
+    margin-top: 3px;
+}
