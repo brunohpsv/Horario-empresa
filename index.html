@@ -294,8 +294,7 @@
 
     <script>
         // URL da página de dados
-        const DATA_URL = "https://brunohpsv.github.io/firestore-hidden-access/data.html";
-        const ALLOWED_ORIGIN = "https://brunohpsv.github.io";
+        const DATA_URL = "https://brunohpsv.github.io/dados/";
         
         // Variáveis globais
         let todasEmpresas = [];
@@ -332,65 +331,54 @@
                 
                 document.getElementById('empresas-lista').innerHTML = '<div class="loading">Carregando empresas...</div>';
                 
-                // Cria um iframe invisível para acessar os dados
-                const iframe = document.createElement('iframe');
-                iframe.src = DATA_URL;
-                iframe.style.display = 'none';
-                iframe.id = 'data-iframe';
-                document.body.appendChild(iframe);
+                const response = await fetch(DATA_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
-                // Configura o listener para receber a resposta
-                window.addEventListener('message', function handler(event) {
-                    // Verifica a origem da mensagem
-                    if (event.origin !== ALLOWED_ORIGIN) {
-                        console.warn('Mensagem de origem não permitida:', event.origin);
-                        return;
-                    }
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Extrai os dados das coleções
+                const firebaseData = {
+                    usuarios: []
+                };
+                
+                // Processa a coleção de usuários
+                const usuariosElements = doc.querySelectorAll('.collection-container');
+                usuariosElements.forEach(collection => {
+                    const collectionName = collection.querySelector('h2').textContent.replace('Coleção: ', '').trim();
                     
-                    if (event.data && event.data.type === 'FIREBASE_DATA_RESPONSE') {
-                        console.log('Dados recebidos com sucesso:', event.data);
-                        
-                        // Remove o iframe após receber os dados
-                        const iframe = document.getElementById('data-iframe');
-                        if (iframe) document.body.removeChild(iframe);
-                        
-                        window.removeEventListener('message', handler);
-                        
-                        // Processa os dados recebidos
-                        processarDadosEmpresas(event.data.data);
+                    if (collectionName === 'usuarios') {
+                        const documents = collection.querySelectorAll('.document-card');
+                        documents.forEach(doc => {
+                            const docId = doc.querySelector('h5').textContent.replace('Documento ID: ', '').trim();
+                            const fields = {};
+                            
+                            doc.querySelectorAll('tr').forEach(row => {
+                                const key = row.querySelector('.field-name').textContent.trim();
+                                let value = row.querySelector('td:not(.field-name)').textContent.trim();
+                                
+                                // Tenta converter valores especiais
+                                if (value === 'null') value = null;
+                                else if (value === 'undefined') value = undefined;
+                                else if (!isNaN(value) && value !== '') value = Number(value);
+                                else if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+                                
+                                fields[key] = value;
+                            });
+                            
+                            firebaseData.usuarios.push({
+                                id: docId,
+                                data: fields
+                            });
+                        });
                     }
                 });
                 
-                // Envia a solicitação após um pequeno delay para garantir que o iframe está pronto
-                setTimeout(() => {
-                    const iframe = document.getElementById('data-iframe');
-                    if (iframe && iframe.contentWindow) {
-                        iframe.contentWindow.postMessage({ 
-                            type: 'REQUEST_FIREBASE_DATA',
-                            requestId: Date.now()
-                        }, ALLOWED_ORIGIN);
-                    } else {
-                        console.error('Iframe não está pronto para enviar mensagem');
-                        if (dataLoadAttempts < MAX_ATTEMPTS) {
-                            setTimeout(buscarDadosEmpresas, 2000);
-                        } else {
-                            mostrarErro("Falha ao carregar dados. Por favor, recarregue a página.");
-                        }
-                    }
-                }, 1000);
-                
-                // Timeout para caso não receba resposta
-                setTimeout(() => {
-                    const iframe = document.getElementById('data-iframe');
-                    if (iframe && document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                        if (dataLoadAttempts < MAX_ATTEMPTS) {
-                            buscarDadosEmpresas();
-                        } else {
-                            mostrarErro("Tempo esgotado ao carregar dados. Por favor, recarregue a página.");
-                        }
-                    }
-                }, 10000);
+                console.log('Dados extraídos:', firebaseData);
+                processarDadosEmpresas(firebaseData);
                 
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
@@ -429,7 +417,8 @@
                             telefone: empresa.data.telefone || '',
                             endereco: empresa.data.endereco ? 
                                 `${formatarTexto(empresa.data.endereco)}${empresa.data.numero ? ', ' + empresa.data.numero : ''}` : '',
-                            bairro: formatarTexto(empresa.data.bairro) || ''
+                            bairro: formatarTexto(empresa.data.bairro) || '',
+                            horarios: empresa.data.horariosConfig || {}
                         };
                         
                         todasEmpresas.push(empresaFormatada);
