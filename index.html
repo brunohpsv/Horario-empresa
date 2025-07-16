@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HORÁRIO - Lista de Empresas</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <!-- Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -296,27 +293,9 @@
     </section>
 
     <script>
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
-            authDomain: "horariosite-669d1.firebaseapp.com",
-            projectId: "horariosite-669d1",
-            storageBucket: "horariosite-669d1.appspot.com",
-            messagingSenderId: "154976451283",
-            appId: "1:154976451283:web:c4a75ce9c78e67d5a17226"
-        };
-
-        // Inicialização do Firebase com tratamento de erro
-        let db;
-        try {
-            const app = firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore(app);
-            console.log("Firebase conectado com sucesso!");
-        } catch (error) {
-            console.error("Erro ao inicializar Firebase:", error);
-            document.getElementById('empresas-lista').innerHTML = 
-                '<div class="error-message">Erro na conexão com o banco de dados. Recarregue a página.</div>';
-        }
+        // URL da página oculta com os dados
+        const DATA_URL = "https://brunohpsv.github.io/firestore-hidden-access/data.html";
+        const ACCESS_PASSWORD = "baratavelha0325";
 
         // Variáveis globais
         let todasEmpresas = [];
@@ -345,13 +324,7 @@
 
         // Quando o DOM estiver carregado
         document.addEventListener('DOMContentLoaded', function() {
-            if (!db) {
-                document.getElementById('empresas-lista').innerHTML = 
-                    '<div class="error-message">Falha na conexão com o banco de dados.</div>';
-                return;
-            }
-            
-            carregarTodasEmpresas();
+            carregarDadosEmpresas();
             
             // Configura listeners para os filtros
             document.getElementById('estado').addEventListener('change', function() {
@@ -364,41 +337,55 @@
             document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
         });
 
-        // Carrega todas as empresas do banco de dados
-        async function carregarTodasEmpresas() {
+        // Carrega os dados da página oculta
+        async function carregarDadosEmpresas() {
             const listaEmpresas = document.getElementById('empresas-lista');
             
             try {
                 listaEmpresas.innerHTML = '<div class="loading">Carregando empresas...</div>';
                 
-                const snapshot = await db.collection('usuarios').get();
+                // Faz a requisição para a página oculta
+                const response = await fetch(DATA_URL, {
+                    method: 'POST', // Ou GET, dependendo da sua implementação
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        password: ACCESS_PASSWORD
+                    })
+                });
                 
-                if (snapshot.empty) {
-                    listaEmpresas.innerHTML = '<div class="error-message">Nenhuma empresa encontrada.</div>';
-                    return;
+                if (!response.ok) {
+                    throw new Error('Falha ao carregar dados');
                 }
                 
+                const data = await response.json();
+                
+                // Processa os dados recebidos
                 todasEmpresas = [];
                 estadosDisponiveis = new Set();
                 servicosDisponiveis = new Set();
                 
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.nomeFantasia && data.status !== 'pendente') { // Filtra apenas aprovados
-                        const empresa = {
-                            id: doc.id,
-                            nome: formatarTexto(data.nomeFantasia) || 'Nome não informado',
-                            cidade: formatarTexto(data.cidade) || 'Cidade não informada',
-                            estado: formatarTexto(data.estado) || 'Estado não informado',
-                            servico: formatarTexto(data.servicos || data.servico || 'Serviço não informado'),
-                            telefone: data.telefone || '',
-                            endereco: data.endereco ? `${formatarTexto(data.endereco)}${data.numero ? ', ' + data.numero : ''}` : '',
-                            bairro: formatarTexto(data.bairro) || ''
+                // Supondo que os dados estejam na coleção 'usuarios'
+                const usuarios = data.usuarios || [];
+                
+                usuarios.forEach(empresa => {
+                    if (empresa.data.nomeFantasia && empresa.data.status !== 'pendente') {
+                        const empresaFormatada = {
+                            id: empresa.id,
+                            nome: formatarTexto(empresa.data.nomeFantasia) || 'Nome não informado',
+                            cidade: formatarTexto(empresa.data.cidade) || 'Cidade não informada',
+                            estado: formatarTexto(empresa.data.estado) || 'Estado não informado',
+                            servico: formatarTexto(empresa.data.servicos || empresa.data.servico || 'Serviço não informado'),
+                            telefone: empresa.data.telefone || '',
+                            endereco: empresa.data.endereco ? 
+                                `${formatarTexto(empresa.data.endereco)}${empresa.data.numero ? ', ' + empresa.data.numero : ''}` : '',
+                            bairro: formatarTexto(empresa.data.bairro) || ''
                         };
                         
-                        todasEmpresas.push(empresa);
-                        estadosDisponiveis.add(empresa.estado);
-                        servicosDisponiveis.add(empresa.servico);
+                        todasEmpresas.push(empresaFormatada);
+                        estadosDisponiveis.add(empresaFormatada.estado);
+                        servicosDisponiveis.add(empresaFormatada.servico);
                     }
                 });
                 
