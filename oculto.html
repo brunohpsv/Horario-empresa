@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Oculta - Firestore Access</title>
+    <!-- Import Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        #data-container {
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .data-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .data-item:last-child {
+            border-bottom: none;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Consulta ao Firestore</h1>
+    
+    <div>
+        <label for="collectionName">Coleção:</label>
+        <input type="text" id="collectionName" placeholder="Nome da coleção">
+        <button onclick="fetchData()">Buscar Dados</button>
+    </div>
+    
+    <div id="loading" class="hidden">Carregando...</div>
+    
+    <div id="data-container"></div>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
+            projectId: "horariosite-669d1"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Função para buscar dados
+        async function fetchData() {
+            const collectionName = document.getElementById('collectionName').value;
+            if (!collectionName) {
+                alert("Por favor, insira o nome da coleção");
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const dataContainer = document.getElementById('data-container');
+            
+            loading.classList.remove('hidden');
+            dataContainer.innerHTML = '';
+
+            try {
+                const querySnapshot = await db.collection(collectionName).get();
+                
+                if (querySnapshot.empty) {
+                    dataContainer.innerHTML = '<p>Nenhum documento encontrado nesta coleção.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const dataItem = document.createElement('div');
+                    dataItem.className = 'data-item';
+                    
+                    let html = `<h3>Documento ID: ${doc.id}</h3>`;
+                    for (const key in data) {
+                        html += `<p><strong>${key}:</strong> ${JSON.stringify(data[key])}</p>`;
+                    }
+                    
+                    dataItem.innerHTML = html;
+                    dataContainer.appendChild(dataItem);
+                });
+            } catch (error) {
+                console.error("Erro ao buscar dados: ", error);
+                dataContainer.innerHTML = `<p style="color: red;">Erro ao buscar dados: ${error.message}</p>`;
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
