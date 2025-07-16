@@ -4,48 +4,350 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HORÁRIO - Lista de Empresas</title>
+    <!-- Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* (Mantenha todos os estilos CSS anteriores) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .login-btn {
+            background-color: #4CAF50;
+            padding: 8px 16px;
+            border-radius: 0;
+        }
+        
+        .login-btn:hover {
+            background-color: #45a049;
+        }
+
+        /* Filtros */
+        .filtro-section {
+            background-color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .filtro-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .filtro-item {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filtro-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .filtro-item select,
+        .filtro-item input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 0;
+        }
+
+        .filtro-geo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filtro-geo i {
+            color: #555;
+            cursor: pointer;
+        }
+
+        /* Lista de empresas */
+        .empresas-container {
+            padding: 0 40px 20px 40px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .empresas-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .empresa-item {
+            background-color: white;
+            padding: 15px 20px;
+            border: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .empresa-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .empresa-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .empresa-nome {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .servico-tag {
+            font-size: 12px;
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .empresa-info {
+            font-family: Arial;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin-top: 3px;
+        }
+
+        .empresa-contato {
+            font-family: Arial;
+            font-size: 13px;
+            color: #444;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .divider {
+            margin: 8px 0;
+            height: 1px;
+            background-color: #eee;
+            width: 100%;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            grid-column: 1 / -1;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 20px;
+            color: #d32f2f;
+            background-color: #fde8e8;
+            border-radius: 0;
+            margin: 20px;
+            grid-column: 1 / -1;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .filtro-container {
+                flex-direction: column;
+            }
+            
+            .filtro-item {
+                width: 100%;
+            }
+            
+            header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            nav ul {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            nav ul li {
+                margin: 0;
+            }
+            
+            .empresas-container {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .empresa-item {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- (Mantenha toda a estrutura HTML anterior) -->
+    <header>
+        <div class="logo">HORÁRIO</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Início</a></li>
+                <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <!-- Seção de Filtros -->
+    <section class="filtro-section">
+        <div class="filtro-container">
+            <div class="filtro-item">
+                <label for="estado">Estado</label>
+                <select id="estado">
+                    <option value="">Todos os estados</option>
+                </select>
+            </div>
+            
+            <div class="filtro-item">
+                <label for="cidade">Cidade</label>
+                <select id="cidade" disabled>
+                    <option value="">Selecione um estado</option>
+                </select>
+            </div>
+            
+            <div class="filtro-item">
+                <label for="servico">Tipo de Serviço</label>
+                <select id="servico">
+                    <option value="">Todos os serviços</option>
+                </select>
+            </div>
+            
+            <div class="filtro-item">
+                <label for="nome-empresa">Nome da Empresa</label>
+                <div class="filtro-geo">
+                    <input type="text" id="nome-empresa" placeholder="Digite o nome">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Lista de Empresas -->
+    <section class="empresas-container">
+        <div id="empresas-lista" class="loading">Carregando empresas...</div>
+    </section>
 
     <script>
         // URL da página de dados
-        const DATA_URL = "data.html";  // Alterado para caminho relativo
+        const DATA_URL = "https://brunohpsv.github.io/firestore-hidden-access/data.html";
         
         // Variáveis globais
         let todasEmpresas = [];
         let estadosDisponiveis = new Set();
         let servicosDisponiveis = new Set();
 
-        // Função para formatar texto (mantida igual)
+        // Função para formatar texto
         function formatarTexto(texto) {
             if (!texto) return '';
+            
+            // Converte siglas de estados para maiúsculas
             const siglasEstados = ['ac', 'al', 'ap', 'am', 'ba', 'ce', 'df', 'es', 'go', 
                                   'ma', 'mt', 'ms', 'mg', 'pa', 'pb', 'pr', 'pe', 'pi', 
                                   'rj', 'rn', 'rs', 'ro', 'rr', 'sc', 'sp', 'se', 'to'];
+            
             if (siglasEstados.includes(texto.toLowerCase())) {
                 return texto.toUpperCase();
             }
+            
+            // Capitaliza palavras
             return texto.toLowerCase()
                 .split(' ')
                 .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
                 .join(' ');
         }
 
-        // Nova função para buscar dados via fetch
+        // Função para buscar os dados do data.html
         async function buscarDadosEmpresas() {
             try {
                 document.getElementById('empresas-lista').innerHTML = '<div class="loading">Carregando empresas...</div>';
                 
-                const response = await fetch(DATA_URL);
-                if (!response.ok) throw new Error("Falha na requisição");
+                // Cria um iframe invisível para acessar os dados
+                const iframe = document.createElement('iframe');
+                iframe.src = DATA_URL;
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
                 
-                const data = await response.json();
-                processarDadosEmpresas(data.data);
+                // Configura o listener para receber a resposta
+                window.addEventListener('message', function handler(event) {
+                    if (event.data && event.data.type === 'FIREBASE_DATA_RESPONSE') {
+                        // Remove o iframe após receber os dados
+                        document.body.removeChild(iframe);
+                        window.removeEventListener('message', handler);
+                        
+                        // Processa os dados recebidos
+                        processarDadosEmpresas(event.data.data);
+                    }
+                });
+                
+                // Envia a solicitação após um pequeno delay para garantir que o iframe está pronto
+                setTimeout(() => {
+                    iframe.contentWindow.postMessage({ type: 'REQUEST_FIREBASE_DATA' }, '*');
+                }, 500);
                 
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
@@ -53,13 +355,14 @@
             }
         }
 
-        // Função processarDadosEmpresas (mantida igual)
+        // Processa os dados recebidos
         function processarDadosEmpresas(firebaseData) {
             try {
                 todasEmpresas = [];
                 estadosDisponiveis = new Set();
                 servicosDisponiveis = new Set();
                 
+                // Processa os usuários (empresas)
                 const usuarios = firebaseData.usuarios || [];
                 
                 usuarios.forEach(empresa => {
@@ -91,31 +394,127 @@
             }
         }
 
-        // Funções auxiliares (mantidas iguais)
+        // Atualiza os filtros com os dados disponíveis
         function atualizarFiltros() {
-            /* (implementação igual) */
+            const selectEstado = document.getElementById('estado');
+            const selectServico = document.getElementById('servico');
+            
+            // Limpa e adiciona estados
+            selectEstado.innerHTML = '<option value="">Todos os estados</option>';
+            Array.from(estadosDisponiveis).sort().forEach(estado => {
+                const option = document.createElement('option');
+                option.value = estado;
+                option.textContent = estado;
+                selectEstado.appendChild(option);
+            });
+            
+            // Limpa e adiciona serviços
+            selectServico.innerHTML = '<option value="">Todos os serviços</option>';
+            Array.from(servicosDisponiveis).sort().forEach(servico => {
+                const option = document.createElement('option');
+                option.value = servico;
+                option.textContent = servico;
+                selectServico.appendChild(option);
+            });
         }
 
+        // Atualiza as cidades baseado no estado selecionado
         function atualizarCidades(estadoSelecionado) {
-            /* (implementação igual) */
+            const selectCidade = document.getElementById('cidade');
+            
+            if (!estadoSelecionado) {
+                selectCidade.innerHTML = '<option value="">Selecione um estado</option>';
+                selectCidade.disabled = true;
+                return;
+            }
+            
+            const cidadesDoEstado = new Set();
+            todasEmpresas.forEach(empresa => {
+                if (empresa.estado === estadoSelecionado) {
+                    cidadesDoEstado.add(empresa.cidade);
+                }
+            });
+            
+            selectCidade.innerHTML = '<option value="">Todas as cidades</option>';
+            Array.from(cidadesDoEstado).sort().forEach(cidade => {
+                const option = document.createElement('option');
+                option.value = cidade;
+                option.textContent = cidade;
+                selectCidade.appendChild(option);
+            });
+            
+            selectCidade.disabled = false;
         }
 
+        // Filtra as empresas baseado nos critérios
         function filtrarEmpresas() {
-            /* (implementação igual) */
+            const estado = document.getElementById('estado').value;
+            const cidade = document.getElementById('cidade').value;
+            const servico = document.getElementById('servico').value;
+            const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
+            
+            const empresasFiltradas = todasEmpresas.filter(empresa => {
+                // Aplica todos os filtros
+                return (!estado || empresa.estado === estado) &&
+                       (!cidade || empresa.cidade === cidade) &&
+                       (!servico || empresa.servico === servico) &&
+                       (!nomeEmpresa || empresa.nome.toLowerCase().includes(nomeEmpresa));
+            });
+            
+            exibirEmpresas(empresasFiltradas);
         }
 
+        // Exibe as empresas na tela
         function exibirEmpresas(empresas) {
-            /* (implementação igual) */
+            const listaEmpresas = document.getElementById('empresas-lista');
+            
+            if (empresas.length === 0) {
+                listaEmpresas.innerHTML = '<div class="error-message">Nenhuma empresa encontrada com os filtros selecionados.</div>';
+                return;
+            }
+            
+            listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid"></div>';
+            const gridEmpresas = document.getElementById('empresas-grid');
+            
+            empresas.forEach(empresa => {
+                const empresaElement = document.createElement('div');
+                empresaElement.className = 'empresa-item';
+                
+                empresaElement.addEventListener('click', function() {
+                    window.location.href = `empresa.html?id=${empresa.id}`;
+                });
+                
+                // Monta o HTML com informações essenciais
+                empresaElement.innerHTML = `
+                    <div class="empresa-header">
+                        <div class="empresa-nome">${empresa.nome}</div>
+                        <div class="servico-tag">${empresa.servico}</div>
+                    </div>
+                    <div class="empresa-info">
+                        ${empresa.endereco ? `${empresa.endereco}${empresa.bairro ? ' - ' + empresa.bairro : ''}<br>` : ''}
+                        ${empresa.cidade} - ${empresa.estado}
+                    </div>
+                    ${empresa.telefone ? `<div class="empresa-contato"><i class="fas fa-phone"></i> ${empresa.telefone}</div>` : ''}
+                    <div class="divider"></div>
+                `;
+                
+                gridEmpresas.appendChild(empresaElement);
+            });
         }
 
+        // Mostra mensagem de erro
         function mostrarErro(mensagem) {
-            /* (implementação igual) */
+            const listaEmpresas = document.getElementById('empresas-lista');
+            listaEmpresas.innerHTML = `<div class="error-message">${mensagem}</div>`;
         }
 
         // Quando o DOM estiver carregado
         document.addEventListener('DOMContentLoaded', function() {
             // Carrega os dados imediatamente
             buscarDadosEmpresas();
+            
+            // Configura o intervalo para atualizar os dados periodicamente (a cada 10 segundos)
+            setInterval(buscarDadosEmpresas, 10000);
             
             // Configura listeners para os filtros
             document.getElementById('estado').addEventListener('change', function() {
