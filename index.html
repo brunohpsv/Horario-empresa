@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HORÁRIO</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .login-btn {
+            background-color: #4CAF50;
+            padding: 8px 16px;
+            border-radius: 0;
+        }
+        
+        .login-btn:hover {
+            background-color: #45a049;
+        }
+
+        /* Filtros */
+        .filtro-section {
+            background-color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .filtro-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .filtro-item {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filtro-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .filtro-item select,
+        .filtro-item input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 0;
+        }
+
+        .filtro-geo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filtro-geo i {
+            color: #555;
+            cursor: pointer;
+        }
+
+        /* Lista de empresas */
+        .empresas-container {
+            padding: 0 40px 20px 40px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .empresas-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .empresa-item {
+            background-color: white;
+            padding: 15px 20px;
+            border: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .empresa-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .empresa-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .empresa-nome {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .servico-tag {
+            font-size: 12px;
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .empresa-endereco {
+            font-family: Arial;
+            font-size: 10px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .divider {
+            margin: 5px 0;
+            height: 1px;
+            background-color: #eee;
+            width: 100%;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            grid-column: 1 / -1;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 20px;
+            color: #d32f2f;
+            background-color: #fde8e8;
+            border-radius: 0;
+            margin: 20px;
+            grid-column: 1 / -1;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .filtro-container {
+                flex-direction: column;
+            }
+            
+            .filtro-item {
+                width: 100%;
+            }
+            
+            header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            nav ul {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            nav ul li {
+                margin: 0;
+            }
+            
+            .empresas-container {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .empresa-item {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">HORÁRIO</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Início</a></li>
+                <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <!-- Seção de Filtros -->
+    <section class="filtro-section">
+        <div class="filtro-container">
+            <div class="filtro-item">
+                <label for="estado">Estado</label>
+                <select id="estado">
+                    <option value="">Todos os estados</option>
+                </select>
+            </div>
+            
+            <div class="filtro-item">
+                <label for="cidade">Cidade</label>
+                <select id="cidade" disabled>
+                    <option value="">Selecione um estado</option>
+                </select>
+            </div>
+            
+            <div class="filtro-item">
+                <label for="servico">Tipo de Serviço</label>
+                <select id="servico">
+                    <option value="">Todos os serviços</option>
+                </select>
+            </div>
+            
+            <div class="filtro-item">
+                <label for="nome-empresa">Nome da Empresa</label>
+                <div class="filtro-geo">
+                    <input type="text" id="nome-empresa" placeholder="Digite o nome">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+            
+            <div class="filtro-item">
+                <label>Geolocalização</label>
+                <div class="filtro-geo">
+                    <input type="text" id="geolocalizacao" placeholder="Buscar por localização" style="flex: 1;">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Lista de Empresas -->
+    <section class="empresas-container">
+        <div id="empresas-lista" class="loading">Carregando empresas...</div>
+    </section>
+
+    <script>
+        // 1. Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
+            authDomain: "horariosite-669d1.firebaseapp.com",
+            projectId: "horariosite-669d1",
+            storageBucket: "horariosite-669d1.appspot.com",
+            messagingSenderId: "154976451283",
+            appId: "1:154976451283:web:c4a75ce9c78e67d5a17226"
+        };
+
+        // 2. Inicialização do Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+        } catch (error) {
+            console.error("Erro ao inicializar Firebase:", error);
+            document.getElementById('empresas-lista').innerHTML = 
+                '<div class="error-message">Erro na configuração do sistema. Recarregue a página.</div>';
+        }
+
+        const db = firebase.firestore();
+
+        // 3. Variáveis globais
+        let todasEmpresas = [];
+        let estadosDisponiveis = [];
+        let cidadesDisponiveis = [];
+        let servicosDisponiveis = [];
+
+        // Função para formatar texto (capitalizar e corrigir siglas)
+        function formatarTexto(texto) {
+            if (!texto) return '';
+            
+            // Converte siglas de estados para maiúsculas
+            const siglasEstados = ['ac', 'al', 'ap', 'am', 'ba', 'ce', 'df', 'es', 'go', 
+                                  'ma', 'mt', 'ms', 'mg', 'pa', 'pb', 'pr', 'pe', 'pi', 
+                                  'rj', 'rn', 'rs', 'ro', 'rr', 'sc', 'sp', 'se', 'to'];
+            
+            if (siglasEstados.includes(texto.toLowerCase())) {
+                return texto.toUpperCase();
+            }
+            
+            // Capitaliza palavras (primeira letra maiúscula)
+            return texto.toLowerCase()
+                .split(' ')
+                .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+                .join(' ');
+        }
+
+        // 4. Quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarTodasEmpresas();
+            
+            // Configura listeners para os filtros
+            document.getElementById('estado').addEventListener('change', function() {
+                atualizarCidades(this.value);
+                filtrarEmpresas();
+            });
+            
+            document.getElementById('cidade').addEventListener('change', filtrarEmpresas);
+            document.getElementById('servico').addEventListener('change', filtrarEmpresas);
+            document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
+            
+            // Geolocalização - simulação (não implementada completamente)
+            document.querySelector('.fa-map-marker-alt').addEventListener('click', function() {
+                alert('Geolocalização ativada - buscando empresas próximas...');
+                // Aqui você implementaria a lógica real de geolocalização
+            });
+        });
+
+        // 5. Carrega todas as empresas do banco de dados
+        async function carregarTodasEmpresas() {
+            const listaEmpresas = document.getElementById('empresas-lista');
+            
+            try {
+                const snapshot = await db.collection('usuarios').get();
+                
+                if (snapshot.empty) {
+                    listaEmpresas.innerHTML = '<div class="error-message">Nenhuma empresa encontrada.</div>';
+                    return;
+                }
+                
+                todasEmpresas = [];
+                estadosDisponiveis = new Set();
+                cidadesDisponiveis = new Set();
+                servicosDisponiveis = new Set();
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.nomeFantasia) {
+                        // Obtém o serviço - verifica tanto 'servico' quanto 'servicos'
+                        const servico = data.servicos || data.servico || 'Serviço não informado';
+                        
+                        // Formata os dados
+                        const empresa = {
+                            id: doc.id,
+                            nome: formatarTexto(data.nomeFantasia) || 'Nome não informado',
+                            endereco: formatarTexto(data.endereco) || '',
+                            bairro: formatarTexto(data.bairro) || '',
+                            cep: data.cep || '',
+                            cidade: formatarTexto(data.cidade) || '',
+                            estado: formatarTexto(data.estado) || '',
+                            servico: formatarTexto(servico)
+                        };
+                        
+                        todasEmpresas.push(empresa);
+                        
+                        // Adiciona aos filtros
+                        if (empresa.estado && empresa.estado !== '') {
+                            estadosDisponiveis.add(empresa.estado);
+                        }
+                        
+                        if (empresa.servico && empresa.servico !== 'Serviço não informado') {
+                            servicosDisponiveis.add(empresa.servico);
+                        }
+                    }
+                });
+                
+                // Atualiza os filtros
+                atualizarFiltros();
+                
+                // Exibe todas as empresas inicialmente
+                exibirEmpresas(todasEmpresas);
+                
+            } catch (error) {
+                console.error("Erro ao carregar empresas:", error);
+                listaEmpresas.innerHTML = '<div class="error-message">Erro ao carregar empresas. Verifique sua conexão.</div>';
+            }
+        }
+
+        // 6. Atualiza os filtros com os dados disponíveis
+        function atualizarFiltros() {
+            const selectEstado = document.getElementById('estado');
+            const selectServico = document.getElementById('servico');
+            
+            // Limpa e adiciona estados
+            selectEstado.innerHTML = '<option value="">Todos os estados</option>';
+            Array.from(estadosDisponiveis).sort().forEach(estado => {
+                const option = document.createElement('option');
+                option.value = estado;
+                option.textContent = estado;
+                selectEstado.appendChild(option);
+            });
+            
+            // Limpa e adiciona serviços
+            selectServico.innerHTML = '<option value="">Todos os serviços</option>';
+            Array.from(servicosDisponiveis).sort().forEach(servico => {
+                const option = document.createElement('option');
+                option.value = servico;
+                option.textContent = servico;
+                selectServico.appendChild(option);
+            });
+        }
+
+        // 7. Atualiza as cidades baseado no estado selecionado
+        function atualizarCidades(estadoSelecionado) {
+            const selectCidade = document.getElementById('cidade');
+            
+            if (!estadoSelecionado) {
+                selectCidade.innerHTML = '<option value="">Selecione um estado</option>';
+                selectCidade.disabled = true;
+                return;
+            }
+            
+            // Filtra cidades do estado selecionado
+            const cidadesDoEstado = new Set();
+            todasEmpresas.forEach(empresa => {
+                if (empresa.estado === estadoSelecionado && empresa.cidade) {
+                    cidadesDoEstado.add(empresa.cidade);
+                }
+            });
+            
+            // Atualiza o select de cidades
+            selectCidade.innerHTML = '<option value="">Todas as cidades</option>';
+            Array.from(cidadesDoEstado).sort().forEach(cidade => {
+                const option = document.createElement('option');
+                option.value = cidade;
+                option.textContent = cidade;
+                selectCidade.appendChild(option);
+            });
+            
+            selectCidade.disabled = false;
+        }
+
+        // 8. Filtra as empresas baseado nos critérios
+        function filtrarEmpresas() {
+            const estado = document.getElementById('estado').value;
+            const cidade = document.getElementById('cidade').value;
+            const servico = document.getElementById('servico').value;
+            const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
+            
+            const empresasFiltradas = todasEmpresas.filter(empresa => {
+                // Filtro por estado
+                if (estado && empresa.estado !== estado) return false;
+                
+                // Filtro por cidade
+                if (cidade && empresa.cidade !== cidade) return false;
+                
+                // Filtro por serviço
+                if (servico && empresa.servico !== servico) return false;
+                
+                // Filtro por nome
+                if (nomeEmpresa && !empresa.nome.toLowerCase().includes(nomeEmpresa)) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            exibirEmpresas(empresasFiltradas);
+        }
+
+        // 9. Exibe as empresas na tela
+        function exibirEmpresas(empresas) {
+            const listaEmpresas = document.getElementById('empresas-lista');
+            
+            if (empresas.length === 0) {
+                listaEmpresas.innerHTML = '<div class="error-message">Nenhuma empresa encontrada com os filtros selecionados.</div>';
+                return;
+            }
+            
+            // Cria um container grid para as empresas
+            listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid"></div>';
+            const gridEmpresas = document.getElementById('empresas-grid');
+            
+            empresas.forEach(empresa => {
+                // Formata o endereço completo
+                let enderecoCompleto = '';
+                if (empresa.endereco) enderecoCompleto += empresa.endereco;
+                if (empresa.bairro) enderecoCompleto += (enderecoCompleto ? ', ' : '') + empresa.bairro;
+                if (empresa.cidade) enderecoCompleto += (enderecoCompleto ? ', ' : '') + empresa.cidade;
+                if (empresa.estado) enderecoCompleto += (enderecoCompleto ? ' - ' : '') + empresa.estado;
+                if (empresa.cep) enderecoCompleto += (enderecoCompleto ? ', CEP: ' : 'CEP: ') + empresa.cep;
+                
+                const empresaElement = document.createElement('div');
+                empresaElement.className = 'empresa-item';
+                
+                // Adiciona evento de clique para redirecionar para a página da empresa
+                empresaElement.addEventListener('click', function() {
+                    window.location.href = `empresa.html?id=${empresa.id}`;
+                });
+                
+                empresaElement.innerHTML = `
+                    <div class="empresa-header">
+                        <div class="empresa-nome">${empresa.nome}</div>
+                        ${empresa.servico ? `<div class="servico-tag">${empresa.servico}</div>` : ''}
+                    </div>
+                    <div class="divider"></div>
+                    <div class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</div>
+                `;
+                
+                gridEmpresas.appendChild(empresaElement);
+            });
+        }
+    </script>
+</body>
+</html>
