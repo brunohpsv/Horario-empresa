@@ -293,14 +293,15 @@
     </section>
 
     <script>
-        // URL da página oculta com os dados
-        const DATA_URL = "https://brunohpsv.github.io/firestore-hidden-access/data.html";
+        // URL da página com os dados (ajuste para seu repositório)
+        const DATA_PAGE_URL = "https://brunohpsv.github.io/firestore-hidden-access/data.html";
         const ACCESS_PASSWORD = "baratavelha0325";
 
         // Variáveis globais
         let todasEmpresas = [];
         let estadosDisponiveis = new Set();
         let servicosDisponiveis = new Set();
+        let dataWindow = null;
 
         // Função para formatar texto
         function formatarTexto(texto) {
@@ -324,7 +325,7 @@
 
         // Quando o DOM estiver carregado
         document.addEventListener('DOMContentLoaded', function() {
-            carregarDadosEmpresas();
+            iniciarConexaoDados();
             
             // Configura listeners para os filtros
             document.getElementById('estado').addEventListener('change', function() {
@@ -337,37 +338,68 @@
             document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
         });
 
-        // Carrega os dados da página oculta
-        async function carregarDadosEmpresas() {
+        // Inicia a conexão com a página de dados
+        function iniciarConexaoDados() {
+            const listaEmpresas = document.getElementById('empresas-lista');
+            listaEmpresas.innerHTML = '<div class="loading">Conectando ao banco de dados...</div>';
+
+            // Abre a página de dados em uma nova aba (será fechada automaticamente)
+            dataWindow = window.open(DATA_PAGE_URL, '_blank');
+            
+            if (!dataWindow) {
+                mostrarErro("Pop-up bloqueado. Por favor, permita pop-ups para este site.");
+                return;
+            }
+
+            // Configura o listener para receber os dados
+            window.addEventListener('message', receberDadosEmpresas);
+
+            // Verifica periodicamente se a página está pronta
+            const checkInterval = setInterval(() => {
+                try {
+                    // Envia a senha para autenticação
+                    dataWindow.postMessage({
+                        type: 'AUTH_REQUEST',
+                        password: ACCESS_PASSWORD
+                    }, '*');
+                    
+                    // Se chegou aqui, a conexão está estabelecida
+                    listaEmpresas.innerHTML = '<div class="loading">Carregando dados das empresas...</div>';
+                } catch (e) {
+                    // Ainda não está pronto, continua tentando
+                    return;
+                }
+                
+                clearInterval(checkInterval);
+            }, 500);
+        }
+
+        // Recebe os dados das empresas da página de dados
+        function receberDadosEmpresas(event) {
+            // Verifica se a mensagem é do tipo esperado
+            if (event.data.type === 'FIREBASE_DATA') {
+                processarDadosEmpresas(event.data.data);
+                
+                // Fecha a janela de dados após receber as informações
+                if (dataWindow) {
+                    dataWindow.close();
+                }
+            } else if (event.data.type === 'AUTH_ERROR') {
+                mostrarErro("Erro de autenticação: " + event.data.message);
+            }
+        }
+
+        // Processa os dados recebidos do Firebase
+        function processarDadosEmpresas(firebaseData) {
             const listaEmpresas = document.getElementById('empresas-lista');
             
             try {
-                listaEmpresas.innerHTML = '<div class="loading">Carregando empresas...</div>';
-                
-                // Faz a requisição para a página oculta
-                const response = await fetch(DATA_URL, {
-                    method: 'POST', // Ou GET, dependendo da sua implementação
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        password: ACCESS_PASSWORD
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Falha ao carregar dados');
-                }
-                
-                const data = await response.json();
-                
-                // Processa os dados recebidos
                 todasEmpresas = [];
                 estadosDisponiveis = new Set();
                 servicosDisponiveis = new Set();
                 
-                // Supondo que os dados estejam na coleção 'usuarios'
-                const usuarios = data.usuarios || [];
+                // Processa os usuários (empresas)
+                const usuarios = firebaseData.usuarios || [];
                 
                 usuarios.forEach(empresa => {
                     if (empresa.data.nomeFantasia && empresa.data.status !== 'pendente') {
@@ -393,9 +425,8 @@
                 exibirEmpresas(todasEmpresas);
                 
             } catch (error) {
-                console.error("Erro ao carregar empresas:", error);
-                listaEmpresas.innerHTML = 
-                    '<div class="error-message">Erro ao carregar empresas. Verifique sua conexão e recarregue a página.</div>';
+                console.error("Erro ao processar dados:", error);
+                mostrarErro("Erro ao processar dados recebidos.");
             }
         }
 
@@ -505,6 +536,12 @@
                 
                 gridEmpresas.appendChild(empresaElement);
             });
+        }
+
+        // Mostra mensagem de erro
+        function mostrarErro(mensagem) {
+            const listaEmpresas = document.getElementById('empresas-lista');
+            listaEmpresas.innerHTML = `<div class="error-message">${mensagem}</div>`;
         }
     </script>
 </body>
