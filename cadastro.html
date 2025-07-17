@@ -238,6 +238,24 @@
             margin-top: 20px;
             text-align: center;
         }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 0%;
+            height: 10px;
+            background-color: #4CAF50;
+            border-radius: 4px;
+            text-align: center;
+            line-height: 10px;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -349,8 +367,11 @@
                 
                 <div class="form-group">
                     <label for="documento">Documento de Identificação</label>
-                    <input type="file" id="documento" required>
-                    <small>Envie Identidade, CNH ou Cartão CNPJ (PDF ou imagem)</small>
+                    <input type="file" id="documento" accept=".pdf,.jpg,.jpeg,.png" required>
+                    <small>Envie Identidade, CNH ou Cartão CNPJ (PDF, JPG, JPEG ou PNG)</small>
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar" id="progressBar">0%</div>
+                    </div>
                 </div>
                 
                 <div class="termos">
@@ -400,7 +421,7 @@
 
     <script>
         // URL do seu Apps Script Web App
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzH21Xpy8urtn2F27EDYoBpUzm81oUiDTwKN43KuhhGtW5oVL05Zjw7IQMwaIrWVz1A5w/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSjrW5YYvciYhFXtm6qxeWV7rfvYcb6hcQnLPNyblOpl_VVw-X05ZV717HqQp4eG_exw/exec';
         
         // Alternar entre CPF e CNPJ
         document.getElementById('tipo-pessoa').addEventListener('change', function() {
@@ -435,6 +456,7 @@
                 const email = document.getElementById('email').value;
                 const senha = document.getElementById('senha').value;
                 const confirmarSenha = document.getElementById('confirmarSenha').value;
+                const documentoFile = document.getElementById('documento').files[0];
                 
                 // Validações básicas
                 if (!email || !senha) {
@@ -445,7 +467,37 @@
                     throw new Error('As senhas não coincidem');
                 }
                 
-                const formData = {
+                if (!documentoFile) {
+                    throw new Error('O documento de identificação é obrigatório');
+                }
+
+                // Mostrar barra de progresso
+                const progressContainer = document.getElementById('progressContainer');
+                const progressBar = document.getElementById('progressBar');
+                progressContainer.style.display = 'block';
+                
+                // Primeiro enviar o arquivo
+                const formData = new FormData();
+                formData.append('file', documentoFile);
+                formData.append('action', 'uploadFile');
+                
+                const uploadResponse = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const uploadResult = await uploadResponse.json();
+                
+                if (!uploadResult.success) {
+                    throw new Error(uploadResult.message || 'Falha ao enviar documento');
+                }
+                
+                // Atualizar barra de progresso
+                progressBar.style.width = '50%';
+                progressBar.textContent = '50%';
+                
+                // Agora enviar os dados do formulário
+                const formDataCadastro = {
                     tipoPessoa: document.getElementById('tipo-pessoa').value,
                     identificacao: document.getElementById('identificacao').value,
                     nomeFantasia: document.getElementById('nome-fantasia').value,
@@ -460,23 +512,34 @@
                     senha: senha,
                     maquinas: document.getElementById('maquinas').value,
                     servicos: document.getElementById('servicos').value,
-                    documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
+                    documentoNome: documentoFile.name,
+                    documentoUrl: uploadResult.fileUrl, // URL do documento no Google Drive
                     dataCadastro: new Date().toLocaleString('pt-BR'),
                     status: 'pendente'
                 };
 
-                // Enviar dados para o Google Sheets via Apps Script
-                const response = await fetch(SCRIPT_URL, {
+                // Atualizar barra de progresso
+                progressBar.style.width = '75%';
+                progressBar.textContent = '75%';
+                
+                const cadastroResponse = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(formData),
-                    mode: 'no-cors' // Adicionado para evitar problemas de CORS
+                    body: JSON.stringify({
+                        action: 'saveData',
+                        data: formDataCadastro
+                    }),
+                    mode: 'no-cors'
                 });
                 
                 // Como estamos usando mode: 'no-cors', não podemos ler a resposta
                 // Mas assumimos que se não houve erro, foi enviado com sucesso
+                
+                // Atualizar barra de progresso
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100%';
                 
                 // Mostrar mensagem de sucesso
                 document.getElementById('mensagemSucesso').style.display = 'block';
@@ -488,10 +551,22 @@
                 document.getElementById('formCadastro').reset();
                 window.scrollTo(0, document.body.scrollHeight);
                 
+                // Esconder barra de progresso após 3 segundos
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    progressBar.style.width = '0%';
+                    progressBar.textContent = '0%';
+                }, 3000);
+                
             } catch (error) {
                 console.error("Erro ao enviar cadastro:", error);
                 document.getElementById('mensagemErro').style.display = 'block';
                 document.getElementById('mensagemErro').textContent = `Ocorreu um erro ao enviar seu cadastro: ${error.message}`;
+                
+                // Resetar barra de progresso em caso de erro
+                document.getElementById('progressContainer').style.display = 'none';
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('progressBar').textContent = '0%';
             } finally {
                 btn.textContent = btnOriginalText;
                 btn.disabled = false;
