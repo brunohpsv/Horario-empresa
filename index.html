@@ -390,36 +390,24 @@
         </div>
     </section>
 
-    <!-- Seção para mostrar os dados brutos do Firestore -->
+    <!-- Seção para mostrar os dados brutos da API -->
     <section class="raw-data-section">
         <div class="raw-data-container">
-            <h2 class="raw-data-title">Dados do Firestore</h2>
+            <h2 class="raw-data-title">Dados da API</h2>
             <div id="firestore-data-container"></div>
             <button class="btn btn-primary" id="toggle-json-btn">Mostrar JSON Completo</button>
             <pre id="json-viewer" class="json-viewer"></pre>
         </div>
     </section>
 
-    <!-- SDKs do Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- Substitui os SDKs do Firebase pelo nosso arquivo api.js -->
+    <script src="api.js"></script>
     
     <script>
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
-            projectId: "horariosite-669d1",
-        };
-
-        // Inicializa o Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
         // Variáveis globais
         let todasEmpresas = [];
         let servicosDisponiveis = new Set();
         let refreshInterval;
-        let lastUpdateTime = 0;
         let isFirstLoad = true;
         let jsonData = { empresas: [] };
 
@@ -527,51 +515,7 @@
             exibirEmpresas(empresasFiltradas);
         }
 
-        // Função para formatar valores do Firestore
-        function formatValue(value) {
-            if (value === null) return null;
-            if (value === undefined) return undefined;
-            
-            if (typeof value === 'object' && value.toDate) {
-                return value.toDate().toISOString();
-            }
-            
-            if (typeof value === 'object' && !Array.isArray(value)) {
-                let obj = {};
-                for (const [key, val] of Object.entries(value)) {
-                    obj[key] = formatValue(val);
-                }
-                return obj;
-            }
-            
-            if (Array.isArray(value)) {
-                return value.map(item => formatValue(item));
-            }
-            
-            return value;
-        }
-
-        // Função para formatar valores para exibição
-        function formatValueForDisplay(value) {
-            if (value === null) return 'null';
-            if (value === undefined) return 'undefined';
-            
-            if (typeof value === 'object' && value.toDate) {
-                return `<span class="timestamp">${value.toDate().toISOString()}</span>`;
-            }
-            
-            if (typeof value === 'object' && !Array.isArray(value)) {
-                return JSON.stringify(value, null, 2);
-            }
-            
-            if (Array.isArray(value)) {
-                return value.map(item => `<span class="array-item">${formatValueForDisplay(item)}</span>`).join('');
-            }
-            
-            return value;
-        }
-
-        // Função para carregar empresas do Firestore
+        // Função para carregar empresas usando a API
         async function carregarEmpresasFirestore() {
             try {
                 const listaEmpresas = document.getElementById('empresas-lista');
@@ -580,26 +524,22 @@
                     listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
                 }
                 
-                const querySnapshot = await db.collection("usuarios").where("tipo", "==", "empresa").get();
+                // Chama nossa API em vez de acessar o Firestore diretamente
+                const response = await apiEndpoint({action: 'getEmpresas'});
                 
-                todasEmpresas = [];
-                jsonData.empresas = [];
+                if (response.status !== 'success') {
+                    throw new Error(response.error || 'Erro desconhecido ao carregar empresas');
+                }
+                
+                todasEmpresas = response.empresas || [];
+                jsonData.empresas = [...todasEmpresas];
                 servicosDisponiveis = new Set();
                 
-                querySnapshot.forEach(doc => {
-                    const empresaData = doc.data();
-                    const empresaFormatada = {
-                        id: doc.id,
-                        ...formatValue(empresaData)
-                    };
-                    
-                    todasEmpresas.push(empresaFormatada);
-                    jsonData.empresas.push(empresaFormatada);
-                    
-                    if (empresaFormatada.servico) {
-                        servicosDisponiveis.add(empresaFormatada.servico);
-                    } else if (empresaFormatada.tipoServico) {
-                        servicosDisponiveis.add(empresaFormatada.tipoServico);
+                todasEmpresas.forEach(empresa => {
+                    if (empresa.servico) {
+                        servicosDisponiveis.add(empresa.servico);
+                    } else if (empresa.tipoServico) {
+                        servicosDisponiveis.add(empresa.tipoServico);
                     }
                 });
                 
@@ -615,11 +555,11 @@
                 });
                 
                 filtrarEmpresas();
-                exibirDadosFirestore(querySnapshot);
+                exibirDadosAPI(response);
                 document.getElementById('json-viewer').textContent = JSON.stringify(jsonData, null, 2);
                 
             } catch (error) {
-                console.error('Erro ao carregar empresas do Firestore:', error);
+                console.error('Erro ao carregar empresas:', error);
                 
                 if (isFirstLoad) {
                     document.getElementById('empresas-lista').innerHTML = `
@@ -632,29 +572,30 @@
             }
         }
 
-        // Função para exibir os dados brutos do Firestore
-        function exibirDadosFirestore(querySnapshot) {
+        // Função para exibir dados da API
+        function exibirDadosAPI(apiResponse) {
             const container = document.getElementById('firestore-data-container');
             container.innerHTML = '';
             
-            if (querySnapshot.empty) {
-                container.innerHTML = '<div class="alert alert-warning">Nenhuma empresa encontrada no Firestore.</div>';
+            if (!apiResponse.empresas || apiResponse.empresas.length === 0) {
+                container.innerHTML = '<div class="alert alert-warning">Nenhuma empresa encontrada na API.</div>';
                 return;
             }
             
-            querySnapshot.forEach(doc => {
-                const docData = doc.data();
+            apiResponse.empresas.forEach(empresa => {
                 const docDiv = document.createElement('div');
                 docDiv.className = 'document-card';
                 
-                let html = `<h5>Documento ID: ${doc.id}</h5>`;
+                let html = `<h5>Empresa ID: ${empresa.id || 'N/A'}</h5>`;
                 html += '<table class="table table-sm">';
                 
-                for (const [key, value] of Object.entries(docData)) {
+                for (const [key, value] of Object.entries(empresa)) {
+                    if (key === 'id') continue;
+                    
                     html += `
                         <tr>
                             <td class="field-name">${key}</td>
-                            <td>${formatValueForDisplay(value)}</td>
+                            <td>${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}</td>
                         </tr>
                     `;
                 }
