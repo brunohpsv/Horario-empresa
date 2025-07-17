@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro | HORÁRIO</title>
     <style>
-        /* Seus estilos CSS permanecem os mesmos */
         * {
             margin: 0;
             padding: 0;
@@ -386,8 +385,8 @@
     </div>
 
     <script>
-        // Configurações da planilha Google
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzEsxZ-H9gvubibM2AT2IywI9GHRRt_9FhXoS6_3IP5ruO6K79ELGYyJwbt4vetTv4eWA/exec'; // Substitua pela URL do seu Apps Script
+        // URL do seu Apps Script Web App
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzH21Xpy8urtn2F27EDYoBpUzm81oUiDTwKN43KuhhGtW5oVL05Zjw7IQMwaIrWVz1A5w/exec';
         
         // Alternar entre CPF e CNPJ
         document.getElementById('tipo-pessoa').addEventListener('change', function() {
@@ -417,6 +416,11 @@
                 const email = document.getElementById('email').value;
                 const senha = document.getElementById('senha').value;
                 
+                // Verificar se as senhas coincidem
+                if (senha !== document.getElementById('confirmarSenha').value) {
+                    throw new Error('As senhas não coincidem');
+                }
+                
                 const formData = {
                     tipoPessoa: document.getElementById('tipo-pessoa').value,
                     identificacao: document.getElementById('identificacao').value,
@@ -429,6 +433,7 @@
                     cep: document.getElementById('cep').value,
                     telefone: document.getElementById('telefone').value,
                     email: email,
+                    senha: senha,
                     maquinas: document.getElementById('maquinas').value,
                     servicos: document.getElementById('servicos').value,
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
