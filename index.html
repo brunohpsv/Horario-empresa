@@ -75,11 +75,12 @@
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
+            align-items: flex-end;
         }
 
         .filtro-item {
             flex: 1;
-            min-width: 200px;
+            min-width: 150px;
         }
 
         .filtro-item label {
@@ -87,6 +88,7 @@
             margin-bottom: 5px;
             font-weight: bold;
             color: #555;
+            font-size: 12px;
         }
 
         .filtro-item select,
@@ -95,22 +97,30 @@
             padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 0;
+            font-size: 14px;
         }
 
-        .geo-btn {
-            background-color: #4285F4;
-            color: white;
-            border: none;
+        .filtro-geo {
+            display: flex;
+            align-items: center;
+            height: 36px;
+            margin-bottom: 5px;
+        }
+
+        .filtro-geo-btn {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
             padding: 8px 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 14px;
+            justify-content: center;
+            height: 100%;
+            transition: all 0.3s;
         }
 
-        .geo-btn:hover {
-            background-color: #3367D6;
+        .filtro-geo-btn:hover {
+            background-color: #e0e0e0;
         }
 
         /* Lista de empresas */
@@ -118,19 +128,18 @@
             padding: 20px 40px;
         }
 
-        .empresas-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        .empresas-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
         }
 
         .empresa-item {
             background-color: white;
-            padding: 20px;
+            padding: 15px;
             border: 1px solid #eee;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: 100%;
         }
 
         .empresa-item:hover {
@@ -138,9 +147,17 @@
         }
 
         .empresa-nome {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: #333;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .empresa-endereco {
+            font-size: 14px;
+            color: #666;
+            opacity: 0.5;
             margin-bottom: 5px;
         }
 
@@ -156,12 +173,6 @@
             font-size: 14px;
             color: #666;
             line-height: 1.5;
-        }
-
-        .empresa-detail {
-            font-size: 13px;
-            color: rgba(0, 0, 0, 0.5);
-            margin-bottom: 5px;
         }
 
         .empresa-contato {
@@ -199,6 +210,10 @@
                 flex-direction: column;
             }
             
+            .filtro-item {
+                min-width: 100%;
+            }
+            
             header {
                 padding: 15px 20px;
                 flex-direction: column;
@@ -234,24 +249,12 @@
     <section class="filtro-section">
         <div class="filtro-container">
             <div class="filtro-item">
-                <label for="servico">Tipo de Serviço</label>
-                <select id="servico">
-                    <option value="">Todos os serviços</option>
-                </select>
+                <label for="cidade">CIDADE</label>
+                <input type="text" id="cidade" placeholder="Digite a cidade">
             </div>
             
             <div class="filtro-item">
-                <label for="nome-empresa">Nome da Empresa</label>
-                <input type="text" id="nome-empresa" placeholder="Digite o nome">
-            </div>
-
-            <div class="filtro-item">
-                <label for="cidade">Cidade</label>
-                <input type="text" id="cidade" placeholder="Digite a cidade">
-            </div>
-
-            <div class="filtro-item">
-                <label for="estado">Estado</label>
+                <label for="estado">ESTADO</label>
                 <select id="estado">
                     <option value="">Todos</option>
                     <option value="AC">Acre</option>
@@ -283,12 +286,26 @@
                     <option value="TO">Tocantins</option>
                 </select>
             </div>
-
+            
             <div class="filtro-item">
-                <label>&nbsp;</label>
-                <button class="geo-btn" id="geolocalizacao">
-                    <i class="fas fa-location-arrow"></i> Minha Localização
-                </button>
+                <label for="nome-empresa">EMPRESA</label>
+                <input type="text" id="nome-empresa" placeholder="Digite o nome">
+            </div>
+            
+            <div class="filtro-item">
+                <label for="servico">SERVIÇOS</label>
+                <select id="servico">
+                    <option value="">Todos os serviços</option>
+                </select>
+            </div>
+            
+            <div class="filtro-item">
+                <label>LOCALIZAÇÃO</label>
+                <div class="filtro-geo">
+                    <button class="filtro-geo-btn" id="geolocalizacao">
+                        <i class="fas fa-location-arrow"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </section>
@@ -306,7 +323,6 @@
         // Variáveis globais
         let todasEmpresas = [];
         let servicosDisponiveis = new Set();
-        let cidadesDisponiveis = new Set();
 
         // Função para formatar telefone
         function formatarTelefone(numero) {
@@ -332,8 +348,8 @@
                 return;
             }
             
-            listaEmpresas.innerHTML = '<div class="empresas-list" id="empresas-list"></div>';
-            const listEmpresas = document.getElementById('empresas-list');
+            listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid"></div>';
+            const gridEmpresas = document.getElementById('empresas-grid');
             
             empresas.forEach(empresa => {
                 const empresaElement = document.createElement('div');
@@ -349,80 +365,76 @@
                 
                 empresaElement.innerHTML = `
                     <div class="empresa-nome">${empresa.nome || empresa.nomeEmpresa || 'Nome não informado'}</div>
+                    <div class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'} ${empresa.cidade || ''}${empresa.estado ? ' - ' + empresa.estado : ''}</div>
                     <div class="servico-tag">${empresa.servico || empresa.tipoServico || 'Serviço não especificado'}</div>
-                    
-                    ${enderecoCompleto ? `<div class="empresa-detail"><i class="fas fa-map-marker-alt"></i> ${enderecoCompleto}</div>` : ''}
-                    ${empresa.cidade || empresa.estado ? `<div class="empresa-detail">${empresa.cidade || ''}${empresa.cidade && empresa.estado ? ' - ' : ''}${empresa.estado || ''}</div>` : ''}
-                    
                     ${telefoneFormatado ? `<div class="empresa-contato"><i class="fas fa-phone"></i> ${telefoneFormatado}</div>` : ''}
+                    <div class="divider"></div>
                 `;
                 
-                listEmpresas.appendChild(empresaElement);
+                gridEmpresas.appendChild(empresaElement);
             });
         }
 
         // Função para filtrar empresas
         function filtrarEmpresas() {
-            const servico = document.getElementById('servico').value;
-            const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
             const cidade = document.getElementById('cidade').value.toLowerCase();
             const estado = document.getElementById('estado').value;
+            const servico = document.getElementById('servico').value;
+            const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
             
             const empresasFiltradas = todasEmpresas.filter(empresa => {
                 const nome = (empresa.nome || empresa.nomeEmpresa || '').toLowerCase();
-                const servicoEmpresa = (empresa.servico || empresa.tipoServico || '').toLowerCase();
                 const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
                 const estadoEmpresa = (empresa.estado || '');
+                const servicoEmpresa = (empresa.servico || empresa.tipoServico || '').toLowerCase();
                 
-                return (!servico || servicoEmpresa.includes(servico.toLowerCase())) &&
-                       (!nomeEmpresa || nome.includes(nomeEmpresa)) &&
-                       (!cidade || cidadeEmpresa.includes(cidade)) &&
-                       (!estado || estadoEmpresa === estado);
+                return (!cidade || cidadeEmpresa.includes(cidade)) &&
+                       (!estado || estadoEmpresa === estado) &&
+                       (!servico || servicoEmpresa.includes(servico.toLowerCase())) &&
+                       (!nomeEmpresa || nome.includes(nomeEmpresa));
             });
             
             exibirEmpresas(empresasFiltradas);
         }
 
-        // Função para geolocalização
-        function obterGeolocalizacao() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        // Aqui você pode implementar a lógica para buscar empresas próximas
-                        // usando as coordenadas position.coords.latitude e position.coords.longitude
-                        alert(`Localização obtida: ${position.coords.latitude}, ${position.coords.longitude}`);
-                    },
-                    (error) => {
-                        alert('Erro ao obter localização: ' + error.message);
-                    }
-                );
-            } else {
-                alert('Geolocalização não é suportada pelo seu navegador.');
-            }
-        }
-
-        // Função para carregar empresas do JSON
+        // Função para carregar empresas
         async function carregarEmpresas() {
             try {
                 const listaEmpresas = document.getElementById('empresas-lista');
                 listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
                 
-                // Carrega os dados do JSON
-                const response = await fetch('data.html');
-                const data = await response.json();
+                // Dados de exemplo (substituir pela chamada real à API)
+                const empresasData = [
+                    {
+                        id: "L4kx302OLYb0MglF1RzA4AaENuR2",
+                        nome: "Bastião",
+                        servico: "Barbearia",
+                        cidade: "Goiânia",
+                        estado: "GO",
+                        telefone: "(62) 32659-8321",
+                        endereco: "Rua 1, 3",
+                        bairro: "Bairro 2"
+                    },
+                    {
+                        id: "2",
+                        nome: "Salão da Maria",
+                        servico: "Cabeleireiro",
+                        cidade: "São Paulo",
+                        estado: "SP",
+                        telefone: "(11) 98765-4321",
+                        endereco: "Av. Paulista, 1000",
+                        bairro: "Bela Vista"
+                    }
+                ];
                 
                 // Processa os dados recebidos
-                todasEmpresas = data;
+                todasEmpresas = empresasData;
                 servicosDisponiveis = new Set();
-                cidadesDisponiveis = new Set();
                 
-                // Coleta todos os serviços e cidades disponíveis
+                // Coleta todos os serviços disponíveis
                 todasEmpresas.forEach(empresa => {
                     if (empresa.servico) {
                         servicosDisponiveis.add(empresa.servico);
-                    }
-                    if (empresa.cidade) {
-                        cidadesDisponiveis.add(empresa.cidade);
                     }
                 });
                 
@@ -436,21 +448,19 @@
                     selectServico.appendChild(option);
                 });
                 
-                // Configura autocomplete para cidades (simplificado)
-                const inputCidade = document.getElementById('cidade');
-                inputCidade.addEventListener('input', function() {
-                    // Implementação completa de autocomplete seria mais complexa
-                });
-                
                 // Exibe todas as empresas inicialmente
                 exibirEmpresas(todasEmpresas);
                 
                 // Configura listeners para os filtros
-                document.getElementById('servico').addEventListener('change', filtrarEmpresas);
-                document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
                 document.getElementById('cidade').addEventListener('input', filtrarEmpresas);
                 document.getElementById('estado').addEventListener('change', filtrarEmpresas);
-                document.getElementById('geolocalizacao').addEventListener('click', obterGeolocalizacao);
+                document.getElementById('servico').addEventListener('change', filtrarEmpresas);
+                document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
+                
+                // Configura geolocalização
+                document.getElementById('geolocalizacao').addEventListener('click', () => {
+                    alert('Geolocalização ativada - esta funcionalidade seria implementada com a API de geolocalização do navegador');
+                });
                 
             } catch (error) {
                 console.error('Erro ao carregar empresas:', error);
