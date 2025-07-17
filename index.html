@@ -64,7 +64,6 @@
             background-color: #45a049;
         }
 
-        /* Filtros */
         .filtro-section {
             background-color: white;
             padding: 20px 40px;
@@ -123,7 +122,6 @@
             background-color: #e0e0e0;
         }
 
-        /* Lista de empresas */
         .empresas-container {
             padding: 20px 40px;
         }
@@ -399,40 +397,63 @@
             exibirEmpresas(empresasFiltradas);
         }
 
-        // Função para extrair a URL JSON do data.html
-        async function getJsonUrlFromDataPage() {
+        // Função para obter a URL JSON do data.html
+        async function getJsonUrl() {
             try {
+                // Primeiro tentamos buscar diretamente o JSON gerado
                 const response = await fetch('data.html');
                 if (!response.ok) {
-                    throw new Error(`Erro ao carregar data.html: ${response.status} ${response.statusText}`);
+                    throw new Error('Não foi possível carregar data.html');
                 }
                 
                 const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const jsonUrlInput = doc.getElementById('json-url');
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                const jsonUrlInput = tempDiv.querySelector('#json-url');
                 
                 if (jsonUrlInput && jsonUrlInput.value) {
                     return jsonUrlInput.value;
-                } else {
-                    throw new Error('URL JSON não encontrada no data.html');
                 }
+                
+                // Se não encontrar, tentamos a abordagem alternativa
+                const blob = new Blob([html], {type: 'text/html'});
+                const url = URL.createObjectURL(blob);
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = url;
+                document.body.appendChild(iframe);
+                
+                await new Promise((resolve, reject) => {
+                    iframe.onload = resolve;
+                    iframe.onerror = reject;
+                    setTimeout(() => reject(new Error('Timeout ao carregar iframe')), 5000);
+                });
+                
+                const jsonUrl = iframe.contentWindow.jsonDataUrl;
+                document.body.removeChild(iframe);
+                URL.revokeObjectURL(url);
+                
+                if (!jsonUrl) {
+                    throw new Error('URL JSON não encontrada');
+                }
+                
+                return jsonUrl;
             } catch (error) {
                 console.error('Erro ao obter URL JSON:', error);
-                throw error;
+                throw new Error('Não foi possível obter a URL JSON do data.html');
             }
         }
 
-        // Função para carregar empresas do JSON
-        async function carregarEmpresasDoJson() {
+        // Função para carregar empresas
+        async function carregarEmpresas() {
             try {
-                // Primeiro obtemos a URL mais recente do data.html
-                jsonUrl = await getJsonUrlFromDataPage();
-                
                 const listaEmpresas = document.getElementById('empresas-lista');
                 listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
                 
-                // Agora carregamos os dados da URL JSON obtida
+                // Obtemos a URL JSON mais recente
+                jsonUrl = await getJsonUrl();
+                
+                // Carregamos os dados da URL JSON
                 const response = await fetch(jsonUrl);
                 if (!response.ok) {
                     throw new Error(`Erro ao carregar empresas: ${response.status} ${response.statusText}`);
@@ -493,15 +514,15 @@
                 clearInterval(refreshInterval);
             }
             
-            // Define um novo intervalo de 5 segundos (igual ao data.html)
+            // Define um novo intervalo de 5 segundos
             refreshInterval = setInterval(() => {
-                carregarEmpresasDoJson();
+                carregarEmpresas();
             }, 5000);
         }
 
         // Inicia quando a página carrega
         document.addEventListener('DOMContentLoaded', () => {
-            carregarEmpresasDoJson();
+            carregarEmpresas();
             startRefreshInterval();
         });
     </script>
