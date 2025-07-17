@@ -400,10 +400,23 @@
         </div>
     </section>
 
-    <!-- Substitui os SDKs do Firebase pelo nosso arquivo api.js -->
-    <script src="api.js"></script>
-    
+    <!-- SDKs do Firebase e código JavaScript -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
+            authDomain: "horariosite-669d1.firebaseapp.com",
+            projectId: "horariosite-669d1",
+            storageBucket: "horariosite-669d1.appspot.com",
+            messagingSenderId: "154976451283"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         // Variáveis globais
         let todasEmpresas = [];
         let servicosDisponiveis = new Set();
@@ -515,7 +528,7 @@
             exibirEmpresas(empresasFiltradas);
         }
 
-        // Função para carregar empresas usando a API
+        // Função para carregar empresas do Firestore
         async function carregarEmpresasFirestore() {
             try {
                 const listaEmpresas = document.getElementById('empresas-lista');
@@ -524,24 +537,25 @@
                     listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
                 }
                 
-                // Chama nossa API em vez de acessar o Firestore diretamente
-                const response = await apiEndpoint({action: 'getEmpresas'});
-                
-                if (response.status !== 'success') {
-                    throw new Error(response.error || 'Erro desconhecido ao carregar empresas');
-                }
-                
-                todasEmpresas = response.empresas || [];
-                jsonData.empresas = [...todasEmpresas];
+                const snapshot = await db.collection("empresas").get();
+                todasEmpresas = [];
                 servicosDisponiveis = new Set();
                 
-                todasEmpresas.forEach(empresa => {
+                snapshot.forEach(doc => {
+                    const empresa = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+                    todasEmpresas.push(empresa);
+                    
                     if (empresa.servico) {
                         servicosDisponiveis.add(empresa.servico);
                     } else if (empresa.tipoServico) {
                         servicosDisponiveis.add(empresa.tipoServico);
                     }
                 });
+                
+                jsonData.empresas = [...todasEmpresas];
                 
                 const selectServico = document.getElementById('servico');
                 const currentService = selectServico.value;
@@ -555,7 +569,7 @@
                 });
                 
                 filtrarEmpresas();
-                exibirDadosAPI(response);
+                exibirDadosAPI({ empresas: todasEmpresas });
                 document.getElementById('json-viewer').textContent = JSON.stringify(jsonData, null, 2);
                 
             } catch (error) {
