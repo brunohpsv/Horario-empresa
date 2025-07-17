@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HORÁRIO - Lista de Empresas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -224,28 +225,49 @@
     </section>
     
     <section class="empresas-container">
-        <div id="empresas-lista" class="loading">Carregando empresas...</div>
+        <div id="empresas-lista" class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p>Carregando empresas...</p>
+        </div>
     </section>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
     <script>
-        // Dados de exemplo (substituir pela chamada real à API)
-        const empresasData = [
-            {
-                id: "L4kx302OLYb0MglF1RzA4AaENuR2",
-                nome: "Bastião",
-                servico: "Barbearia",
-                cidade: "Goiânia",
-                estado: "GO",
-                telefone: "(62) 32659-8321",
-                endereco: "Rua 1, 3",
-                bairro: "Bairro 2"
-            },
-            // Adicione mais empresas conforme necessário
-        ];
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
+            projectId: "horariosite-669d1",
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
         // Variáveis globais
         let todasEmpresas = [];
         let servicosDisponiveis = new Set();
+
+        // Função para formatar telefone
+        function formatarTelefone(numero) {
+            if (!numero) return '';
+            
+            // Remove tudo que não é dígito
+            const digits = numero.replace(/\D/g, '');
+            
+            // Formata de acordo com o tamanho
+            if (digits.length === 11) {
+                return `(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7)}`;
+            } else if (digits.length === 10) {
+                return `(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6)}`;
+            }
+            
+            return numero;
+        }
 
         // Função para exibir empresas
         function exibirEmpresas(empresas) {
@@ -263,16 +285,30 @@
                 const empresaElement = document.createElement('div');
                 empresaElement.className = 'empresa-item';
                 
+                // Formata os dados da empresa
+                const telefoneFormatado = formatarTelefone(empresa.telefone || empresa.telefoneComercial || '');
+                const enderecoCompleto = [
+                    empresa.endereco,
+                    empresa.numero,
+                    empresa.complemento,
+                    empresa.bairro
+                ].filter(Boolean).join(', ');
+                
                 empresaElement.innerHTML = `
-                    <div class="empresa-nome">${empresa.nome}</div>
-                    <div class="servico-tag">${empresa.servico}</div>
+                    <div class="empresa-nome">${empresa.nome || empresa.nomeEmpresa || 'Nome não informado'}</div>
+                    <div class="servico-tag">${empresa.servico || empresa.tipoServico || 'Serviço não especificado'}</div>
                     <div class="empresa-info">
-                        ${empresa.endereco}${empresa.bairro ? ' - ' + empresa.bairro : ''}<br>
-                        ${empresa.cidade} - ${empresa.estado}
+                        ${enderecoCompleto || 'Endereço não informado'}<br>
+                        ${empresa.cidade || ''}${empresa.estado ? ' - ' + empresa.estado : ''}
                     </div>
-                    ${empresa.telefone ? `<div class="empresa-contato"><i class="fas fa-phone"></i> ${empresa.telefone}</div>` : ''}
+                    ${telefoneFormatado ? `<div class="empresa-contato"><i class="fas fa-phone"></i> ${telefoneFormatado}</div>` : ''}
                     <div class="divider"></div>
                 `;
+                
+                // Adiciona evento de clique para redirecionar para a página da empresa
+                empresaElement.addEventListener('click', () => {
+                    window.location.href = `empresa.html?id=${empresa.id}`;
+                });
                 
                 gridEmpresas.appendChild(empresaElement);
             });
@@ -284,19 +320,66 @@
             const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
             
             const empresasFiltradas = todasEmpresas.filter(empresa => {
-                return (!servico || empresa.servico === servico) &&
-                       (!nomeEmpresa || empresa.nome.toLowerCase().includes(nomeEmpresa));
+                const nome = (empresa.nome || empresa.nomeEmpresa || '').toLowerCase();
+                const servicoEmpresa = (empresa.servico || empresa.tipoServico || '').toLowerCase();
+                
+                return (!servico || servicoEmpresa.includes(servico.toLowerCase())) &&
+                       (!nomeEmpresa || nome.includes(nomeEmpresa));
             });
             
             exibirEmpresas(empresasFiltradas);
         }
 
-        // Função para carregar dados
-        function carregarDados() {
-            // Simulando carregamento de dados
-            setTimeout(() => {
-                todasEmpresas = empresasData;
-                servicosDisponiveis = new Set(todasEmpresas.map(e => e.servico));
+        // Função para carregar empresas do Firestore
+        async function carregarEmpresas() {
+            try {
+                const listaEmpresas = document.getElementById('empresas-lista');
+                listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
+                
+                // Busca empresas em várias coleções
+                const [usuariosSnapshot, empresasSnapshot] = await Promise.all([
+                    db.collection('usuarios').where('tipo', '==', 'empresa').get(),
+                    db.collection('empresas').get() // Caso exista uma coleção específica para empresas
+                ]);
+                
+                // Processa os documentos
+                todasEmpresas = [];
+                
+                // Processa usuários que são empresas
+                usuariosSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    todasEmpresas.push({
+                        id: doc.id,
+                        ...data,
+                        // Padroniza campos que podem ter nomes diferentes
+                        nome: data.nome || data.nomeEmpresa,
+                        servico: data.servico || data.tipoServico,
+                        telefone: data.telefone || data.telefoneComercial
+                    });
+                    
+                    // Adiciona serviço ao filtro
+                    if (data.servico || data.tipoServico) {
+                        servicosDisponiveis.add(data.servico || data.tipoServico);
+                    }
+                });
+                
+                // Processa coleção de empresas se existir
+                if (!empresasSnapshot.empty) {
+                    empresasSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        todasEmpresas.push({
+                            id: doc.id,
+                            ...data,
+                            nome: data.nome || data.nomeEmpresa,
+                            servico: data.servico || data.tipoServico,
+                            telefone: data.telefone || data.telefoneComercial
+                        });
+                        
+                        if (data.servico || data.tipoServico) {
+                            servicosDisponiveis.add(data.servico || data.tipoServico);
+                        }
+                    });
+                }
                 
                 // Atualiza filtro de serviços
                 const selectServico = document.getElementById('servico');
@@ -314,11 +397,20 @@
                 // Configura listeners para os filtros
                 document.getElementById('servico').addEventListener('change', filtrarEmpresas);
                 document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
-            }, 1000);
+                
+            } catch (error) {
+                console.error('Erro ao carregar empresas:', error);
+                document.getElementById('empresas-lista').innerHTML = `
+                    <div class="error-message">
+                        Ocorreu um erro ao carregar as empresas. Por favor, recarregue a página.
+                        <br><small>${error.message}</small>
+                    </div>
+                `;
+            }
         }
 
         // Inicia quando a página carrega
-        document.addEventListener('DOMContentLoaded', carregarDados);
+        document.addEventListener('DOMContentLoaded', carregarEmpresas);
     </script>
 </body>
 </html>
