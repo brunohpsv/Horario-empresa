@@ -1,14 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | HORÁRIO</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -167,7 +162,7 @@
         <div class="auth-container">
             <h2>Login</h2>
             <form id="loginForm">
-                <input type="text" id="loginInput" placeholder="E-mail ou CPF/CNPJ cadastrado" required>
+                <input type="text" id="loginInput" placeholder="CPF/CNPJ cadastrado" required>
                 <div class="error-message" id="loginError"></div>
                 
                 <input type="password" id="senha" placeholder="Senha" required>
@@ -187,21 +182,9 @@
     </div>
 
     <script>
-        // Configuração do Firebase (mesmo do cadastro)
-        const firebaseConfig = {
-            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
-            authDomain: "horariosite-669d1.firebaseapp.com",
-            projectId: "horariosite-669d1",
-            storageBucket: "horariosite-669d1.appspot.com",
-            messagingSenderId: "154976451283",
-            appId: "1:154976451283:web:c4a75ce9c78e67d5a17226"
-        };
-
-        // Inicialize o Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
+        // URL do seu Apps Script Web App
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzH21Xpy8urtn2F27EDYoBpUzm81oUiDTwKN43KuhhGtW5oVL05Zjw7IQMwaIrWVz1A5w/exec';
+        
         // Função para mostrar/ocultar loader
         function toggleLoader(show) {
             document.getElementById('loader').style.display = show ? 'block' : 'none';
@@ -215,16 +198,19 @@
             return cleaned.length === 11 || cleaned.length === 14;
         }
 
-        // Busca usuário no Firestore por CPF/CNPJ
+        // Busca usuário no Google Sheets por CPF/CNPJ
         async function findUserByCpfCnpj(cpfCnpj) {
             try {
-                const querySnapshot = await db.collection('usuarios')
-                    .where('identificacao', '==', cpfCnpj)
-                    .limit(1)
-                    .get();
+                const response = await fetch(SCRIPT_URL + '?action=getUser&cpfCnpj=' + encodeURIComponent(cpfCnpj));
                 
-                if (!querySnapshot.empty) {
-                    return querySnapshot.docs[0].data();
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar usuário');
+                }
+                
+                const result = await response.json();
+                
+                if (result.success && result.userData) {
+                    return result.userData;
                 }
                 return null;
             } catch (error) {
@@ -233,7 +219,7 @@
             }
         }
 
-        // Login com Firebase (aceita e-mail ou CPF/CNPJ)
+        // Validação de login
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -247,7 +233,13 @@
             
             // Validação básica
             if (!loginInput) {
-                document.getElementById('loginError').textContent = 'Digite seu e-mail ou CPF/CNPJ';
+                document.getElementById('loginError').textContent = 'Digite seu CPF/CNPJ';
+                document.getElementById('loginError').style.display = 'block';
+                return;
+            }
+            
+            if (!isCpfOrCnpj(loginInput)) {
+                document.getElementById('loginError').textContent = 'Digite um CPF ou CNPJ válido';
                 document.getElementById('loginError').style.display = 'block';
                 return;
             }
@@ -261,37 +253,23 @@
             try {
                 toggleLoader(true);
                 
-                let emailToLogin = loginInput;
+                const cleanedCpfCnpj = loginInput.replace(/\D/g, '');
+                const userData = await findUserByCpfCnpj(cleanedCpfCnpj);
                 
-                // Se o input for CPF/CNPJ, busca o e-mail no Firestore
-                if (isCpfOrCnpj(loginInput)) {
-                    const cleanedCpfCnpj = loginInput.replace(/\D/g, '');
-                    const userData = await findUserByCpfCnpj(cleanedCpfCnpj);
-                    
-                    if (!userData) {
-                        throw new Error('CPF/CNPJ não encontrado');
-                    }
-                    
-                    emailToLogin = userData.email;
+                if (!userData) {
+                    throw new Error('CPF/CNPJ não encontrado');
                 }
                 
-                // Autenticação com Firebase
-                const userCredential = await auth.signInWithEmailAndPassword(emailToLogin, senha);
-                
-                // Busca dados adicionais no Firestore
-                const userDoc = await db.collection('usuarios').doc(userCredential.user.uid).get();
-                
-                if (userDoc.exists) {
-                    // Salva dados no localStorage para uso no painel
-                    const userData = userDoc.data();
-                    userData.uid = userCredential.user.uid;
-                    localStorage.setItem('userData', JSON.stringify(userData));
-                    
-                    // Redireciona para o painel
-                    window.location.href = 'https://horario.site/painel.html';
-                } else {
-                    throw new Error('Dados do usuário não encontrados');
+                // Verifica a senha
+                if (userData.senha !== senha) {
+                    throw new Error('Senha incorreta');
                 }
+                
+                // Salva dados no localStorage para uso no painel
+                localStorage.setItem('userData', JSON.stringify(userData));
+                
+                // Redireciona para o painel
+                window.location.href = 'https://horario.site/painel.html';
             } catch (error) {
                 console.error('Erro no login:', error);
                 let errorMessage = 'Erro ao fazer login';
@@ -301,12 +279,8 @@
                     errorMessage = 'CPF/CNPJ não cadastrado';
                     document.getElementById('loginError').textContent = errorMessage;
                     document.getElementById('loginError').style.display = 'block';
-                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    errorMessage = 'E-mail/CPF/CNPJ ou senha incorretos';
-                    document.getElementById('passwordError').textContent = errorMessage;
-                    document.getElementById('passwordError').style.display = 'block';
-                } else if (error.code === 'auth/too-many-requests') {
-                    errorMessage = 'Muitas tentativas. Tente novamente mais tarde';
+                } else if (error.message === 'Senha incorreta') {
+                    errorMessage = 'Senha incorreta';
                     document.getElementById('passwordError').textContent = errorMessage;
                     document.getElementById('passwordError').style.display = 'block';
                 } else {
@@ -318,29 +292,16 @@
             }
         });
 
-        // Recuperação de senha (só funciona com e-mail)
+        // Recuperação de senha
         document.getElementById('forgotPassword').addEventListener('click', async function(e) {
             e.preventDefault();
-            const email = prompt('Digite o e-mail cadastrado para redefinir a senha:');
-            
-            if (email) {
-                try {
-                    await auth.sendPasswordResetEmail(email);
-                    alert('E-mail de redefinição enviado! Verifique sua caixa de entrada.');
-                } catch (error) {
-                    console.error('Erro ao enviar e-mail de redefinição:', error);
-                    alert('Erro ao enviar e-mail. Verifique se o e-mail está correto.');
-                }
-            }
+            alert('Entre em contato com o suporte para recuperar sua senha.');
         });
 
         // Verifica se o usuário já está logado
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                // Usuário já está autenticado, redireciona para o painel
-                window.location.href = 'https://horario.site/painel.html';
-            }
-        });
+        if (localStorage.getItem('userData')) {
+            window.location.href = 'https://horario.site/painel.html';
+        }
     </script>
 </body>
 </html>
