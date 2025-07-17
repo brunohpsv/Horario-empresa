@@ -97,23 +97,40 @@
             border-radius: 0;
         }
 
+        .geo-btn {
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .geo-btn:hover {
+            background-color: #3367D6;
+        }
+
         /* Lista de empresas */
         .empresas-container {
             padding: 20px 40px;
         }
 
-        .empresas-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
+        .empresas-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .empresa-item {
             background-color: white;
-            padding: 15px;
+            padding: 20px;
             border: 1px solid #eee;
             cursor: pointer;
             transition: all 0.3s ease;
+            width: 100%;
         }
 
         .empresa-item:hover {
@@ -139,6 +156,12 @@
             font-size: 14px;
             color: #666;
             line-height: 1.5;
+        }
+
+        .empresa-detail {
+            font-size: 13px;
+            color: rgba(0, 0, 0, 0.5);
+            margin-bottom: 5px;
         }
 
         .empresa-contato {
@@ -221,6 +244,52 @@
                 <label for="nome-empresa">Nome da Empresa</label>
                 <input type="text" id="nome-empresa" placeholder="Digite o nome">
             </div>
+
+            <div class="filtro-item">
+                <label for="cidade">Cidade</label>
+                <input type="text" id="cidade" placeholder="Digite a cidade">
+            </div>
+
+            <div class="filtro-item">
+                <label for="estado">Estado</label>
+                <select id="estado">
+                    <option value="">Todos</option>
+                    <option value="AC">Acre</option>
+                    <option value="AL">Alagoas</option>
+                    <option value="AP">Amapá</option>
+                    <option value="AM">Amazonas</option>
+                    <option value="BA">Bahia</option>
+                    <option value="CE">Ceará</option>
+                    <option value="DF">Distrito Federal</option>
+                    <option value="ES">Espírito Santo</option>
+                    <option value="GO">Goiás</option>
+                    <option value="MA">Maranhão</option>
+                    <option value="MT">Mato Grosso</option>
+                    <option value="MS">Mato Grosso do Sul</option>
+                    <option value="MG">Minas Gerais</option>
+                    <option value="PA">Pará</option>
+                    <option value="PB">Paraíba</option>
+                    <option value="PR">Paraná</option>
+                    <option value="PE">Pernambuco</option>
+                    <option value="PI">Piauí</option>
+                    <option value="RJ">Rio de Janeiro</option>
+                    <option value="RN">Rio Grande do Norte</option>
+                    <option value="RS">Rio Grande do Sul</option>
+                    <option value="RO">Rondônia</option>
+                    <option value="RR">Roraima</option>
+                    <option value="SC">Santa Catarina</option>
+                    <option value="SP">São Paulo</option>
+                    <option value="SE">Sergipe</option>
+                    <option value="TO">Tocantins</option>
+                </select>
+            </div>
+
+            <div class="filtro-item">
+                <label>&nbsp;</label>
+                <button class="geo-btn" id="geolocalizacao">
+                    <i class="fas fa-location-arrow"></i> Minha Localização
+                </button>
+            </div>
         </div>
     </section>
     
@@ -237,6 +306,7 @@
         // Variáveis globais
         let todasEmpresas = [];
         let servicosDisponiveis = new Set();
+        let cidadesDisponiveis = new Set();
 
         // Função para formatar telefone
         function formatarTelefone(numero) {
@@ -262,8 +332,8 @@
                 return;
             }
             
-            listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid"></div>';
-            const gridEmpresas = document.getElementById('empresas-grid');
+            listaEmpresas.innerHTML = '<div class="empresas-list" id="empresas-list"></div>';
+            const listEmpresas = document.getElementById('empresas-list');
             
             empresas.forEach(empresa => {
                 const empresaElement = document.createElement('div');
@@ -280,15 +350,14 @@
                 empresaElement.innerHTML = `
                     <div class="empresa-nome">${empresa.nome || empresa.nomeEmpresa || 'Nome não informado'}</div>
                     <div class="servico-tag">${empresa.servico || empresa.tipoServico || 'Serviço não especificado'}</div>
-                    <div class="empresa-info">
-                        ${enderecoCompleto || 'Endereço não informado'}<br>
-                        ${empresa.cidade || ''}${empresa.estado ? ' - ' + empresa.estado : ''}
-                    </div>
+                    
+                    ${enderecoCompleto ? `<div class="empresa-detail"><i class="fas fa-map-marker-alt"></i> ${enderecoCompleto}</div>` : ''}
+                    ${empresa.cidade || empresa.estado ? `<div class="empresa-detail">${empresa.cidade || ''}${empresa.cidade && empresa.estado ? ' - ' : ''}${empresa.estado || ''}</div>` : ''}
+                    
                     ${telefoneFormatado ? `<div class="empresa-contato"><i class="fas fa-phone"></i> ${telefoneFormatado}</div>` : ''}
-                    <div class="divider"></div>
                 `;
                 
-                gridEmpresas.appendChild(empresaElement);
+                listEmpresas.appendChild(empresaElement);
             });
         }
 
@@ -296,16 +365,40 @@
         function filtrarEmpresas() {
             const servico = document.getElementById('servico').value;
             const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
+            const cidade = document.getElementById('cidade').value.toLowerCase();
+            const estado = document.getElementById('estado').value;
             
             const empresasFiltradas = todasEmpresas.filter(empresa => {
                 const nome = (empresa.nome || empresa.nomeEmpresa || '').toLowerCase();
                 const servicoEmpresa = (empresa.servico || empresa.tipoServico || '').toLowerCase();
+                const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
+                const estadoEmpresa = (empresa.estado || '');
                 
                 return (!servico || servicoEmpresa.includes(servico.toLowerCase())) &&
-                       (!nomeEmpresa || nome.includes(nomeEmpresa));
+                       (!nomeEmpresa || nome.includes(nomeEmpresa)) &&
+                       (!cidade || cidadeEmpresa.includes(cidade)) &&
+                       (!estado || estadoEmpresa === estado);
             });
             
             exibirEmpresas(empresasFiltradas);
+        }
+
+        // Função para geolocalização
+        function obterGeolocalizacao() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        // Aqui você pode implementar a lógica para buscar empresas próximas
+                        // usando as coordenadas position.coords.latitude e position.coords.longitude
+                        alert(`Localização obtida: ${position.coords.latitude}, ${position.coords.longitude}`);
+                    },
+                    (error) => {
+                        alert('Erro ao obter localização: ' + error.message);
+                    }
+                );
+            } else {
+                alert('Geolocalização não é suportada pelo seu navegador.');
+            }
         }
 
         // Função para carregar empresas
@@ -335,17 +428,31 @@
                         telefone: "(11) 98765-4321",
                         endereco: "Av. Paulista, 1000",
                         bairro: "Bela Vista"
+                    },
+                    {
+                        id: "3",
+                        nome: "Clínica Médica Saúde Total",
+                        servico: "Clínica Médica",
+                        cidade: "Rio de Janeiro",
+                        estado: "RJ",
+                        telefone: "(21) 99876-5432",
+                        endereco: "Rua Copacabana, 500",
+                        bairro: "Copacabana"
                     }
                 ];
                 
                 // Processa os dados recebidos
                 todasEmpresas = empresasData;
                 servicosDisponiveis = new Set();
+                cidadesDisponiveis = new Set();
                 
-                // Coleta todos os serviços disponíveis
+                // Coleta todos os serviços e cidades disponíveis
                 todasEmpresas.forEach(empresa => {
                     if (empresa.servico) {
                         servicosDisponiveis.add(empresa.servico);
+                    }
+                    if (empresa.cidade) {
+                        cidadesDisponiveis.add(empresa.cidade);
                     }
                 });
                 
@@ -359,12 +466,21 @@
                     selectServico.appendChild(option);
                 });
                 
+                // Configura autocomplete para cidades (simplificado)
+                const inputCidade = document.getElementById('cidade');
+                inputCidade.addEventListener('input', function() {
+                    // Implementação completa de autocomplete seria mais complexa
+                });
+                
                 // Exibe todas as empresas inicialmente
                 exibirEmpresas(todasEmpresas);
                 
                 // Configura listeners para os filtros
                 document.getElementById('servico').addEventListener('change', filtrarEmpresas);
                 document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
+                document.getElementById('cidade').addEventListener('input', filtrarEmpresas);
+                document.getElementById('estado').addEventListener('change', filtrarEmpresas);
+                document.getElementById('geolocalizacao').addEventListener('click', obterGeolocalizacao);
                 
             } catch (error) {
                 console.error('Erro ao carregar empresas:', error);
