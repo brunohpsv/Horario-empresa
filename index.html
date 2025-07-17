@@ -323,6 +323,8 @@
         // Variáveis globais
         let todasEmpresas = [];
         let servicosDisponiveis = new Set();
+        let jsonUrl = '';
+        let refreshInterval;
 
         // Função para formatar telefone
         function formatarTelefone(numero) {
@@ -397,22 +399,49 @@
             exibirEmpresas(empresasFiltradas);
         }
 
-        // Função para carregar empresas
-        async function carregarEmpresas() {
+        // Função para extrair a URL JSON do data.html
+        async function getJsonUrlFromDataPage() {
             try {
+                const response = await fetch('data.html');
+                if (!response.ok) {
+                    throw new Error(`Erro ao carregar data.html: ${response.status} ${response.statusText}`);
+                }
+                
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const jsonUrlInput = doc.getElementById('json-url');
+                
+                if (jsonUrlInput && jsonUrlInput.value) {
+                    return jsonUrlInput.value;
+                } else {
+                    throw new Error('URL JSON não encontrada no data.html');
+                }
+            } catch (error) {
+                console.error('Erro ao obter URL JSON:', error);
+                throw error;
+            }
+        }
+
+        // Função para carregar empresas do JSON
+        async function carregarEmpresasDoJson() {
+            try {
+                // Primeiro obtemos a URL mais recente do data.html
+                jsonUrl = await getJsonUrlFromDataPage();
+                
                 const listaEmpresas = document.getElementById('empresas-lista');
                 listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
                 
-                // Carrega os dados do arquivo empresas.json
-                const response = await fetch('empresas.json');
+                // Agora carregamos os dados da URL JSON obtida
+                const response = await fetch(jsonUrl);
                 if (!response.ok) {
                     throw new Error(`Erro ao carregar empresas: ${response.status} ${response.statusText}`);
                 }
                 
-                const empresasData = await response.json();
+                const jsonData = await response.json();
                 
                 // Processa os dados recebidos
-                todasEmpresas = empresasData;
+                todasEmpresas = jsonData.empresas || [];
                 servicosDisponiveis = new Set();
                 
                 // Coleta todos os serviços disponíveis
@@ -457,8 +486,24 @@
             }
         }
 
+        // Função para iniciar o intervalo de atualização
+        function startRefreshInterval() {
+            // Limpa qualquer intervalo existente
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            
+            // Define um novo intervalo de 5 segundos (igual ao data.html)
+            refreshInterval = setInterval(() => {
+                carregarEmpresasDoJson();
+            }, 5000);
+        }
+
         // Inicia quando a página carrega
-        document.addEventListener('DOMContentLoaded', carregarEmpresas);
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarEmpresasDoJson();
+            startRefreshInterval();
+        });
     </script>
 </body>
 </html>
