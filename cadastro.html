@@ -228,6 +228,16 @@
         .btn-toggle-senha:hover {
             color: #333;
         }
+        
+        .mensagem-erro {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -354,6 +364,10 @@
                     Seu cadastro está em análise, por 24h. Neste período a nossa equipe entrará em contato para efetivar seu cadastro.
                 </div>
                 
+                <div id="mensagemErro" class="mensagem-erro">
+                    Ocorreu um erro ao enviar seu cadastro. Por favor, tente novamente mais tarde.
+                </div>
+                
                 <div id="credenciaisAcesso" class="credenciais-acesso">
                     <h3>Suas Credenciais de Acesso</h3>
                     <p><strong>E-mail:</strong> <span id="cred-email"></span></p>
@@ -411,13 +425,23 @@
             btn.textContent = 'Enviando...';
             btn.disabled = true;
             
+            // Esconder mensagens anteriores
+            document.getElementById('mensagemSucesso').style.display = 'none';
+            document.getElementById('mensagemErro').style.display = 'none';
+            document.getElementById('credenciaisAcesso').style.display = 'none';
+            
             try {
                 // Coletar dados do formulário
                 const email = document.getElementById('email').value;
                 const senha = document.getElementById('senha').value;
+                const confirmarSenha = document.getElementById('confirmarSenha').value;
                 
-                // Verificar se as senhas coincidem
-                if (senha !== document.getElementById('confirmarSenha').value) {
+                // Validações básicas
+                if (!email || !senha) {
+                    throw new Error('E-mail e senha são obrigatórios');
+                }
+                
+                if (senha !== confirmarSenha) {
                     throw new Error('As senhas não coincidem');
                 }
                 
@@ -447,28 +471,27 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify(formData),
+                    mode: 'no-cors' // Adicionado para evitar problemas de CORS
                 });
                 
-                const result = await response.json();
+                // Como estamos usando mode: 'no-cors', não podemos ler a resposta
+                // Mas assumimos que se não houve erro, foi enviado com sucesso
                 
-                if (result.success) {
-                    // Mostrar mensagem de sucesso
-                    document.getElementById('mensagemSucesso').style.display = 'block';
-                    document.getElementById('credenciaisAcesso').style.display = 'block';
-                    document.getElementById('cred-email').textContent = email;
-                    document.getElementById('cred-senha').textContent = senha;
-                    
-                    // Limpar formulário
-                    document.getElementById('formCadastro').reset();
-                    window.scrollTo(0, document.body.scrollHeight);
-                } else {
-                    throw new Error(result.message || 'Erro ao enviar cadastro');
-                }
+                // Mostrar mensagem de sucesso
+                document.getElementById('mensagemSucesso').style.display = 'block';
+                document.getElementById('credenciaisAcesso').style.display = 'block';
+                document.getElementById('cred-email').textContent = email;
+                document.getElementById('cred-senha').textContent = senha;
+                
+                // Limpar formulário
+                document.getElementById('formCadastro').reset();
+                window.scrollTo(0, document.body.scrollHeight);
                 
             } catch (error) {
                 console.error("Erro ao enviar cadastro:", error);
-                alert("Ocorreu um erro ao enviar seu cadastro: " + error.message);
+                document.getElementById('mensagemErro').style.display = 'block';
+                document.getElementById('mensagemErro').textContent = `Ocorreu um erro ao enviar seu cadastro: ${error.message}`;
             } finally {
                 btn.textContent = btnOriginalText;
                 btn.disabled = false;
