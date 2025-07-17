@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dados do Firestore - horariosite</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .collection-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .document-card {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f8fafc;
+        }
+        h1 {
+            margin-bottom: 30px;
+            color: #343a40;
+        }
+        h2 {
+            color: #495057;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #6c757d;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .field-name {
+            font-weight: bold;
+            min-width: 200px;
+        }
+        .array-item {
+            margin-left: 20px;
+            padding: 2px 5px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .storage-info {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        .refresh-info {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Dados do Firestore - horariosite</h1>
+        <div class="refresh-info">Os dados são atualizados automaticamente a cada 10 segundos</div>
+        <div id="collections-container"></div>
+        <div id="loading" class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p>Carregando dados do Firestore...</p>
+        </div>
+        
+        <div class="storage-info">
+            <h3>Compartilhamento de Dados via localStorage</h3>
+            <p>Os dados das empresas estão disponíveis no localStorage com a chave:</p>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="storage-key" value="horariosite_data" readonly>
+                <button class="btn btn-outline-secondary" type="button" id="copy-key-btn">Copiar Chave</button>
+            </div>
+            <button class="btn btn-primary" id="view-data-btn">Visualizar Dados Armazenados</button>
+            <pre id="data-viewer" style="display: none; margin-top: 15px;"></pre>
+            
+            <div class="mt-3">
+                <h4>Como usar em outra página:</h4>
+                <pre>
+// Para acessar os dados em outra página do mesmo domínio
+const empresaData = JSON.parse(localStorage.getItem('horariosite_data'));
+
+if (empresaData) {
+    console.log('Dados das empresas:', empresaData.empresas);
+    // Use os dados como necessário
+} else {
+    console.log('Dados ainda não carregados');
+}
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script>
+        // Configuração do Firebase com suas credenciais
+        const firebaseConfig = {
+            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
+            projectId: "horariosite-669d1",
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Objeto com as coleções que você quer mostrar
+        const collectionsToShow = {
+            "usuarios": "Usuários",
+            "horarios": "Horários"
+        };
+
+        // Chave para armazenar no localStorage
+        const STORAGE_KEY = 'horariosite_data';
+
+        // Objeto para armazenar os dados que serão salvos no localStorage
+        let sharedData = {
+            empresas: [],
+            ultimaAtualizacao: null
+        };
+
+        // Função para formatar valores especiais
+        function formatValue(value) {
+            if (value === null) return null;
+            if (value === undefined) return undefined;
+            
+            // Timestamp do Firestore
+            if (typeof value === 'object' && value.toDate) {
+                return value.toDate().toISOString();
+            }
+            
+            // Objetos
+            if (typeof value === 'object' && !Array.isArray(value)) {
+                let obj = {};
+                for (const [key, val] of Object.entries(value)) {
+                    obj[key] = formatValue(val);
+                }
+                return obj;
+            }
+            
+            // Arrays
+            if (Array.isArray(value)) {
+                return value.map(item => formatValue(item));
+            }
+            
+            return value;
+        }
+
+        // Função para carregar todos os documentos de uma coleção
+        async function loadCollection(collectionName, displayName) {
+            try {
+                const querySnapshot = await db.collection(collectionName).get();
+                const container = document.getElementById('collections-container');
+                
+                // Cria um container para a coleção
+                const collectionDiv = document.createElement('div');
+                collectionDiv.className = 'collection-container';
+                collectionDiv.innerHTML = `<h2>${displayName} <small class="text-muted">(${collectionName})</small></h2>`;
+                
+                const docsContainer = document.createElement('div');
+                docsContainer.className = 'documents-container';
+                
+                if (querySnapshot.empty) {
+                    docsContainer.innerHTML = '<div class="alert alert-warning">Nenhum documento nesta coleção.</div>';
+                } else {
+                    // Para cada documento na coleção
+                    querySnapshot.forEach(doc => {
+                        const docData = doc.data();
+                        
+                        // Adiciona dados formatados ao sharedData
+                        if (collectionName === "usuarios" && docData.tipo === "empresa") {
+                            sharedData.empresas.push({
+                                id: doc.id,
+                                ...formatValue(docData)
+                            });
+                        }
+                        
+                        const docDiv = document.createElement('div');
+                        docDiv.className = 'document-card';
+                        
+                        let html = `<h5>Documento ID: ${doc.id}</h5>`;
+                        html += '<table class="table table-sm">';
+                        
+                        // Adiciona cada campo do documento
+                        for (const [key, value] of Object.entries(docData)) {
+                            html += `
+                                <tr>
+                                    <td class="field-name">${key}</td>
+                                    <td>${formatValue(value)}</td>
+                                </tr>
+                            `;
+                        }
+                        
+                        html += '</table>';
+                        docDiv.innerHTML = html;
+                        docsContainer.appendChild(docDiv);
+                    });
+                }
+                
+                collectionDiv.appendChild(docsContainer);
+                container.appendChild(collectionDiv);
+                
+            } catch (error) {
+                console.error(`Erro ao carregar coleção ${collectionName}:`, error);
+                const container = document.getElementById('collections-container');
+                container.innerHTML += `
+                    <div class="alert alert-danger">
+                        Erro ao carregar coleção ${collectionName}: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Função para atualizar os dados no localStorage
+        function updateLocalStorage() {
+            sharedData.ultimaAtualizacao = new Date().toISOString();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(sharedData));
+            
+            // Atualiza a exibição
+            document.getElementById('data-viewer').textContent = JSON.stringify(sharedData, null, 2);
+        }
+
+        // Função para carregar todas as coleções
+        async function loadAllCollections() {
+            try {
+                const container = document.getElementById('collections-container');
+                container.innerHTML = '';
+                
+                // Limpa os dados antes de recarregar
+                sharedData.empresas = [];
+                
+                // Carrega cada coleção sequencialmente
+                for (const [collectionName, displayName] of Object.entries(collectionsToShow)) {
+                    await loadCollection(collectionName, displayName);
+                }
+                
+                // Atualiza o localStorage
+                updateLocalStorage();
+                
+                // Esconde o indicador de carregamento
+                document.getElementById('loading').style.display = 'none';
+                
+            } catch (error) {
+                console.error("Erro ao carregar coleções:", error);
+                document.getElementById('collections-container').innerHTML = `
+                    <div class="alert alert-danger">
+                        Ocorreu um erro ao carregar os dados: ${error.message}
+                    </div>
+                `;
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Função para recarregar os dados sem recarregar a página
+        async function refreshData() {
+            try {
+                // Mostra o indicador de carregamento
+                document.getElementById('loading').style.display = 'block';
+                
+                // Limpa o container de coleções
+                document.getElementById('collections-container').innerHTML = '';
+                
+                // Limpa os dados antes de recarregar
+                sharedData.empresas = [];
+                
+                // Carrega cada coleção sequencialmente
+                for (const [collectionName, displayName] of Object.entries(collectionsToShow)) {
+                    await loadCollection(collectionName, displayName);
+                }
+                
+                // Atualiza o localStorage
+                updateLocalStorage();
+                
+                // Esconde o indicador de carregamento
+                document.getElementById('loading').style.display = 'none';
+                
+            } catch (error) {
+                console.error("Erro ao atualizar dados:", error);
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Função para configurar o refresh periódico
+        function setupPageRefresh() {
+            // Define o intervalo para recarregar os dados a cada 10 segundos
+            setInterval(refreshData, 10000);
+        }
+
+        // Carrega os dados quando a página estiver pronta e configura o recarregamento
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configura os botões
+            document.getElementById('view-data-btn').addEventListener('click', () => {
+                const viewer = document.getElementById('data-viewer');
+                viewer.style.display = viewer.style.display === 'none' ? 'block' : 'none';
+            });
+            
+            document.getElementById('copy-key-btn').addEventListener('click', () => {
+                const storageKey = document.getElementById('storage-key');
+                storageKey.select();
+                document.execCommand('copy');
+                alert('Chave copiada para a área de transferência!');
+            });
+            
+            // Carrega os dados do Firestore
+            loadAllCollections();
+            
+            // Configura o refresh periódico
+            setupPageRefresh();
+        });
+    </script>
+</body>
+</html>
