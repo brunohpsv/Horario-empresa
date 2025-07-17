@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dados do Firestore - horariosite</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .collection-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .document-card {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f8fafc;
+        }
+        h1 {
+            margin-bottom: 30px;
+            color: #343a40;
+        }
+        h2 {
+            color: #495057;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #6c757d;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .field-name {
+            font-weight: bold;
+            min-width: 200px;
+        }
+        .array-item {
+            margin-left: 20px;
+            padding: 2px 5px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .json-endpoint {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        .refresh-info {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Dados do Firestore - horariosite</h1>
+        <div class="refresh-info">Os dados são atualizados automaticamente a cada 5 segundos</div>
+        <div id="collections-container"></div>
+        <div id="loading" class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p>Carregando dados do Firestore...</p>
+        </div>
+        
+        <div class="json-endpoint">
+            <h3>Endpoint JSON</h3>
+            <p>Os dados das empresas estão disponíveis em formato JSON no seguinte endpoint:</p>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="json-url" value="empresas.json" readonly>
+                <button class="btn btn-outline-secondary" type="button" id="copy-btn">Copiar URL</button>
+            </div>
+            <button class="btn btn-primary" id="view-json-btn">Visualizar JSON Completo</button>
+            <pre id="json-viewer" style="display: none; margin-top: 15px;"></pre>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script>
+        // Configuração do Firebase com suas credenciais
+        const firebaseConfig = {
+            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
+            projectId: "horariosite-669d1",
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Objeto com as coleções que você quer mostrar
+        const collectionsToShow = {
+            "usuarios": "Usuários",
+            "horarios": "Horários"
+        };
+
+        // Objeto para armazenar os dados que serão convertidos para JSON
+        let jsonData = {
+            empresas: []
+        };
+
+        // Função para formatar valores especiais
+        function formatValue(value) {
+            if (value === null) return null;
+            if (value === undefined) return undefined;
+            
+            // Timestamp do Firestore
+            if (typeof value === 'object' && value.toDate) {
+                return value.toDate().toISOString();
+            }
+            
+            // Objetos
+            if (typeof value === 'object' && !Array.isArray(value)) {
+                let obj = {};
+                for (const [key, val] of Object.entries(value)) {
+                    obj[key] = formatValue(val);
+                }
+                return obj;
+            }
+            
+            // Arrays
+            if (Array.isArray(value)) {
+                return value.map(item => formatValue(item));
+            }
+            
+            return value;
+        }
+
+        // Função para carregar todos os documentos de uma coleção
+        async function loadCollection(collectionName, displayName) {
+            try {
+                const querySnapshot = await db.collection(collectionName).get();
+                const container = document.getElementById('collections-container');
+                
+                // Cria um container para a coleção
+                const collectionDiv = document.createElement('div');
+                collectionDiv.className = 'collection-container';
+                collectionDiv.innerHTML = `<h2>${displayName} <small class="text-muted">(${collectionName})</small></h2>`;
+                
+                const docsContainer = document.createElement('div');
+                docsContainer.className = 'documents-container';
+                
+                if (querySnapshot.empty) {
+                    docsContainer.innerHTML = '<div class="alert alert-warning">Nenhum documento nesta coleção.</div>';
+                } else {
+                    // Para cada documento na coleção
+                    querySnapshot.forEach(doc => {
+                        const docData = doc.data();
+                        
+                        // Adiciona dados formatados ao JSON
+                        if (collectionName === "usuarios" && docData.tipo === "empresa") {
+                            jsonData.empresas.push({
+                                id: doc.id,
+                                ...formatValue(docData)
+                            });
+                        }
+                        
+                        const docDiv = document.createElement('div');
+                        docDiv.className = 'document-card';
+                        
+                        let html = `<h5>Documento ID: ${doc.id}</h5>`;
+                        html += '<table class="table table-sm">';
+                        
+                        // Adiciona cada campo do documento
+                        for (const [key, value] of Object.entries(docData)) {
+                            html += `
+                                <tr>
+                                    <td class="field-name">${key}</td>
+                                    <td>${formatValue(value)}</td>
+                                </tr>
+                            `;
+                        }
+                        
+                        html += '</table>';
+                        docDiv.innerHTML = html;
+                        docsContainer.appendChild(docDiv);
+                    });
+                }
+                
+                collectionDiv.appendChild(docsContainer);
+                container.appendChild(collectionDiv);
+                
+            } catch (error) {
+                console.error(`Erro ao carregar coleção ${collectionName}:`, error);
+                const container = document.getElementById('collections-container');
+                container.innerHTML += `
+                    <div class="alert alert-danger">
+                        Erro ao carregar coleção ${collectionName}: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Função para carregar todas as coleções
+        async function loadAllCollections() {
+            try {
+                const container = document.getElementById('collections-container');
+                container.innerHTML = '';
+                
+                // Limpa os dados do JSON antes de recarregar
+                jsonData.empresas = [];
+                
+                // Carrega cada coleção sequencialmente
+                for (const [collectionName, displayName] of Object.entries(collectionsToShow)) {
+                    await loadCollection(collectionName, displayName);
+                }
+                
+                // Esconde o indicador de carregamento
+                document.getElementById('loading').style.display = 'none';
+                
+                // Atualiza o JSON viewer
+                updateJsonViewer();
+                
+            } catch (error) {
+                console.error("Erro ao carregar coleções:", error);
+                document.getElementById('collections-container').innerHTML = `
+                    <div class="alert alert-danger">
+                        Ocorreu um erro ao carregar os dados: ${error.message}
+                    </div>
+                `;
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Função para atualizar o visualizador JSON
+        function updateJsonViewer() {
+            const jsonStr = JSON.stringify(jsonData, null, 2);
+            document.getElementById('json-viewer').textContent = jsonStr;
+            
+            // Configura o botão de visualização
+            document.getElementById('view-json-btn').addEventListener('click', () => {
+                const viewer = document.getElementById('json-viewer');
+                viewer.style.display = viewer.style.display === 'none' ? 'block' : 'none';
+            });
+            
+            // Configura o botão de copiar
+            document.getElementById('copy-btn').addEventListener('click', () => {
+                const jsonUrl = document.getElementById('json-url');
+                jsonUrl.select();
+                document.execCommand('copy');
+                alert('URL copiada para a área de transferência!');
+            });
+        }
+
+        // Função para recarregar a página completamente
+        function setupPageRefresh() {
+            // Define o intervalo para recarregar a página a cada 5 segundos
+            setTimeout(() => {
+                window.location.reload(true); // O parâmetro true força recarregamento do cache
+            }, 5000);
+        }
+
+        // Carrega os dados quando a página estiver pronta e configura o recarregamento
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllCollections();
+            setupPageRefresh();
+        });
+    </script>
+</body>
+</html>
