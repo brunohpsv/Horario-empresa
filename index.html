@@ -321,8 +321,10 @@
         // Variáveis globais
         let todasEmpresas = [];
         let servicosDisponiveis = new Set();
-        let jsonUrl = '';
         let refreshInterval;
+
+        // URL fixa para buscar os dados
+        const DATA_URL = 'https://brunohpsv.github.io/dados/';
 
         // Função para formatar telefone
         function formatarTelefone(numero) {
@@ -397,64 +399,14 @@
             exibirEmpresas(empresasFiltradas);
         }
 
-        // Função para obter a URL JSON do data.html
-        async function getJsonUrl() {
-            try {
-                // Primeiro tentamos buscar diretamente o JSON gerado
-                const response = await fetch('data.html');
-                if (!response.ok) {
-                    throw new Error('Não foi possível carregar data.html');
-                }
-                
-                const html = await response.text();
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
-                const jsonUrlInput = tempDiv.querySelector('#json-url');
-                
-                if (jsonUrlInput && jsonUrlInput.value) {
-                    return jsonUrlInput.value;
-                }
-                
-                // Se não encontrar, tentamos a abordagem alternativa
-                const blob = new Blob([html], {type: 'text/html'});
-                const url = URL.createObjectURL(blob);
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = url;
-                document.body.appendChild(iframe);
-                
-                await new Promise((resolve, reject) => {
-                    iframe.onload = resolve;
-                    iframe.onerror = reject;
-                    setTimeout(() => reject(new Error('Timeout ao carregar iframe')), 5000);
-                });
-                
-                const jsonUrl = iframe.contentWindow.jsonDataUrl;
-                document.body.removeChild(iframe);
-                URL.revokeObjectURL(url);
-                
-                if (!jsonUrl) {
-                    throw new Error('URL JSON não encontrada');
-                }
-                
-                return jsonUrl;
-            } catch (error) {
-                console.error('Erro ao obter URL JSON:', error);
-                throw new Error('Não foi possível obter a URL JSON do data.html');
-            }
-        }
-
         // Função para carregar empresas
         async function carregarEmpresas() {
             try {
                 const listaEmpresas = document.getElementById('empresas-lista');
                 listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
                 
-                // Obtemos a URL JSON mais recente
-                jsonUrl = await getJsonUrl();
-                
-                // Carregamos os dados da URL JSON
-                const response = await fetch(jsonUrl);
+                // Carregamos os dados da URL fixa
+                const response = await fetch(DATA_URL);
                 if (!response.ok) {
                     throw new Error(`Erro ao carregar empresas: ${response.status} ${response.statusText}`);
                 }
@@ -485,17 +437,6 @@
                 // Exibe todas as empresas inicialmente
                 exibirEmpresas(todasEmpresas);
                 
-                // Configura listeners para os filtros
-                document.getElementById('cidade').addEventListener('input', filtrarEmpresas);
-                document.getElementById('estado').addEventListener('change', filtrarEmpresas);
-                document.getElementById('servico').addEventListener('change', filtrarEmpresas);
-                document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
-                
-                // Configura geolocalização
-                document.getElementById('geolocalizacao').addEventListener('click', () => {
-                    alert('Geolocalização ativada - esta funcionalidade seria implementada com a API de geolocalização do navegador');
-                });
-                
             } catch (error) {
                 console.error('Erro ao carregar empresas:', error);
                 document.getElementById('empresas-lista').innerHTML = `
@@ -522,6 +463,18 @@
 
         // Inicia quando a página carrega
         document.addEventListener('DOMContentLoaded', () => {
+            // Configura listeners para os filtros
+            document.getElementById('cidade').addEventListener('input', filtrarEmpresas);
+            document.getElementById('estado').addEventListener('change', filtrarEmpresas);
+            document.getElementById('servico').addEventListener('change', filtrarEmpresas);
+            document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
+            
+            // Configura geolocalização
+            document.getElementById('geolocalizacao').addEventListener('click', () => {
+                alert('Geolocalização ativada - esta funcionalidade seria implementada com a API de geolocalização do navegador');
+            });
+            
+            // Carrega os dados e inicia o intervalo de atualização
             carregarEmpresas();
             startRefreshInterval();
         });
