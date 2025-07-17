@@ -167,12 +167,6 @@
             margin-bottom: 10px;
         }
 
-        .empresa-info {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.5;
-        }
-
         .empresa-contato {
             font-size: 14px;
             color: #444;
@@ -213,65 +207,6 @@
             display: none;
         }
 
-        /* Estilos para a seção de dados brutos */
-        .raw-data-section {
-            padding: 20px 40px;
-            background-color: #f8f9fa;
-        }
-        
-        .raw-data-container {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .raw-data-title {
-            color: #343a40;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .document-card {
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background-color: #f8fafc;
-        }
-        
-        .field-name {
-            font-weight: bold;
-            min-width: 200px;
-        }
-        
-        .timestamp {
-            color: #6c757d;
-            font-size: 0.9em;
-        }
-        
-        .json-viewer {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .array-item {
-            margin-left: 20px;
-            padding: 2px 5px;
-            background-color: #e9ecef;
-            border-radius: 3px;
-            display: inline-block;
-            margin-bottom: 5px;
-        }
-
         @media (max-width: 768px) {
             .filtro-container {
                 flex-direction: column;
@@ -296,7 +231,7 @@
                 margin: 0;
             }
             
-            .empresas-container, .raw-data-section {
+            .empresas-container {
                 padding: 15px;
             }
         }
@@ -390,16 +325,6 @@
         </div>
     </section>
 
-    <!-- Seção para mostrar os dados brutos da API -->
-    <section class="raw-data-section">
-        <div class="raw-data-container">
-            <h2 class="raw-data-title">Dados da API</h2>
-            <div id="firestore-data-container"></div>
-            <button class="btn btn-primary" id="toggle-json-btn">Mostrar JSON Completo</button>
-            <pre id="json-viewer" class="json-viewer"></pre>
-        </div>
-    </section>
-
     <!-- SDKs do Firebase e código JavaScript -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -422,7 +347,6 @@
         let servicosDisponiveis = new Set();
         let refreshInterval;
         let isFirstLoad = true;
-        let jsonData = { empresas: [] };
 
         // Função para formatar telefone
         function formatarTelefone(numero) {
@@ -528,7 +452,7 @@
             exibirEmpresas(empresasFiltradas);
         }
 
-        // Função para carregar empresas do Firestore
+        // Função para carregar empresas do Firestore (agora da coleção 'usuarios')
         async function carregarEmpresasFirestore() {
             try {
                 const listaEmpresas = document.getElementById('empresas-lista');
@@ -537,7 +461,7 @@
                     listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
                 }
                 
-                const snapshot = await db.collection("empresas").get();
+                const snapshot = await db.collection("usuarios").where("tipo", "==", "empresa").get();
                 todasEmpresas = [];
                 servicosDisponiveis = new Set();
                 
@@ -555,8 +479,6 @@
                     }
                 });
                 
-                jsonData.empresas = [...todasEmpresas];
-                
                 const selectServico = document.getElementById('servico');
                 const currentService = selectServico.value;
                 selectServico.innerHTML = '<option value="">Todos os serviços</option>';
@@ -569,8 +491,6 @@
                 });
                 
                 filtrarEmpresas();
-                exibirDadosAPI({ empresas: todasEmpresas });
-                document.getElementById('json-viewer').textContent = JSON.stringify(jsonData, null, 2);
                 
             } catch (error) {
                 console.error('Erro ao carregar empresas:', error);
@@ -584,40 +504,6 @@
                     `;
                 }
             }
-        }
-
-        // Função para exibir dados da API
-        function exibirDadosAPI(apiResponse) {
-            const container = document.getElementById('firestore-data-container');
-            container.innerHTML = '';
-            
-            if (!apiResponse.empresas || apiResponse.empresas.length === 0) {
-                container.innerHTML = '<div class="alert alert-warning">Nenhuma empresa encontrada na API.</div>';
-                return;
-            }
-            
-            apiResponse.empresas.forEach(empresa => {
-                const docDiv = document.createElement('div');
-                docDiv.className = 'document-card';
-                
-                let html = `<h5>Empresa ID: ${empresa.id || 'N/A'}</h5>`;
-                html += '<table class="table table-sm">';
-                
-                for (const [key, value] of Object.entries(empresa)) {
-                    if (key === 'id') continue;
-                    
-                    html += `
-                        <tr>
-                            <td class="field-name">${key}</td>
-                            <td>${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}</td>
-                        </tr>
-                    `;
-                }
-                
-                html += '</table>';
-                docDiv.innerHTML = html;
-                container.appendChild(docDiv);
-            });
         }
 
         // Função para iniciar o intervalo de atualização
@@ -640,13 +526,6 @@
             
             document.getElementById('geolocalizacao').addEventListener('click', () => {
                 alert('Geolocalização ativada - esta funcionalidade seria implementada com a API de geolocalização do navegador');
-            });
-            
-            document.getElementById('toggle-json-btn').addEventListener('click', () => {
-                const viewer = document.getElementById('json-viewer');
-                viewer.style.display = viewer.style.display === 'none' ? 'block' : 'none';
-                document.getElementById('toggle-json-btn').textContent = 
-                    viewer.style.display === 'none' ? 'Mostrar JSON Completo' : 'Ocultar JSON';
             });
             
             carregarEmpresasFirestore();
