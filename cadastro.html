@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro | HORÁRIO</title>
     <style>
+        /* Seus estilos CSS permanecem os mesmos */
         * {
             margin: 0;
             padding: 0;
@@ -384,37 +385,10 @@
         </div>
     </div>
 
-    <!-- Importação do Firebase v9 (modular via CDN) -->
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { 
-            getFirestore, 
-            doc,
-            setDoc,
-            collection,
-            addDoc
-        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-        import {
-            getAuth,
-            createUserWithEmailAndPassword
-        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
-            authDomain: "horariosite-669d1.firebaseapp.com",
-            projectId: "horariosite-669d1",
-            storageBucket: "horariosite-669d1.appspot.com",
-            messagingSenderId: "154976451283",
-            appId: "1:154976451283:web:c4a75ce9c78e67d5a17226"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
+    <script>
+        // Configurações da planilha Google
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzEsxZ-H9gvubibM2AT2IywI9GHRRt_9FhXoS6_3IP5ruO6K79ELGYyJwbt4vetTv4eWA/exec'; // Substitua pela URL do seu Apps Script
+        
         // Alternar entre CPF e CNPJ
         document.getElementById('tipo-pessoa').addEventListener('change', function() {
             const label = document.getElementById('label-identificacao');
@@ -429,24 +403,7 @@
             }
         });
 
-        // Função para gerar horários baseados na configuração
-        function gerarHorariosPadrao(config) {
-            const horarios = [];
-            let horaAtual = new Date();
-            horaAtual.setHours(parseInt(config.horarioAbertura.split(':')[0]), 0, 0, 0);
-
-            const horaFim = new Date();
-            horaFim.setHours(parseInt(config.horarioFechamento.split(':')[0]), 0, 0, 0);
-
-            while (horaAtual < horaFim) {
-                horarios.push(horaAtual.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
-                horaAtual.setMinutes(horaAtual.getMinutes() + config.intervaloAtendimento);
-            }
-
-            return horarios;
-        }
-
-        // Envio do formulário para o Firebase
+        // Envio do formulário para o Google Sheets
         document.getElementById('formCadastro').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -475,45 +432,34 @@
                     maquinas: document.getElementById('maquinas').value,
                     servicos: document.getElementById('servicos').value,
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
-                    dataCadastro: new Date().toISOString(),
+                    dataCadastro: new Date().toLocaleString('pt-BR'),
                     status: 'pendente'
                 };
 
-                // 1. Criar usuário no Authentication
-                const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-                const userId = userCredential.user.uid;
-                
-                // Configuração padrão de horários
-                const horariosConfig = {
-                    diasFuncionamento: ["1", "2", "3", "4", "5"], // Segunda a Sexta
-                    horarioAbertura: "08:00",
-                    horarioFechamento: "18:00",
-                    duracaoAtendimento: 30,
-                    intervaloAtendimento: 15
-                };
-
-                // 2. Salvar dados no Firestore com a configuração de horários
-                await setDoc(doc(db, "usuarios", userId), {
-                    ...formData,
-                    horariosConfig: horariosConfig
-                });
-
-                // 3. Criar um documento de exemplo na subcoleção "horarios" (para a data atual)
-                const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-                await setDoc(doc(db, "usuarios", userId, "horarios", dataAtual), {
-                    horariosDisponiveis: gerarHorariosPadrao(horariosConfig),
-                    horariosAgendados: []
+                // Enviar dados para o Google Sheets via Apps Script
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
                 });
                 
-                // 4. Mostrar mensagem de sucesso
-                document.getElementById('mensagemSucesso').style.display = 'block';
-                document.getElementById('credenciaisAcesso').style.display = 'block';
-                document.getElementById('cred-email').textContent = email;
-                document.getElementById('cred-senha').textContent = senha;
+                const result = await response.json();
                 
-                // 5. Limpar formulário
-                document.getElementById('formCadastro').reset();
-                window.scrollTo(0, document.body.scrollHeight);
+                if (result.success) {
+                    // Mostrar mensagem de sucesso
+                    document.getElementById('mensagemSucesso').style.display = 'block';
+                    document.getElementById('credenciaisAcesso').style.display = 'block';
+                    document.getElementById('cred-email').textContent = email;
+                    document.getElementById('cred-senha').textContent = senha;
+                    
+                    // Limpar formulário
+                    document.getElementById('formCadastro').reset();
+                    window.scrollTo(0, document.body.scrollHeight);
+                } else {
+                    throw new Error(result.message || 'Erro ao enviar cadastro');
+                }
                 
             } catch (error) {
                 console.error("Erro ao enviar cadastro:", error);
