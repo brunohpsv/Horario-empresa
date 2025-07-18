@@ -178,83 +178,82 @@
     </div>
 
     <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-uafO8bCy2ButyqqhfITyS3ye8VqRFL5RKr6PVs_6sgecY7hnj3Oh5SE2V5wUaPyG0g/exec';
-    
-    function toggleLoader(show) {
-        const loader = document.getElementById('loader');
-        const btnText = document.getElementById('btnText');
-        const loginBtn = document.getElementById('loginBtn');
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzO80tV9hA_TTzDPVKabuB6PDwOkjVwE13NizhdBxzK2k_aXw9voSXrBsO-CBaHdFNDPA/exec';
         
-        loader.style.display = show ? 'block' : 'none';
-        btnText.style.display = show ? 'none' : 'block';
-        loginBtn.disabled = show;
-    }
+        function toggleLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+            document.getElementById('btnText').style.display = show ? 'none' : 'block';
+            document.getElementById('loginBtn').disabled = show;
+        }
 
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        // Limpa mensagens de erro
-        document.getElementById('loginError').style.display = 'none';
-        document.getElementById('passwordError').style.display = 'none';
-        
-        // Obtém valores
-        const identificacao = document.getElementById('loginInput').value.trim();
-        const senha = document.getElementById('senha').value;
-        
-        // Validação simples
-        if (!identificacao) {
-            document.getElementById('loginError').textContent = 'Digite sua identificação';
-            document.getElementById('loginError').style.display = 'block';
-            return;
-        }
-        
-        if (!senha) {
-            document.getElementById('passwordError').textContent = 'Digite sua senha';
-            document.getElementById('passwordError').style.display = 'block';
-            return;
-        }
-        
-        try {
-            toggleLoader(true);
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            // Envia requisição
-            const response = await fetch(`${SCRIPT_URL}?action=getUser&identificacao=${encodeURIComponent(identificacao)}`);
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('passwordError').style.display = 'none';
             
-            if (!response.ok) {
-                throw new Error('Erro na conexão com o servidor');
+            const identificacao = document.getElementById('loginInput').value.trim();
+            const senha = document.getElementById('senha').value;
+            
+            if (!identificacao) {
+                document.getElementById('loginError').textContent = 'Digite sua identificação';
+                document.getElementById('loginError').style.display = 'block';
+                return;
             }
             
-            const result = await response.json();
-            
-            if (!result.success) {
-                throw new Error(result.message || 'Erro ao fazer login');
+            if (!senha) {
+                document.getElementById('passwordError').textContent = 'Digite sua senha';
+                document.getElementById('passwordError').style.display = 'block';
+                return;
             }
             
-            if (!result.userData) {
-                throw new Error('Usuário não encontrado');
+            try {
+                toggleLoader(true);
+                console.log('Enviando requisição para:', `${SCRIPT_URL}?action=getUser&identificacao=${encodeURIComponent(identificacao)}`);
+                
+                const response = await fetch(`${SCRIPT_URL}?action=getUser&identificacao=${encodeURIComponent(identificacao)}`);
+                
+                console.log('Resposta recebida. Status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('Erro na conexão com o servidor');
+                }
+                
+                const result = await response.json();
+                console.log('Resultado:', result);
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Erro ao fazer login');
+                }
+                
+                if (!result.userData) {
+                    throw new Error('Usuário não encontrado');
+                }
+                
+                if (result.userData.senha !== senha) {
+                    throw new Error('Senha incorreta');
+                }
+                
+                localStorage.setItem('userData', JSON.stringify(result.userData));
+                window.location.href = 'https://horario.site/painel.html';
+                
+            } catch (error) {
+                console.error('Erro completo:', error);
+                document.getElementById('loginError').textContent = error.message;
+                document.getElementById('loginError').style.display = 'block';
+            } finally {
+                toggleLoader(false);
             }
-            
-            if (result.userData.senha !== senha) {
-                throw new Error('Senha incorreta');
-            }
-            
-            // Login bem-sucedido
-            localStorage.setItem('userData', JSON.stringify(result.userData));
+        });
+
+        document.getElementById('forgotPassword').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Entre em contato com o suporte para recuperar sua senha.');
+        });
+
+        if (localStorage.getItem('userData')) {
             window.location.href = 'https://horario.site/painel.html';
-            
-        } catch (error) {
-            console.error('Erro no login:', error);
-            document.getElementById('loginError').textContent = error.message;
-            document.getElementById('loginError').style.display = 'block';
-        } finally {
-            toggleLoader(false);
         }
-    });
-
-    // Verifica se já está logado
-    if (localStorage.getItem('userData')) {
-        window.location.href = 'https://horario.site/painel.html';
-    }
-</script>
+    </script>
 </body>
 </html>
