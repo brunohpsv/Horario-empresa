@@ -178,42 +178,56 @@
     </div>
 
     <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwtD-5qcR3-TdJzpp3-6ajIQ3ksJJdB0M8AVN252Ti_Qd-75JQk9MuG5GAlWhh7yb0Q2Q/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGPnlO4jjWyyrEE0bHmVBj_9n0hRZbvipHG162Y0QcmP9nQe16qOPK-kqtk6wkZ3hW/exec';
     
     function toggleLoader(show) {
-        document.getElementById('loader').style.display = show ? 'block' : 'none';
-        document.getElementById('btnText').style.display = show ? 'none' : 'block';
-        document.getElementById('loginBtn').disabled = show;
+        const loader = document.getElementById('loader');
+        const btnText = document.getElementById('btnText');
+        const loginBtn = document.getElementById('loginBtn');
+        
+        loader.style.display = show ? 'block' : 'none';
+        btnText.style.display = show ? 'none' : 'block';
+        loginBtn.disabled = show;
     }
 
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Limpa mensagens de erro
         document.getElementById('loginError').style.display = 'none';
         document.getElementById('passwordError').style.display = 'none';
         
+        // Obtém valores
         const identificacao = document.getElementById('loginInput').value.trim();
         const senha = document.getElementById('senha').value;
         
+        // Validação simples
         if (!identificacao) {
             document.getElementById('loginError').textContent = 'Digite sua identificação';
             document.getElementById('loginError').style.display = 'block';
             return;
         }
         
+        if (!senha) {
+            document.getElementById('passwordError').textContent = 'Digite sua senha';
+            document.getElementById('passwordError').style.display = 'block';
+            return;
+        }
+        
         try {
             toggleLoader(true);
-            console.log('Enviando dados:', { identificacao });
             
+            // Envia requisição
             const response = await fetch(`${SCRIPT_URL}?action=getUser&identificacao=${encodeURIComponent(identificacao)}`);
             
-            if (!response.ok) throw new Error('Falha na conexão');
+            if (!response.ok) {
+                throw new Error('Erro na conexão com o servidor');
+            }
             
             const result = await response.json();
-            console.log('Resposta:', result);
             
             if (!result.success) {
-                throw new Error(result.message || 'Erro no servidor');
+                throw new Error(result.message || 'Erro ao fazer login');
             }
             
             if (!result.userData) {
@@ -224,11 +238,12 @@
                 throw new Error('Senha incorreta');
             }
             
+            // Login bem-sucedido
             localStorage.setItem('userData', JSON.stringify(result.userData));
             window.location.href = 'https://horario.site/painel.html';
             
         } catch (error) {
-            console.error('Erro:', error);
+            console.error('Erro no login:', error);
             document.getElementById('loginError').textContent = error.message;
             document.getElementById('loginError').style.display = 'block';
         } finally {
@@ -236,14 +251,10 @@
         }
     });
 
-        document.getElementById('forgotPassword').addEventListener('click', function(e) {
-            e.preventDefault();
-            alert('Entre em contato com o suporte para recuperar sua senha.');
-        });
-
-        if (localStorage.getItem('userData')) {
-            window.location.href = 'https://horario.site/painel.html';
-        }
-    </script>
+    // Verifica se já está logado
+    if (localStorage.getItem('userData')) {
+        window.location.href = 'https://horario.site/painel.html';
+    }
+</script>
 </body>
 </html>
