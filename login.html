@@ -5,65 +5,253 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | HORÁRIO</title>
     <style>
-        /* [Mantido o mesmo estilo do código anterior] */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .login-btn {
+            background-color: #4CAF50;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+        
+        .login-btn:hover {
+            background-color: #45a049;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        .auth-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .auth-container h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+        
+        .auth-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .auth-container button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        .auth-container button:hover {
+            background-color: #45a049;
+        }
+        
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .toggle-form a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <!-- [Mantido o mesmo header e estrutura HTML do código anterior] -->
+    <header>
+        <div class="logo">HORÁRIO</div>
+        <nav>
+            <ul>
+                <li><a href="https://horario.site">Início</a></li>
+                <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <div class="auth-container">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="text" id="loginInput" placeholder="Digite sua identificação" required>
+                <div class="error-message" id="loginError"></div>
+                
+                <input type="password" id="senha" placeholder="Senha" required>
+                <div class="error-message" id="passwordError"></div>
+                
+                <button type="submit" id="loginBtn">
+                    <span id="btnText">Entrar</span>
+                    <div class="loader" id="loader"></div>
+                </button>
+            </form>
+            
+            <div class="toggle-form">
+                <p>Não tem uma conta? <a href="https://horario.site/cadastro.html">Cadastre-se</a></p>
+                <p><a href="#" id="forgotPassword">Esqueci minha senha</a></p>
+            </div>
+        </div>
+    </div>
 
     <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUd5AKH3KMuv4et_1adRutxOQKhzSjUTdCFowsiWQ_EoOkHdNqeFi44KvdqyMSKwV0kw/exec';
-    
-    async function findUserByIdentificacao(identificacao) {
-        try {
-            console.log('Enviando identificacao:', identificacao);
-            const response = await fetch(`${SCRIPT_URL}?action=getUser&identificacao=${encodeURIComponent(identificacao)}`);
-            
-            if (!response.ok) throw new Error('Erro na resposta do servidor');
-            
-            const result = await response.json();
-            console.log('Resposta do servidor:', result);
-            return result;
-        } catch (error) {
-            console.error("Erro na requisição:", error);
-            return { success: false, message: error.message };
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzVLuCWjWZ9SWhjtuwL904BgAF5KbmShcUI_besNmpuVR5Per4JN9k15uq6PQX36ANg7g/exec';
+        
+        function toggleLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+            document.getElementById('btnText').style.display = show ? 'none' : 'block';
+            document.getElementById('loginBtn').disabled = show;
         }
-    }
 
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const identificacao = document.getElementById('loginInput').value.trim();
-        const senha = document.getElementById('senha').value;
-        
-        try {
-            toggleLoader(true);
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            const result = await findUserByIdentificacao(identificacao);
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('passwordError').style.display = 'none';
             
-            if (!result.success) {
-                throw new Error(result.message || 'Identificação não encontrada');
+            const identificacao = document.getElementById('loginInput').value.trim();
+            const senha = document.getElementById('senha').value;
+            
+            if (!identificacao) {
+                document.getElementById('loginError').textContent = 'Digite sua identificação';
+                document.getElementById('loginError').style.display = 'block';
+                return;
             }
             
-            if (!result.userData) {
-                throw new Error('Dados do usuário não retornados');
+            if (!senha) {
+                document.getElementById('passwordError').textContent = 'Digite sua senha';
+                document.getElementById('passwordError').style.display = 'block';
+                return;
             }
             
-            if (result.userData.senha !== senha) {
-                throw new Error('Senha incorreta');
+            try {
+                toggleLoader(true);
+                console.log('Enviando dados para login:', { identificacao, senha });
+                
+                const response = await fetch(`${SCRIPT_URL}?action=getUser&identificacao=${encodeURIComponent(identificacao)}`);
+                
+                if (!response.ok) {
+                    throw new Error('Erro na conexão com o servidor');
+                }
+                
+                const result = await response.json();
+                console.log('Resposta do servidor:', result);
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Erro ao verificar login');
+                }
+                
+                if (!result.userData) {
+                    throw new Error('Identificação não encontrada');
+                }
+                
+                if (result.userData.senha !== senha) {
+                    throw new Error('Senha incorreta');
+                }
+                
+                localStorage.setItem('userData', JSON.stringify(result.userData));
+                window.location.href = 'https://horario.site/painel.html';
+                
+            } catch (error) {
+                console.error('Erro no login:', error);
+                document.getElementById('loginError').textContent = error.message;
+                document.getElementById('loginError').style.display = 'block';
+            } finally {
+                toggleLoader(false);
             }
-            
-            localStorage.setItem('userData', JSON.stringify(result.userData));
+        });
+
+        document.getElementById('forgotPassword').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Entre em contato com o suporte para recuperar sua senha.');
+        });
+
+        if (localStorage.getItem('userData')) {
             window.location.href = 'https://horario.site/painel.html';
-            
-        } catch (error) {
-            console.error('Erro no login:', error);
-            document.getElementById('loginError').textContent = error.message;
-            document.getElementById('loginError').style.display = 'block';
-        } finally {
-            toggleLoader(false);
         }
-    });
-</script>
+    </script>
 </body>
 </html>
