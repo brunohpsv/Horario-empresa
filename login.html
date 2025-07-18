@@ -201,7 +201,7 @@
         // Busca usuário no Google Sheets por CPF/CNPJ
         async function findUserByCpfCnpj(cpfCnpj) {
             try {
-                const response = await fetch(SCRIPT_URL + '?action=getUser&cpfCnpj=' + encodeURIComponent(cpfCnpj));
+                const response = await fetch(`${SCRIPT_URL}?action=getUser&cpfCnpj=${encodeURIComponent(cpfCnpj)}`);
                 
                 if (!response.ok) {
                     throw new Error('Erro ao buscar usuário');
@@ -239,13 +239,13 @@
             }
             
             if (!isCpfOrCnpj(loginInput)) {
-                document.getElementById('loginError').textContent = 'Digite um CPF ou CNPJ válido';
+                document.getElementById('loginError').textContent = 'Digite um CPF (11 dígitos) ou CNPJ (14 dígitos) válido';
                 document.getElementById('loginError').style.display = 'block';
                 return;
             }
             
-            if (senha.length < 6) {
-                document.getElementById('passwordError').textContent = 'Senha deve ter pelo menos 6 caracteres';
+            if (senha.length < 4) {
+                document.getElementById('passwordError').textContent = 'Senha deve ter pelo menos 4 caracteres';
                 document.getElementById('passwordError').style.display = 'block';
                 return;
             }
@@ -254,7 +254,10 @@
                 toggleLoader(true);
                 
                 const cleanedCpfCnpj = loginInput.replace(/\D/g, '');
+                console.log('Buscando usuário com CPF/CNPJ:', cleanedCpfCnpj);
+                
                 const userData = await findUserByCpfCnpj(cleanedCpfCnpj);
+                console.log('Dados retornados:', userData);
                 
                 if (!userData) {
                     throw new Error('CPF/CNPJ não encontrado');
@@ -263,6 +266,11 @@
                 // Verifica a senha
                 if (userData.senha !== senha) {
                     throw new Error('Senha incorreta');
+                }
+                
+                // Verifica se o cadastro está aprovado
+                if (userData.status && userData.status.toLowerCase() !== 'aprovado') {
+                    throw new Error('Seu cadastro ainda não foi aprovado. Entre em contato com o suporte.');
                 }
                 
                 // Salva dados no localStorage para uso no painel
@@ -284,8 +292,8 @@
                     document.getElementById('passwordError').textContent = errorMessage;
                     document.getElementById('passwordError').style.display = 'block';
                 } else {
-                    document.getElementById('passwordError').textContent = errorMessage;
-                    document.getElementById('passwordError').style.display = 'block';
+                    document.getElementById('loginError').textContent = error.message;
+                    document.getElementById('loginError').style.display = 'block';
                 }
             } finally {
                 toggleLoader(false);
