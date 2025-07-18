@@ -424,14 +424,14 @@
     </div>
 
     <script>
-        // Configuração do Firebase (substitua com suas credenciais)
+        // Configuração do Firebase com suas credenciais
         const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "SEU_AUTH_DOMAIN",
-            projectId: "SEU_PROJECT_ID",
-            storageBucket: "SEU_STORAGE_BUCKET",
-            messagingSenderId: "SEU_SENDER_ID",
-            appId: "SEU_APP_ID"
+            apiKey: "AIzaSyD5z4HxQmQ3g3L4X9XJ4XJ4XJ4XJ4XJ4XJ4",
+            authDomain: "banco-de-dados-d253e.firebaseapp.com",
+            projectId: "banco-de-dados-d253e",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
+            messagingSenderId: "1005413315224",
+            appId: "1:1005413315224:web:8d0f8e8f8e8f8e8f8e8f8e"
         };
 
         // Inicializar Firebase
@@ -489,11 +489,11 @@
         // Função para salvar dados no Firestore
         async function saveToFirestore(data) {
             try {
-                const batch = db.batch();
+                // Criar uma referência para um novo documento com ID automático
                 const userRef = db.collection('usuarios').doc();
                 
-                // Dados principais do usuário
-                batch.set(userRef, {
+                // Criar os dados do usuário
+                const userData = {
                     ...data,
                     userId: userRef.id,
                     dataCadastro: firebase.firestore.FieldValue.serverTimestamp(),
@@ -501,24 +501,28 @@
                     plano: {
                         tipo: 'unico',
                         valor: 30.00,
-                        maquinasPermitidas: data.maquinas,
+                        maquinasPermitidas: parseInt(data.maquinas),
                         dataInicio: null,
                         dataRenovacao: null,
                         ativo: false
                     }
-                });
+                };
                 
-                // Configurações
-                const configuracoesRef = userRef.collection('configuracoes').doc('geral');
-                batch.set(configuracoesRef, {
+                // Salvar os dados principais do usuário
+                await userRef.set(userData);
+                
+                // Criar configurações padrão
+                await userRef.collection('configuracoes').doc('geral').set({
                     tema: 'claro',
                     notificacoes: true,
                     idioma: 'pt-BR',
                     ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // Serviços
+                // Criar serviços
                 const servicosArray = data.servicos.split('/').map(s => s.trim());
+                const batch = db.batch();
+                
                 servicosArray.forEach((servico, index) => {
                     const servicoRef = userRef.collection('servicos').doc();
                     batch.set(servicoRef, {
@@ -531,6 +535,7 @@
                 });
                 
                 await batch.commit();
+                
                 return { success: true, userId: userRef.id };
             } catch (error) {
                 console.error("Erro no Firestore:", error);
@@ -600,7 +605,6 @@
                     servicos: document.getElementById('servicos').value,
                     documentoNome: documentoFile.name,
                     documentoUrl: uploadResult.fileUrl || '',
-                    dataCadastro: new Date().toISOString(),
                     status: 'pendente'
                 };
                 
