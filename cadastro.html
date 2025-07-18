@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro | HORÁRIO</title>
-    <!-- Adicionando o SDK do Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <style>
         * {
             margin: 0;
@@ -232,34 +228,6 @@
         .btn-toggle-senha:hover {
             color: #333;
         }
-        
-        .mensagem-erro {
-            display: none;
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        .progress-container {
-            width: 100%;
-            background-color: #f1f1f1;
-            border-radius: 4px;
-            margin-top: 10px;
-            display: none;
-        }
-        
-        .progress-bar {
-            width: 0%;
-            height: 10px;
-            background-color: #4CAF50;
-            border-radius: 4px;
-            text-align: center;
-            line-height: 10px;
-            color: white;
-        }
     </style>
 </head>
 <body>
@@ -371,11 +339,8 @@
                 
                 <div class="form-group">
                     <label for="documento">Documento de Identificação</label>
-                    <input type="file" id="documento" accept=".pdf,.jpg,.jpeg,.png" required>
-                    <small>Envie Identidade, CNH ou Cartão CNPJ (PDF, JPG, JPEG ou PNG)</small>
-                    <div class="progress-container" id="progressContainer">
-                        <div class="progress-bar" id="progressBar">0%</div>
-                    </div>
+                    <input type="file" id="documento" required>
+                    <small>Envie Identidade, CNH ou Cartão CNPJ (PDF ou imagem)</small>
                 </div>
                 
                 <div class="termos">
@@ -387,10 +352,6 @@
                 
                 <div id="mensagemSucesso" class="mensagem-sucesso">
                     Seu cadastro está em análise, por 24h. Neste período a nossa equipe entrará em contato para efetivar seu cadastro.
-                </div>
-                
-                <div id="mensagemErro" class="mensagem-erro">
-                    Ocorreu um erro ao enviar seu cadastro. Por favor, tente novamente mais tarde.
                 </div>
                 
                 <div id="credenciaisAcesso" class="credenciais-acesso">
@@ -423,172 +384,83 @@
         </div>
     </div>
 
-    <script>
-        // Configuração do Firebase com suas credenciais
+    <!-- Importação do Firebase v9 (modular via CDN) -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            doc,
+            setDoc,
+            collection,
+            addDoc
+        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+
+        // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyD5z4HxQmQ3g3L4X9XJ4XJ4XJ4XJ4XJ4XJ4",
-            authDomain: "banco-de-dados-d253e.firebaseapp.com",
-            projectId: "banco-de-dados-d253e",
-            storageBucket: "banco-de-dados-d253e.appspot.com",
-            messagingSenderId: "1005413315224",
-            appId: "1:1005413315224:web:8d0f8e8f8e8f8e8f8e8f8e"
+            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
+            authDomain: "horariosite-669d1.firebaseapp.com",
+            projectId: "horariosite-669d1",
+            storageBucket: "horariosite-669d1.appspot.com",
+            messagingSenderId: "154976451283",
+            appId: "1:154976451283:web:c4a75ce9c78e67d5a17226"
         };
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        // Função para upload do documento para o Firebase Storage
-        async function uploadDocumento(file) {
-            if (!file) return { success: false, message: 'Nenhum arquivo selecionado' };
+        // Alternar entre CPF e CNPJ
+        document.getElementById('tipo-pessoa').addEventListener('change', function() {
+            const label = document.getElementById('label-identificacao');
+            const nomeLabel = document.getElementById('label-nome-fantasia');
             
-            try {
-                // Criar um nome único para o arquivo
-                const fileName = `documentos/${Date.now()}_${file.name}`;
-                const storageRef = storage.ref(fileName);
-                const uploadTask = storageRef.put(file);
-                
-                return new Promise((resolve, reject) => {
-                    uploadTask.on('state_changed',
-                        (snapshot) => {
-                            // Atualizar barra de progresso
-                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                            document.getElementById('progressBar').style.width = progress + '%';
-                            document.getElementById('progressBar').textContent = Math.round(progress) + '%';
-                        },
-                        (error) => {
-                            console.error("Erro no upload:", error);
-                            reject({ success: false, message: 'Erro ao enviar documento' });
-                        },
-                        async () => {
-                            try {
-                                // Upload completo, obter URL de download
-                                const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-                                resolve({ 
-                                    success: true, 
-                                    fileUrl: downloadURL,
-                                    fileName: file.name
-                                });
-                            } catch (error) {
-                                console.error("Erro ao obter URL:", error);
-                                reject({ success: false, message: 'Erro ao obter URL do documento' });
-                            }
-                        }
-                    );
-                });
-            } catch (error) {
-                console.error('Erro no upload:', error);
-                return { 
-                    success: false, 
-                    message: error.message || 'Erro desconhecido ao enviar documento'
-                };
+            if (this.value === 'pj') {
+                label.textContent = 'CNPJ';
+                nomeLabel.textContent = 'Nome Fantasia da Empresa';
+            } else {
+                label.textContent = 'CPF';
+                nomeLabel.textContent = 'Nome Completo (Titular do CPF)';
             }
+        });
+
+        // Função para gerar horários baseados na configuração
+        function gerarHorariosPadrao(config) {
+            const horarios = [];
+            let horaAtual = new Date();
+            horaAtual.setHours(parseInt(config.horarioAbertura.split(':')[0]), 0, 0, 0);
+
+            const horaFim = new Date();
+            horaFim.setHours(parseInt(config.horarioFechamento.split(':')[0]), 0, 0, 0);
+
+            while (horaAtual < horaFim) {
+                horarios.push(horaAtual.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+                horaAtual.setMinutes(horaAtual.getMinutes() + config.intervaloAtendimento);
+            }
+
+            return horarios;
         }
 
-        // Função para salvar dados no Firestore
-        async function saveToFirestore(data) {
-            try {
-                // Criar uma referência para um novo documento com ID automático
-                const userRef = db.collection('usuarios').doc();
-                
-                // Criar os dados do usuário
-                const userData = {
-                    ...data,
-                    userId: userRef.id,
-                    dataCadastro: firebase.firestore.FieldValue.serverTimestamp(),
-                    status: 'pendente',
-                    plano: {
-                        tipo: 'unico',
-                        valor: 30.00,
-                        maquinasPermitidas: parseInt(data.maquinas),
-                        dataInicio: null,
-                        dataRenovacao: null,
-                        ativo: false
-                    }
-                };
-                
-                // Salvar os dados principais do usuário
-                await userRef.set(userData);
-                
-                // Criar configurações padrão
-                await userRef.collection('configuracoes').doc('geral').set({
-                    tema: 'claro',
-                    notificacoes: true,
-                    idioma: 'pt-BR',
-                    ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Criar serviços
-                const servicosArray = data.servicos.split('/').map(s => s.trim());
-                const batch = db.batch();
-                
-                servicosArray.forEach((servico, index) => {
-                    const servicoRef = userRef.collection('servicos').doc();
-                    batch.set(servicoRef, {
-                        nome: servico,
-                        ativo: true,
-                        ordem: index + 1,
-                        duracaoPadrao: 60,
-                        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                });
-                
-                await batch.commit();
-                
-                return { success: true, userId: userRef.id };
-            } catch (error) {
-                console.error("Erro no Firestore:", error);
-                return { success: false, error: error.message };
-            }
-        }
-
-        // Envio do formulário
+        // Envio do formulário para o Firebase
         document.getElementById('formCadastro').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const btn = e.target.querySelector('button[type="submit"]');
-            btn.disabled = true;
             const btnOriginalText = btn.textContent;
             btn.textContent = 'Enviando...';
-            
-            // Resetar mensagens
-            document.getElementById('mensagemSucesso').style.display = 'none';
-            document.getElementById('mensagemErro').style.display = 'none';
-            document.getElementById('credenciaisAcesso').style.display = 'none';
-            
-            // Mostrar barra de progresso
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '10%';
-            progressBar.textContent = '10%';
+            btn.disabled = true;
             
             try {
-                // Validações básicas
+                // Coletar dados do formulário
                 const email = document.getElementById('email').value;
                 const senha = document.getElementById('senha').value;
-                const confirmarSenha = document.getElementById('confirmarSenha').value;
-                const documentoFile = document.getElementById('documento').files[0];
                 
-                if (!email || !senha) throw new Error('E-mail e senha são obrigatórios');
-                if (senha !== confirmarSenha) throw new Error('As senhas não coincidem');
-                if (!documentoFile) throw new Error('Documento de identificação é obrigatório');
-                
-                // Upload do documento
-                progressBar.style.width = '30%';
-                progressBar.textContent = '30%';
-                
-                const uploadResult = await uploadDocumento(documentoFile);
-                if (!uploadResult.success) {
-                    throw new Error(uploadResult.message || 'Falha no upload do documento');
-                }
-                
-                // Preparar dados
-                progressBar.style.width = '50%';
-                progressBar.textContent = '50%';
-                
-                const formDataCadastro = {
+                const formData = {
                     tipoPessoa: document.getElementById('tipo-pessoa').value,
                     identificacao: document.getElementById('identificacao').value,
                     nomeFantasia: document.getElementById('nome-fantasia').value,
@@ -600,46 +472,52 @@
                     cep: document.getElementById('cep').value,
                     telefone: document.getElementById('telefone').value,
                     email: email,
-                    senha: senha,
                     maquinas: document.getElementById('maquinas').value,
                     servicos: document.getElementById('servicos').value,
-                    documentoNome: documentoFile.name,
-                    documentoUrl: uploadResult.fileUrl || '',
+                    documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
+                    dataCadastro: new Date().toISOString(),
                     status: 'pendente'
                 };
+
+                // 1. Criar usuário no Authentication
+                const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+                const userId = userCredential.user.uid;
                 
-                // Salvar no Firestore
-                progressBar.style.width = '70%';
-                progressBar.textContent = '70%';
+                // Configuração padrão de horários
+                const horariosConfig = {
+                    diasFuncionamento: ["1", "2", "3", "4", "5"], // Segunda a Sexta
+                    horarioAbertura: "08:00",
+                    horarioFechamento: "18:00",
+                    duracaoAtendimento: 30,
+                    intervaloAtendimento: 15
+                };
+
+                // 2. Salvar dados no Firestore com a configuração de horários
+                await setDoc(doc(db, "usuarios", userId), {
+                    ...formData,
+                    horariosConfig: horariosConfig
+                });
+
+                // 3. Criar um documento de exemplo na subcoleção "horarios" (para a data atual)
+                const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+                await setDoc(doc(db, "usuarios", userId, "horarios", dataAtual), {
+                    horariosDisponiveis: gerarHorariosPadrao(horariosConfig),
+                    horariosAgendados: []
+                });
                 
-                const firestoreResult = await saveToFirestore(formDataCadastro);
-                if (!firestoreResult.success) {
-                    throw new Error(firestoreResult.error || 'Falha ao salvar dados');
-                }
-                
-                // Sucesso
-                progressBar.style.width = '100%';
-                progressBar.textContent = '100%';
-                
+                // 4. Mostrar mensagem de sucesso
                 document.getElementById('mensagemSucesso').style.display = 'block';
                 document.getElementById('credenciaisAcesso').style.display = 'block';
                 document.getElementById('cred-email').textContent = email;
                 document.getElementById('cred-senha').textContent = senha;
                 
+                // 5. Limpar formulário
                 document.getElementById('formCadastro').reset();
-                
-                setTimeout(() => {
-                    progressContainer.style.display = 'none';
-                    progressBar.style.width = '0%';
-                }, 3000);
+                window.scrollTo(0, document.body.scrollHeight);
                 
             } catch (error) {
-                console.error("Erro no cadastro:", error);
-                document.getElementById('mensagemErro').style.display = 'block';
-                document.getElementById('mensagemErro').textContent = `Erro: ${error.message}`;
-                
-                progressContainer.style.display = 'none';
-                progressBar.style.width = '0%';
+                console.error("Erro ao enviar cadastro:", error);
+                alert("Ocorreu um erro ao enviar seu cadastro: " + error.message);
             } finally {
                 btn.textContent = btnOriginalText;
                 btn.disabled = false;
