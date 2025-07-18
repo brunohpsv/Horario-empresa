@@ -178,82 +178,27 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyHHvJy_V1rrpX44ZOX0aUl9QUQTP4ewDG5wEVaVpTZiteuTNvcvagpgcabMdZQoPF4hg/exec';
-        
-        function toggleLoader(show) {
-            document.getElementById('loader').style.display = show ? 'block' : 'none';
-            document.getElementById('btnText').style.display = show ? 'none' : 'block';
-            document.getElementById('loginBtn').disabled = show;
-        }
-
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('passwordError').style.display = 'none';
-            
-            const identificacao = document.getElementById('loginInput').value.trim();
-            const senha = document.getElementById('senha').value;
-            
-            if (!identificacao) {
-                document.getElementById('loginError').textContent = 'Digite sua identificação';
-                document.getElementById('loginError').style.display = 'block';
-                return;
-            }
-            
-            if (!senha) {
-                document.getElementById('passwordError').textContent = 'Digite sua senha';
-                document.getElementById('passwordError').style.display = 'block';
-                return;
-            }
-            
-            try {
-                toggleLoader(true);
-                console.log('Enviando requisição para:', `${SCRIPT_URL}?action=getUser&identificacao=${encodeURIComponent(identificacao)}`);
-                
-                const response = await fetch(`${SCRIPT_URL}?action=getUser&identificacao=${encodeURIComponent(identificacao)}`);
-                
-                console.log('Resposta recebida. Status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error('Erro na conexão com o servidor');
-                }
-                
-                const result = await response.json();
-                console.log('Resultado:', result);
-                
-                if (!result.success) {
-                    throw new Error(result.message || 'Erro ao fazer login');
-                }
-                
-                if (!result.userData) {
-                    throw new Error('Usuário não encontrado');
-                }
-                
-                if (result.userData.senha !== senha) {
-                    throw new Error('Senha incorreta');
-                }
-                
-                localStorage.setItem('userData', JSON.stringify(result.userData));
-                window.location.href = 'https://horario.site/painel.html';
-                
-            } catch (error) {
-                console.error('Erro completo:', error);
-                document.getElementById('loginError').textContent = error.message;
-                document.getElementById('loginError').style.display = 'block';
-            } finally {
-                toggleLoader(false);
-            }
-        });
-
-        document.getElementById('forgotPassword').addEventListener('click', function(e) {
-            e.preventDefault();
-            alert('Entre em contato com o suporte para recuperar sua senha.');
-        });
-
-        if (localStorage.getItem('userData')) {
-            window.location.href = 'https://horario.site/painel.html';
-        }
-    </script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPIxFMqmKo-6cCljYuWqNiNFHwjkd5Hcf2ATbfsVFn3KEtK9ov0AFIHpNNYiY2FsimqQ/exec';
+  
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Pegar valores
+    const identificacao = document.getElementById('loginInput').value;
+    const senha = document.getElementById('senha').value;
+    
+    // Fazer requisição
+    const resposta = await fetch(`${SCRIPT_URL}?identificacao=${identificacao}&senha=${senha}`);
+    const resultado = await resposta.json();
+    
+    if (resultado.success) {
+      // Salvar nome do usuário e redirecionar
+      localStorage.setItem('nomeUsuario', resultado.nome);
+      window.location.href = 'painel.html';
+    } else {
+      alert(resultado.message || 'Erro no login');
+    }
+  });
+</scrip>
 </body>
 </html>
