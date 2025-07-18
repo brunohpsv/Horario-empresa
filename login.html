@@ -178,27 +178,42 @@
     </div>
 
     <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPIxFMqmKo-6cCljYuWqNiNFHwjkd5Hcf2ATbfsVFn3KEtK9ov0AFIHpNNYiY2FsimqQ/exec';
-  
-  document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8FFbjt8hkrnrV3itqvect7G6t3744t2TQQa79pFMlvMymbcECKAiYyAPSuuDRPsWVJw/exec';
     
-    // Pegar valores
-    const identificacao = document.getElementById('loginInput').value;
-    const senha = document.getElementById('senha').value;
-    
-    // Fazer requisição
-    const resposta = await fetch(`${SCRIPT_URL}?identificacao=${identificacao}&senha=${senha}`);
-    const resultado = await resposta.json();
-    
-    if (resultado.success) {
-      // Salvar nome do usuário e redirecionar
-      localStorage.setItem('nomeUsuario', resultado.nome);
-      window.location.href = 'painel.html';
-    } else {
-      alert(resultado.message || 'Erro no login');
-    }
-  });
-</scrip>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Pegar valores
+        const identificacao = document.getElementById('loginInput').value.trim();
+        const senha = document.getElementById('senha').value;
+        
+        // Mostrar loading
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('btnText').style.display = 'none';
+        document.getElementById('loginBtn').disabled = true;
+        
+        try {
+            // Fazer requisição
+            const response = await fetch(`${SCRIPT_URL}?identificacao=${identificacao}&senha=${senha}`);
+            const resultado = await response.json();
+            
+            if (resultado.success) {
+                // Salvar dados no localStorage e redirecionar
+                localStorage.setItem('userData', JSON.stringify(resultado.userData));
+                window.location.href = 'painel.html';
+            } else {
+                alert(resultado.message || 'Erro no login');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao conectar com o servidor');
+        } finally {
+            // Esconder loading
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('btnText').style.display = 'block';
+            document.getElementById('loginBtn').disabled = false;
+        }
+    });
+</script>
 </body>
 </html>
