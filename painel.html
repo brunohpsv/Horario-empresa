@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle | HORÁRIO</title>
     <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' rel='stylesheet' />
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -499,7 +495,7 @@
                     </div>
                 </div>
                 
-                <!-- Informações Cadastrais (mantido do código original) -->
+                <!-- Informações Cadastrais -->
                 <div class="info-adicionais" id="userInfoContainer">
                     <h2>INFORMAÇÕES CADASTRAIS</h2>
                     <div id="userDataLoader" style="text-align: center;">Carregando dados...</div>
@@ -529,60 +525,55 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/pt-br.js'></script>
     
     <script>
-        // Configuração do Firebase (substitua com suas credenciais)
-        const firebaseConfig = {
-            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
-            authDomain: "horariosite-669d1.firebaseapp.com",
-            projectId: "horariosite-669d1",
-            storageBucket: "horariosite-669d1.appspot.com",
-            messagingSenderId: "154976451283",
-            appId: "1:154976451283:web:c4a75ce9c78e67d5a17226"
-        };
-
-        // Inicialize o Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // Verificação de autenticação
-        auth.onAuthStateChanged((user) => {
-            if (!user) {
+        // URL do seu Apps Script Web App
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzH21Xpy8urtn2F27EDYoBpUzm81oUiDTwKN43KuhhGtW5oVL05Zjw7IQMwaIrWVz1A5w/exec';
+        
+        // Verificação de autenticação (agora usando localStorage)
+        document.addEventListener('DOMContentLoaded', function() {
+            const userData = localStorage.getItem('userData');
+            
+            if (!userData) {
                 // Usuário não autenticado, redireciona para login
                 window.location.href = 'https://horario.site/login.html';
             } else {
                 // Usuário autenticado, carrega os dados
-                loadUserData(user.uid);
-                loadHorariosConfig(user.uid);
+                loadUserData(JSON.parse(userData));
+                loadHorariosConfig(JSON.parse(userData));
                 document.getElementById('loaderOverlay').style.display = 'none';
                 
                 // Inicializa horários futuros
-                inicializarHorariosFuturos(user.uid);
+                inicializarHorariosFuturos(JSON.parse(userData));
             }
         });
 
         // Função para inicializar horários futuros
-        async function inicializarHorariosFuturos(empresaId) {
+        async function inicializarHorariosFuturos(userData) {
             try {
-                const empresaDoc = await db.collection("usuarios").doc(empresaId).get();
-                if (!empresaDoc.exists) return;
-                
-                const config = empresaDoc.data().horariosConfig;
-                if (!config) return;
+                if (!userData.horariosConfig) return;
                 
                 for (let i = 0; i < 7; i++) {
                     const date = new Date();
                     date.setDate(date.getDate() + i);
                     const dataStr = date.toLocaleDateString('pt-BR').replace(/\//g, '-');
                     
-                    const horariosRef = db.collection("usuarios").doc(empresaId)
-                                        .collection("horarios").doc(dataStr);
+                    // Verificar se já existe configuração para esta data
+                    const response = await fetch(`${SCRIPT_URL}?action=getHorarios&data=${dataStr}&identificacao=${userData.identificacao}`);
+                    const result = await response.json();
                     
-                    // Só cria se não existir
-                    const doc = await horariosRef.get();
-                    if (!doc.exists) {
-                        await horariosRef.set({
-                            horariosDisponiveis: gerarHorariosPadrao(config),
-                            horariosAgendados: []
+                    if (!result.exists) {
+                        // Criar novo registro de horários
+                        await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                action: 'createHorarios',
+                                identificacao: userData.identificacao,
+                                data: dataStr,
+                                horariosDisponiveis: gerarHorariosPadrao(userData.horariosConfig),
+                                horariosAgendados: []
+                            })
                         });
                     }
                 }
@@ -621,22 +612,9 @@
         }
 
         // Carrega os dados do usuário
-        async function loadUserData(uid) {
+        function loadUserData(userData) {
             try {
-                const userDoc = await db.collection('usuarios').doc(uid).get();
-                
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    displayUserData(userData);
-                    
-                    // Carrega configurações de horário que podem estar no documento do usuário
-                    if (userData.horariosConfig) {
-                        loadHorariosData(userData.horariosConfig);
-                    }
-                } else {
-                    console.error('Documento do usuário não encontrado');
-                    alert('Dados do usuário não encontrados. Entre em contato com o suporte.');
-                }
+                displayUserData(userData);
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
                 alert('Erro ao carregar dados do usuário');
@@ -644,16 +622,17 @@
         }
 
         // Carrega as configurações de horários do usuário
-        async function loadHorariosConfig(uid) {
+        async function loadHorariosConfig(userData) {
             try {
-                const userDoc = await db.collection('usuarios').doc(uid).get();
-                
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
+                if (userData.horariosConfig) {
+                    loadHorariosData(userData.horariosConfig);
+                } else {
+                    // Tenta buscar do Google Sheets
+                    const response = await fetch(`${SCRIPT_URL}?action=getHorariosConfig&identificacao=${userData.identificacao}`);
+                    const result = await response.json();
                     
-                    // Verifica se há configurações de horário salvas
-                    if (userData.horariosConfig) {
-                        loadHorariosData(userData.horariosConfig);
+                    if (result.success && result.horariosConfig) {
+                        loadHorariosData(result.horariosConfig);
                     }
                 }
             } catch (error) {
@@ -687,26 +666,43 @@
             }
         }
 
-        // Salva as configurações de horários no Firebase
-        async function saveHorariosConfig(uid, config) {
+        // Salva as configurações de horários no Google Sheets
+        async function saveHorariosConfig(userData, config) {
             try {
-                // Atualiza a configuração no documento do usuário
-                await db.collection('usuarios').doc(uid).update({
-                    horariosConfig: config,
-                    ultimaAtualizacao: new Date().toISOString()
+                // Atualiza a configuração no Google Sheets
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'saveHorariosConfig',
+                        identificacao: userData.identificacao,
+                        config: config
+                    })
                 });
-
-                // Mostra mensagem de sucesso
-                const successMessage = document.getElementById('successMessage');
-                successMessage.style.display = 'block';
-                setTimeout(() => {
-                    successMessage.style.display = 'none';
-                }, 3000);
                 
-                // Atualiza os horários futuros com a nova configuração
-                await inicializarHorariosFuturos(uid);
+                const result = await response.json();
                 
-                return true;
+                if (result.success) {
+                    // Atualiza o localStorage
+                    const updatedUserData = {...userData, horariosConfig: config};
+                    localStorage.setItem('userData', JSON.stringify(updatedUserData));
+                    
+                    // Mostra mensagem de sucesso
+                    const successMessage = document.getElementById('successMessage');
+                    successMessage.style.display = 'block';
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 3000);
+                    
+                    // Atualiza os horários futuros com a nova configuração
+                    await inicializarHorariosFuturos(updatedUserData);
+                    
+                    return true;
+                } else {
+                    throw new Error(result.message || 'Erro ao salvar configurações');
+                }
             } catch (error) {
                 console.error('Erro ao salvar configurações:', error);
                 alert('Erro ao salvar configurações. Tente novamente.');
@@ -798,12 +794,8 @@
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', function(e) {
             e.preventDefault();
-            auth.signOut().then(() => {
-                window.location.href = 'https://horario.site/login.html';
-            }).catch((error) => {
-                console.error('Erro ao fazer logout:', error);
-                alert('Erro ao sair. Tente novamente.');
-            });
+            localStorage.removeItem('userData');
+            window.location.href = 'https://horario.site/login.html';
         });
 
         // Sistema de abas
@@ -820,7 +812,7 @@
             });
         });
         
-        // CALENDÁRIO COM AS MODIFICAÇÕES SOLICITADAS
+        // CALENDÁRIO
         $(document).ready(function() {
             // Inicializa o calendário principal
             $('#calendar').fullCalendar({
@@ -879,8 +871,8 @@
         document.getElementById('horariosForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const user = auth.currentUser;
-            if (!user) return;
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            if (!userData) return;
             
             // Coletar dados do formulário
             const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
@@ -910,34 +902,9 @@
                 ultimaAtualizacao: new Date().toISOString()
             };
             
-            // Salvar no Firebase
-            await saveHorariosConfig(user.uid, config);
+            // Salvar no Google Sheets
+            await saveHorariosConfig(userData, config);
         });
-
-        // Função para calcular horários disponíveis (pode ser usada no calendário)
-        function calcularHorariosDisponiveis(config) {
-            const horarios = [];
-            const [horaAbertura, minutoAbertura] = config.horarioAbertura.split(':').map(Number);
-            const [horaFechamento, minutoFechamento] = config.horarioFechamento.split(':').map(Number);
-            
-            const inicio = new Date();
-            inicio.setHours(horaAbertura, minutoAbertura, 0, 0);
-            
-            const fim = new Date();
-            fim.setHours(horaFechamento, minutoFechamento, 0, 0);
-            
-            let horarioAtual = new Date(inicio);
-            
-            while (horarioAtual < fim) {
-                horarios.push(new Date(horarioAtual));
-                
-                // Avança o horário pela duração + intervalo
-                horarioAtual.setMinutes(horarioAtual.getMinutes() + 
-                    config.duracaoAtendimento + config.intervaloAtendimento);
-            }
-            
-            return horarios;
-        }
     </script>
 </body>
 </html>
