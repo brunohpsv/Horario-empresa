@@ -7,6 +7,7 @@
     <!-- Adicionando o SDK do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <style>
         * {
             margin: 0;
@@ -423,55 +424,64 @@
     </div>
 
     <script>
-        // Configuração do Firebase
+        // Configuração do Firebase (substitua com suas credenciais)
         const firebaseConfig = {
             apiKey: "SUA_API_KEY",
-            authDomain: "banco-de-dados-e16e0.firebaseapp.com",
-            projectId: "banco-de-dados-e16e0",
-            storageBucket: "banco-de-dados-e16e0.appspot.com",
-            messagingSenderId: "871499664409",
-            appId: "1:871499664409:web:SEU_APP_ID"
+            authDomain: "SEU_AUTH_DOMAIN",
+            projectId: "SEU_PROJECT_ID",
+            storageBucket: "SEU_STORAGE_BUCKET",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SEU_APP_ID"
         };
 
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const storage = firebase.storage();
 
-        // URL do seu Apps Script Web App
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSjrW5YYvciYhFXtm6qxeWV7rfvYcb6hcQnLPNyblOpl_VVw-X05ZV717HqQp4eG_exw/exec';
-        
-        // Função para upload do documento
+        // Função para upload do documento para o Firebase Storage
         async function uploadDocumento(file) {
             if (!file) return { success: false, message: 'Nenhum arquivo selecionado' };
             
             try {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('action', 'uploadFile');
+                // Criar um nome único para o arquivo
+                const fileName = `documentos/${Date.now()}_${file.name}`;
+                const storageRef = storage.ref(fileName);
+                const uploadTask = storageRef.put(file);
                 
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData
+                return new Promise((resolve, reject) => {
+                    uploadTask.on('state_changed',
+                        (snapshot) => {
+                            // Atualizar barra de progresso
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            document.getElementById('progressBar').style.width = progress + '%';
+                            document.getElementById('progressBar').textContent = Math.round(progress) + '%';
+                        },
+                        (error) => {
+                            console.error("Erro no upload:", error);
+                            reject({ success: false, message: 'Erro ao enviar documento' });
+                        },
+                        async () => {
+                            try {
+                                // Upload completo, obter URL de download
+                                const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                                resolve({ 
+                                    success: true, 
+                                    fileUrl: downloadURL,
+                                    fileName: file.name
+                                });
+                            } catch (error) {
+                                console.error("Erro ao obter URL:", error);
+                                reject({ success: false, message: 'Erro ao obter URL do documento' });
+                            }
+                        }
+                    );
                 });
-                
-                // Verificar se a resposta existe e é JSON válido
-                if (!response.ok) {
-                    throw new Error('Falha no upload do arquivo');
-                }
-                
-                const result = await response.json();
-                
-                // Verificar se o resultado tem a estrutura esperada
-                if (!result || typeof result !== 'object') {
-                    throw new Error('Resposta inválida do servidor');
-                }
-                
-                return result;
             } catch (error) {
                 console.error('Erro no upload:', error);
                 return { 
                     success: false, 
-                    message: error.message || 'Erro ao enviar documento' 
+                    message: error.message || 'Erro desconhecido ao enviar documento'
                 };
             }
         }
@@ -542,7 +552,7 @@
             document.getElementById('mensagemErro').style.display = 'none';
             document.getElementById('credenciaisAcesso').style.display = 'none';
             
-            // Elementos de progresso
+            // Mostrar barra de progresso
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
             progressContainer.style.display = 'block';
@@ -603,20 +613,6 @@
                     throw new Error(firestoreResult.error || 'Falha ao salvar dados');
                 }
                 
-                // Enviar para Google Sheets (opcional)
-                progressBar.style.width = '90%';
-                progressBar.textContent = '90%';
-                
-                try {
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'saveData', data: formDataCadastro })
-                    });
-                } catch (sheetsError) {
-                    console.warn("Erro ao enviar para Google Sheets:", sheetsError);
-                }
-                
                 // Sucesso
                 progressBar.style.width = '100%';
                 progressBar.textContent = '100%';
@@ -644,7 +640,7 @@
                 btn.textContent = btnOriginalText;
                 btn.disabled = false;
             }
-        });;
+        });
 
         // Máscaras para os campos
         document.getElementById('telefone').addEventListener('input', function(e) {
