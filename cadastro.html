@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -551,25 +552,38 @@
                 const progressBar = document.getElementById('progressBar');
                 progressContainer.style.display = 'block';
                 
-                // Primeiro enviar o arquivo
-                const formData = new FormData();
-                formData.append('file', documentoFile);
-                formData.append('action', 'uploadFile');
-                
-                const uploadResponse = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const uploadResult = await uploadResponse.json();
-                
-                if (!uploadResult.success) {
-                    throw new Error(uploadResult.message || 'Falha ao enviar documento');
+                // Primeiro enviar o arquivo (se necessário)
+                let documentoUrl = '';
+                if (documentoFile) {
+                    progressBar.style.width = '25%';
+                    progressBar.textContent = '25%';
+                    
+                    const formData = new FormData();
+                    formData.append('file', documentoFile);
+                    formData.append('action', 'uploadFile');
+                    
+                    const uploadResponse = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    // Verificar se a resposta é válida
+                    if (!uploadResponse.ok) {
+                        throw new Error('Falha ao enviar documento');
+                    }
+                    
+                    const uploadResult = await uploadResponse.json();
+                    
+                    if (!uploadResult || !uploadResult.success) {
+                        throw new Error(uploadResult?.message || 'Falha ao processar documento');
+                    }
+                    
+                    documentoUrl = uploadResult.fileUrl || '';
                 }
                 
                 // Atualizar barra de progresso
-                progressBar.style.width = '25%';
-                progressBar.textContent = '25%';
+                progressBar.style.width = '50%';
+                progressBar.textContent = '50%';
                 
                 // Preparar dados para Firestore e Google Sheets
                 const formDataCadastro = {
@@ -587,16 +601,12 @@
                     senha: senha, // Nota: Em produção, nunca armazene senhas em texto puro
                     maquinas: document.getElementById('maquinas').value,
                     servicos: document.getElementById('servicos').value,
-                    documentoNome: documentoFile.name,
-                    documentoUrl: uploadResult.fileUrl, // URL do documento no Google Drive
+                    documentoNome: documentoFile ? documentoFile.name : '',
+                    documentoUrl: documentoUrl,
                     dataCadastro: new Date().toISOString(),
                     status: 'pendente'
                 };
 
-                // Atualizar barra de progresso
-                progressBar.style.width = '50%';
-                progressBar.textContent = '50%';
-                
                 // Enviar para o Firestore com a nova estrutura
                 const firestoreResult = await saveToFirestore(formDataCadastro);
                 
@@ -608,21 +618,26 @@
                 progressBar.style.width = '75%';
                 progressBar.textContent = '75%';
                 
-                // Enviar para o Google Sheets
-                const cadastroResponse = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'saveData',
-                        data: formDataCadastro
-                    }),
-                    mode: 'no-cors'
-                });
-                
-                // Como estamos usando mode: 'no-cors', não podemos ler a resposta
-                // Mas assumimos que se não houve erro, foi enviado com sucesso
+                // Enviar para o Google Sheets (opcional)
+                try {
+                    const cadastroResponse = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'saveData',
+                            data: formDataCadastro
+                        })
+                    });
+                    
+                    // Verificar se a resposta é válida
+                    if (!cadastroResponse.ok) {
+                        console.warn("Aviso: Falha ao enviar para o Google Sheets");
+                    }
+                } catch (sheetsError) {
+                    console.warn("Aviso: Erro ao enviar para Google Sheets", sheetsError);
+                }
                 
                 // Atualizar barra de progresso
                 progressBar.style.width = '100%';
@@ -651,9 +666,9 @@
                 document.getElementById('mensagemErro').textContent = `Ocorreu um erro ao enviar seu cadastro: ${error.message}`;
                 
                 // Resetar barra de progresso em caso de erro
-                document.getElementById('progressContainer').style.display = 'none';
-                document.getElementById('progressBar').style.width = '0%';
-                document.getElementById('progressBar').textContent = '0%';
+                progressContainer.style.display = 'none';
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
             } finally {
                 btn.textContent = btnOriginalText;
                 btn.disabled = false;
