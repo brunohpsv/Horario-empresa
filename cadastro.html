@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro | HORÁRIO</title>
+    <!-- Adicionando o SDK do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
         * {
             margin: 0;
@@ -420,6 +423,20 @@
     </div>
 
     <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "banco-de-dados-e16e0.firebaseapp.com",
+            projectId: "banco-de-dados-e16e0",
+            storageBucket: "banco-de-dados-e16e0.appspot.com",
+            messagingSenderId: "871499664409",
+            appId: "1:871499664409:web:SEU_APP_ID"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         // URL do seu Apps Script Web App
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSjrW5YYvciYhFXtm6qxeWV7rfvYcb6hcQnLPNyblOpl_VVw-X05ZV717HqQp4eG_exw/exec';
         
@@ -437,7 +454,65 @@
             }
         });
 
-        // Envio do formulário para o Google Sheets
+        // Função para salvar dados no Firestore com estrutura de coleções
+        async function saveToFirestore(data) {
+            try {
+                // Criar um batch para operações atômicas
+                const batch = db.batch();
+                
+                // Referência para o documento do usuário na coleção 'usuarios'
+                const userRef = db.collection('usuarios').doc();
+                
+                // Adicionar dados do usuário ao batch
+                batch.set(userRef, {
+                    ...data,
+                    userId: userRef.id,
+                    dataCadastro: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'pendente',
+                    plano: {
+                        tipo: 'unico',
+                        valor: 30.00,
+                        maquinasPermitidas: data.maquinas,
+                        dataInicio: null,
+                        dataRenovacao: null,
+                        ativo: false
+                    }
+                });
+                
+                // Criar subcoleção 'configuracoes' para o usuário
+                const configuracoesRef = userRef.collection('configuracoes').doc('geral');
+                batch.set(configuracoesRef, {
+                    tema: 'claro',
+                    notificacoes: true,
+                    idioma: 'pt-BR',
+                    ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Criar subcoleção 'servicos' para o usuário
+                const servicosArray = data.servicos.split('/').map(s => s.trim());
+                servicosArray.forEach((servico, index) => {
+                    const servicoRef = userRef.collection('servicos').doc();
+                    batch.set(servicoRef, {
+                        nome: servico,
+                        ativo: true,
+                        ordem: index + 1,
+                        duracaoPadrao: 60, // minutos
+                        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+                
+                // Executar todas as operações do batch atomicamente
+                await batch.commit();
+                
+                console.log("Documento e subcoleções criados com sucesso no Firestore com ID: ", userRef.id);
+                return { success: true, userId: userRef.id };
+            } catch (error) {
+                console.error("Erro ao salvar no Firestore: ", error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Envio do formulário para o Google Sheets e Firestore
         document.getElementById('formCadastro').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -493,10 +568,10 @@
                 }
                 
                 // Atualizar barra de progresso
-                progressBar.style.width = '50%';
-                progressBar.textContent = '50%';
+                progressBar.style.width = '25%';
+                progressBar.textContent = '25%';
                 
-                // Agora enviar os dados do formulário
+                // Preparar dados para Firestore e Google Sheets
                 const formDataCadastro = {
                     tipoPessoa: document.getElementById('tipo-pessoa').value,
                     identificacao: document.getElementById('identificacao').value,
@@ -509,19 +584,31 @@
                     cep: document.getElementById('cep').value,
                     telefone: document.getElementById('telefone').value,
                     email: email,
-                    senha: senha,
+                    senha: senha, // Nota: Em produção, nunca armazene senhas em texto puro
                     maquinas: document.getElementById('maquinas').value,
                     servicos: document.getElementById('servicos').value,
                     documentoNome: documentoFile.name,
                     documentoUrl: uploadResult.fileUrl, // URL do documento no Google Drive
-                    dataCadastro: new Date().toLocaleString('pt-BR'),
+                    dataCadastro: new Date().toISOString(),
                     status: 'pendente'
                 };
 
                 // Atualizar barra de progresso
+                progressBar.style.width = '50%';
+                progressBar.textContent = '50%';
+                
+                // Enviar para o Firestore com a nova estrutura
+                const firestoreResult = await saveToFirestore(formDataCadastro);
+                
+                if (!firestoreResult.success) {
+                    throw new Error(firestoreResult.error || 'Falha ao salvar no Firestore');
+                }
+                
+                // Atualizar barra de progresso
                 progressBar.style.width = '75%';
                 progressBar.textContent = '75%';
                 
+                // Enviar para o Google Sheets
                 const cadastroResponse = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: {
