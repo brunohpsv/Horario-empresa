@@ -178,71 +178,63 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzVLuCWjWZ9SWhjtuwL904BgAF5KbmShcUI_besNmpuVR5Per4JN9k15uq6PQX36ANg7g/exec';
-        
-        function toggleLoader(show) {
-            document.getElementById('loader').style.display = show ? 'block' : 'none';
-            document.getElementById('btnText').style.display = show ? 'none' : 'block';
-            document.getElementById('loginBtn').disabled = show;
-        }
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwtD-5qcR3-TdJzpp3-6ajIQ3ksJJdB0M8AVN252Ti_Qd-75JQk9MuG5GAlWhh7yb0Q2Q/exec';
+    
+    function toggleLoader(show) {
+        document.getElementById('loader').style.display = show ? 'block' : 'none';
+        document.getElementById('btnText').style.display = show ? 'none' : 'block';
+        document.getElementById('loginBtn').disabled = show;
+    }
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        document.getElementById('loginError').style.display = 'none';
+        document.getElementById('passwordError').style.display = 'none';
+        
+        const identificacao = document.getElementById('loginInput').value.trim();
+        const senha = document.getElementById('senha').value;
+        
+        if (!identificacao) {
+            document.getElementById('loginError').textContent = 'Digite sua identificação';
+            document.getElementById('loginError').style.display = 'block';
+            return;
+        }
+        
+        try {
+            toggleLoader(true);
+            console.log('Enviando dados:', { identificacao });
             
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('passwordError').style.display = 'none';
+            const response = await fetch(`${SCRIPT_URL}?action=getUser&identificacao=${encodeURIComponent(identificacao)}`);
             
-            const identificacao = document.getElementById('loginInput').value.trim();
-            const senha = document.getElementById('senha').value;
+            if (!response.ok) throw new Error('Falha na conexão');
             
-            if (!identificacao) {
-                document.getElementById('loginError').textContent = 'Digite sua identificação';
-                document.getElementById('loginError').style.display = 'block';
-                return;
+            const result = await response.json();
+            console.log('Resposta:', result);
+            
+            if (!result.success) {
+                throw new Error(result.message || 'Erro no servidor');
             }
             
-            if (!senha) {
-                document.getElementById('passwordError').textContent = 'Digite sua senha';
-                document.getElementById('passwordError').style.display = 'block';
-                return;
+            if (!result.userData) {
+                throw new Error('Usuário não encontrado');
             }
             
-            try {
-                toggleLoader(true);
-                console.log('Enviando dados para login:', { identificacao, senha });
-                
-                const response = await fetch(`${SCRIPT_URL}?action=getUser&identificacao=${encodeURIComponent(identificacao)}`);
-                
-                if (!response.ok) {
-                    throw new Error('Erro na conexão com o servidor');
-                }
-                
-                const result = await response.json();
-                console.log('Resposta do servidor:', result);
-                
-                if (!result.success) {
-                    throw new Error(result.message || 'Erro ao verificar login');
-                }
-                
-                if (!result.userData) {
-                    throw new Error('Identificação não encontrada');
-                }
-                
-                if (result.userData.senha !== senha) {
-                    throw new Error('Senha incorreta');
-                }
-                
-                localStorage.setItem('userData', JSON.stringify(result.userData));
-                window.location.href = 'https://horario.site/painel.html';
-                
-            } catch (error) {
-                console.error('Erro no login:', error);
-                document.getElementById('loginError').textContent = error.message;
-                document.getElementById('loginError').style.display = 'block';
-            } finally {
-                toggleLoader(false);
+            if (result.userData.senha !== senha) {
+                throw new Error('Senha incorreta');
             }
-        });
+            
+            localStorage.setItem('userData', JSON.stringify(result.userData));
+            window.location.href = 'https://horario.site/painel.html';
+            
+        } catch (error) {
+            console.error('Erro:', error);
+            document.getElementById('loginError').textContent = error.message;
+            document.getElementById('loginError').style.display = 'block';
+        } finally {
+            toggleLoader(false);
+        }
+    });
 
         document.getElementById('forgotPassword').addEventListener('click', function(e) {
             e.preventDefault();
