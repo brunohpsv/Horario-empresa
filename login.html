@@ -14,62 +14,15 @@
         
         body {
             background-color: #f5f5f5;
-        }
-        
-        header {
-            background-color: #000000;
-            color: white;
-            padding: 20px 40px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            min-height: 100vh;
         }
         
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-        
-        nav ul {
-            display: flex;
-            list-style: none;
-        }
-        
-        nav ul li {
-            margin-left: 30px;
-        }
-        
-        nav ul li a {
-            color: white;
-            text-decoration: none;
-            font-size: 16px;
-            transition: color 0.3s;
-        }
-        
-        nav ul li a:hover {
-            color: #cccccc;
-        }
-        
-        .login-btn {
-            background-color: #4CAF50;
-            padding: 8px 16px;
-            border-radius: 4px;
-        }
-        
-        .login-btn:hover {
-            background-color: #45a049;
-        }
-
-        .main-container {
-            max-width: 1200px;
-            margin: 50px auto;
-            padding: 0 20px;
-        }
-
         .auth-container {
+            width: 100%;
             max-width: 400px;
-            margin: 0 auto;
             padding: 30px;
             background: white;
             border-radius: 8px;
@@ -101,24 +54,15 @@
             cursor: pointer;
             font-size: 16px;
             margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         .auth-container button:hover {
             background-color: #45a049;
         }
         
-        .toggle-form {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-        }
-        
-        .toggle-form a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
         .error-message {
             color: #d32f2f;
             font-size: 14px;
@@ -133,7 +77,7 @@
             width: 20px;
             height: 20px;
             animation: spin 1s linear infinite;
-            margin: 0 auto;
+            margin-right: 10px;
             display: none;
         }
 
@@ -144,76 +88,82 @@
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">HORÁRIO</div>
-        <nav>
-            <ul>
-                <li><a href="https://horario.site">Início</a></li>
-                <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <div class="main-container">
-        <div class="auth-container">
-            <h2>Login</h2>
-            <form id="loginForm">
-                <input type="text" id="loginInput" placeholder="Digite sua identificação" required>
-                <div class="error-message" id="loginError"></div>
-                
-                <input type="password" id="senha" placeholder="Senha" required>
-                <div class="error-message" id="passwordError"></div>
-                
-                <button type="submit" id="loginBtn">
-                    <span id="btnText">Entrar</span>
-                    <div class="loader" id="loader"></div>
-                </button>
-            </form>
+    <div class="auth-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="loginInput" placeholder="Digite seu CPF/CNPJ" required>
+            <div class="error-message" id="loginError"></div>
             
-            <div class="toggle-form">
-                <p>Não tem uma conta? <a href="https://horario.site/cadastro.html">Cadastre-se</a></p>
-                <p><a href="#" id="forgotPassword">Esqueci minha senha</a></p>
-            </div>
-        </div>
+            <input type="password" id="senha" placeholder="Senha" required>
+            <div class="error-message" id="passwordError"></div>
+            
+            <button type="submit" id="loginBtn">
+                <div class="loader" id="loader"></div>
+                <span id="btnText">Entrar</span>
+            </button>
+        </form>
     </div>
 
     <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8FFbjt8hkrnrV3itqvect7G6t3744t2TQQa79pFMlvMymbcECKAiYyAPSuuDRPsWVJw/exec';
-    
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+        // URL do seu Apps Script Web App (substitua pela sua URL)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXfZyMvvSjNA9Lm_LZjAApQAQaimcTs1nQkap3rWJ1pmcS2iCisgdxk4O-SSBfj-N0ZQ/exec';
         
-        // Pegar valores
-        const identificacao = document.getElementById('loginInput').value.trim();
-        const senha = document.getElementById('senha').value;
-        
-        // Mostrar loading
-        document.getElementById('loader').style.display = 'block';
-        document.getElementById('btnText').style.display = 'none';
-        document.getElementById('loginBtn').disabled = true;
-        
-        try {
-            // Fazer requisição
-            const response = await fetch(`${SCRIPT_URL}?identificacao=${identificacao}&senha=${senha}`);
-            const resultado = await response.json();
-            
-            if (resultado.success) {
-                // Salvar dados no localStorage e redirecionar
-                localStorage.setItem('userData', JSON.stringify(resultado.userData));
-                window.location.href = 'painel.html';
-            } else {
-                alert(resultado.message || 'Erro no login');
-            }
-        } catch (error) {
-            console.error('Erro:', error);
-            alert('Erro ao conectar com o servidor');
-        } finally {
-            // Esconder loading
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('btnText').style.display = 'block';
-            document.getElementById('loginBtn').disabled = false;
+        // Função para mostrar/ocultar o loader
+        function toggleLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+            document.getElementById('btnText').style.textIndent = show ? '10px' : '0';
         }
-    });
-</script>
+
+        // Validação de login
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Limpa mensagens de erro
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('passwordError').style.display = 'none';
+            
+            // Valores dos campos
+            const identificacao = document.getElementById('loginInput').value.trim();
+            const senha = document.getElementById('senha').value;
+            
+            // Validação básica
+            if (!identificacao) {
+                document.getElementById('loginError').textContent = 'Digite seu CPF/CNPJ';
+                document.getElementById('loginError').style.display = 'block';
+                return;
+            }
+            
+            if (!senha) {
+                document.getElementById('passwordError').textContent = 'Digite sua senha';
+                document.getElementById('passwordError').style.display = 'block';
+                return;
+            }
+            
+            try {
+                // Mostra o loader
+                toggleLoader(true);
+                document.getElementById('loginBtn').disabled = true;
+                
+                // Faz a requisição para o Google Apps Script
+                const response = await fetch(`${SCRIPT_URL}?identificacao=${encodeURIComponent(identificacao)}&senha=${encodeURIComponent(senha)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Salva os dados no localStorage e redireciona
+                    localStorage.setItem('userData', JSON.stringify(result.userData));
+                    window.location.href = 'painel.html';
+                } else {
+                    throw new Error(result.message || 'CPF/CNPJ ou senha incorretos');
+                }
+            } catch (error) {
+                document.getElementById('loginError').textContent = error.message;
+                document.getElementById('loginError').style.display = 'block';
+            } finally {
+                // Esconde o loader
+                toggleLoader(false);
+                document.getElementById('loginBtn').disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>
