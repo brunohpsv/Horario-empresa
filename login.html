@@ -207,9 +207,15 @@
             document.getElementById('loginBtn').disabled = show;
         }
 
-        // Função para formatar identificação (remove caracteres não numéricos)
+        // Função para formatar CPF/CNPJ (remove caracteres não numéricos)
         function formatarIdentificacao(identificacao) {
             return identificacao.replace(/\D/g, '');
+        }
+
+        // Função para validar email
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
         }
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -240,27 +246,33 @@
                 toggleLoader(true);
                 
                 let email = identificacao;
+                let isEmail = isValidEmail(identificacao);
                 
-                // Verifica se é email ou identificação (CPF/CNPJ)
-                if (!identificacao.includes('@')) {
+                if (!isEmail) {
                     // Formata a identificação (remove pontos, traços, etc.)
                     const identificacaoFormatada = formatarIdentificacao(identificacao);
                     
+                    // Verifica se é CPF (11 dígitos) ou CNPJ (14 dígitos)
+                    if (identificacaoFormatada.length !== 11 && identificacaoFormatada.length !== 14) {
+                        throw new Error('CPF deve ter 11 dígitos ou CNPJ 14 dígitos');
+                    }
+                    
                     // Busca o email associado à identificação no Firestore
-                    const userDoc = await db.collection('users')
+                    const querySnapshot = await db.collection('users')
                         .where('identificacao', '==', identificacaoFormatada)
                         .limit(1)
                         .get();
                     
-                    if (userDoc.empty) {
-                        throw new Error('Identificação não encontrada. Verifique ou use o email cadastrado.');
+                    if (querySnapshot.empty) {
+                        throw new Error('CPF/CNPJ não encontrado. Verifique ou use o email cadastrado.');
                     }
                     
                     // Pega o email do documento encontrado
-                    email = userDoc.docs[0].data().email;
+                    const userDoc = querySnapshot.docs[0];
+                    email = userDoc.data().email;
                     
                     if (!email) {
-                        throw new Error('Email não encontrado para esta identificação');
+                        throw new Error('Email não encontrado para este CPF/CNPJ');
                     }
                 }
                 
@@ -271,9 +283,9 @@
                 const user = userCredential.user;
                 
                 // Busca dados adicionais do usuário no Firestore
-                const userData = await db.collection('users').doc(user.uid).get();
+                const userDoc = await db.collection('users').doc(user.uid).get();
                 
-                if (!userData.exists) {
+                if (!userDoc.exists) {
                     throw new Error('Dados adicionais do usuário não encontrados');
                 }
                 
@@ -281,7 +293,7 @@
                 localStorage.setItem('userData', JSON.stringify({
                     uid: user.uid,
                     email: user.email,
-                    ...userData.data() // Inclui todos os dados adicionais do Firestore
+                    ...userDoc.data() // Inclui todos os dados adicionais do Firestore
                 }));
                 
                 // Redireciona para o painel
@@ -327,24 +339,24 @@
             
             try {
                 let email = identificacao;
+                let isEmail = isValidEmail(identificacao);
                 
-                // Se não for um email, busca no Firestore
-                if (!identificacao.includes('@')) {
+                if (!isEmail) {
                     const identificacaoFormatada = formatarIdentificacao(identificacao);
-                    const userDoc = await db.collection('users')
+                    const querySnapshot = await db.collection('users')
                         .where('identificacao', '==', identificacaoFormatada)
                         .limit(1)
                         .get();
                     
-                    if (userDoc.empty) {
-                        alert('Identificação não encontrada. Verifique ou use o email cadastrado.');
+                    if (querySnapshot.empty) {
+                        alert('CPF/CNPJ não encontrado. Verifique ou use o email cadastrado.');
                         return;
                     }
                     
-                    email = userDoc.docs[0].data().email;
+                    email = querySnapshot.docs[0].data().email;
                     
                     if (!email) {
-                        alert('Email não encontrado para esta identificação');
+                        alert('Email não encontrado para este CPF/CNPJ');
                         return;
                     }
                 }
