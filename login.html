@@ -161,7 +161,7 @@
         <div class="auth-container">
             <h2>Login</h2>
             <form id="loginForm">
-                <input type="text" id="loginInput" placeholder="Digite seu CPF/CNPJ ou Email" required>
+                <input type="text" id="loginInput" placeholder="Digite seu Login (código fornecido)" required>
                 <div class="error-message" id="loginError"></div>
                 
                 <input type="password" id="senha" placeholder="Senha" required>
@@ -180,13 +180,24 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDK v9 (modular via CDN) -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection,
+            query,
+            where,
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            sendPasswordResetEmail
+        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
 
-    <script>
-        // Configuração do Firebase
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
             authDomain: "banco-de-dados-d253e.firebaseapp.com",
@@ -196,26 +207,15 @@
             appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
         };
 
-        // Inicializa o Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
         function toggleLoader(show) {
             document.getElementById('loader').style.display = show ? 'block' : 'none';
             document.getElementById('btnText').style.display = show ? 'none' : 'inline';
             document.getElementById('loginBtn').disabled = show;
-        }
-
-        // Função para formatar CPF/CNPJ (remove caracteres não numéricos)
-        function formatarIdentificacao(identificacao) {
-            return identificacao.replace(/\D/g, '');
-        }
-
-        // Função para validar email
-        function isValidEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(email);
         }
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -226,12 +226,12 @@
             document.getElementById('passwordError').style.display = 'none';
             
             // Valores dos campos
-            const identificacao = document.getElementById('loginInput').value.trim();
+            const login = document.getElementById('loginInput').value.trim();
             const senha = document.getElementById('senha').value;
             
             // Validação básica
-            if (!identificacao) {
-                document.getElementById('loginError').textContent = 'Digite seu CPF/CNPJ ou Email';
+            if (!login) {
+                document.getElementById('loginError').textContent = 'Digite seu login';
                 document.getElementById('loginError').style.display = 'block';
                 return;
             }
@@ -245,80 +245,47 @@
             try {
                 toggleLoader(true);
                 
-                let email = identificacao;
-                let isEmail = isValidEmail(identificacao);
+                // 1. Buscar usuário no Firestore pelo login
+                const q = query(collection(db, "usuarios"), where("login", "==", login));
+                const querySnapshot = await getDocs(q);
                 
-                if (!isEmail) {
-                    // Formata a identificação (remove pontos, traços, etc.)
-                    const identificacaoFormatada = formatarIdentificacao(identificacao);
-                    
-                    // Verifica se é CPF (11 dígitos) ou CNPJ (14 dígitos)
-                    if (identificacaoFormatada.length !== 11 && identificacaoFormatada.length !== 14) {
-                        throw new Error('CPF deve ter 11 dígitos ou CNPJ 14 dígitos');
-                    }
-                    
-                    // Busca o email associado à identificação no Firestore
-                    const querySnapshot = await db.collection('users')
-                        .where('identificacao', '==', identificacaoFormatada)
-                        .limit(1)
-                        .get();
-                    
-                    if (querySnapshot.empty) {
-                        throw new Error('CPF/CNPJ não encontrado. Verifique ou use o email cadastrado.');
-                    }
-                    
-                    // Pega o email do documento encontrado
-                    const userDoc = querySnapshot.docs[0];
-                    email = userDoc.data().email;
-                    
-                    if (!email) {
-                        throw new Error('Email não encontrado para este CPF/CNPJ');
-                    }
+                if (querySnapshot.empty) {
+                    throw new Error('Login não encontrado. Verifique ou entre em contato com o suporte.');
                 }
                 
-                // Faz o login com email/senha no Firebase
-                const userCredential = await auth.signInWithEmailAndPassword(email, senha);
+                // Pega o primeiro documento (deveria ter apenas um com o mesmo login)
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
                 
-                // Se chegou aqui, o login foi bem-sucedido
-                const user = userCredential.user;
-                
-                // Busca dados adicionais do usuário no Firestore
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                
-                if (!userDoc.exists) {
-                    throw new Error('Dados adicionais do usuário não encontrados');
+                // Verifica se a senha fornecida corresponde à senha armazenada
+                if (userData.senha !== senha) {
+                    throw new Error('Senha incorreta. Tente novamente.');
                 }
                 
-                // Salva os dados no localStorage
-                localStorage.setItem('userData', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    ...userDoc.data() // Inclui todos os dados adicionais do Firestore
-                }));
+                // Verifica o status do cadastro
+                if (userData.status !== 'ativo') {
+                    throw new Error('Seu cadastro ainda está em análise. Aguarde o contato da nossa equipe.');
+                }
                 
-                // Redireciona para o painel
+                // 2. Faz login no Firebase Authentication usando o email e senha
+                await signInWithEmailAndPassword(auth, userData.email, senha);
+                
+                // 3. Redireciona para o painel
                 window.location.href = 'painel.html';
                 
             } catch (error) {
                 console.error('Erro no login:', error);
                 let errorMessage = 'Erro ao fazer login';
                 
-                // Trata erros específicos do Firebase
-                switch(error.code) {
-                    case 'auth/user-not-found':
-                        errorMessage = 'Usuário não encontrado. Verifique sua identificação ou email.';
-                        break;
-                    case 'auth/wrong-password':
-                        errorMessage = 'Senha incorreta. Tente novamente.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'Email ou identificação inválida.';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage = 'Muitas tentativas. Tente novamente mais tarde.';
+                // Trata mensagens de erro específicas
+                switch(error.message) {
+                    case 'Login não encontrado. Verifique ou entre em contato com o suporte.':
+                    case 'Senha incorreta. Tente novamente.':
+                    case 'Seu cadastro ainda está em análise. Aguarde o contato da nossa equipe.':
+                        errorMessage = error.message;
                         break;
                     default:
-                        errorMessage = error.message || 'Erro ao fazer login. Tente novamente.';
+                        errorMessage = 'Erro ao fazer login. Tente novamente mais tarde.';
                 }
                 
                 document.getElementById('loginError').textContent = errorMessage;
@@ -330,44 +297,34 @@
 
         document.getElementById('forgotPassword').addEventListener('click', async function(e) {
             e.preventDefault();
-            const identificacao = document.getElementById('loginInput').value.trim();
+            const login = document.getElementById('loginInput').value.trim();
             
-            if (!identificacao) {
-                alert('Digite sua identificação ou Email para recuperar a senha');
+            if (!login) {
+                alert('Digite seu login para recuperar a senha');
                 return;
             }
             
             try {
-                let email = identificacao;
-                let isEmail = isValidEmail(identificacao);
+                // 1. Buscar usuário pelo login
+                const q = query(collection(db, "usuarios"), where("login", "==", login));
+                const querySnapshot = await getDocs(q);
                 
-                if (!isEmail) {
-                    const identificacaoFormatada = formatarIdentificacao(identificacao);
-                    const querySnapshot = await db.collection('users')
-                        .where('identificacao', '==', identificacaoFormatada)
-                        .limit(1)
-                        .get();
-                    
-                    if (querySnapshot.empty) {
-                        alert('CPF/CNPJ não encontrado. Verifique ou use o email cadastrado.');
-                        return;
-                    }
-                    
-                    email = querySnapshot.docs[0].data().email;
-                    
-                    if (!email) {
-                        alert('Email não encontrado para este CPF/CNPJ');
-                        return;
-                    }
+                if (querySnapshot.empty) {
+                    alert('Login não encontrado. Verifique ou entre em contato com o suporte.');
+                    return;
                 }
                 
-                // Envia email de redefinição de senha
-                await auth.sendPasswordResetEmail(email);
-                alert('Email de redefinição de senha enviado para o email associado a este cadastro');
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
+                
+                // 2. Envia email de redefinição de senha
+                await sendPasswordResetEmail(auth, userData.email);
+                
+                alert(`Email de redefinição de senha enviado para o email associado a este login: ${userData.email}`);
                 
             } catch (error) {
                 console.error('Erro ao enviar email de redefinição:', error);
-                alert('Erro ao enviar email de redefinição. Verifique os dados informados ou entre em contato com o suporte.');
+                alert('Erro ao enviar email de redefinição. Entre em contato com o suporte.');
             }
         });
     </script>
