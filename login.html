@@ -207,7 +207,7 @@
             document.getElementById('loginBtn').disabled = show;
         }
 
-        // Função para formatar CPF/CNPJ (remove caracteres não numéricos)
+        // Função para formatar identificação (remove caracteres não numéricos)
         function formatarIdentificacao(identificacao) {
             return identificacao.replace(/\D/g, '');
         }
@@ -241,26 +241,26 @@
                 
                 let email = identificacao;
                 
-                // Verifica se é email ou CPF/CNPJ
+                // Verifica se é email ou identificação (CPF/CNPJ)
                 if (!identificacao.includes('@')) {
-                    // Formata o CPF/CNPJ (remove pontos, traços, etc.)
-                    const cpfCnpjFormatado = formatarIdentificacao(identificacao);
+                    // Formata a identificação (remove pontos, traços, etc.)
+                    const identificacaoFormatada = formatarIdentificacao(identificacao);
                     
-                    // Busca o email associado ao CPF/CNPJ no Firestore
+                    // Busca o email associado à identificação no Firestore
                     const userDoc = await db.collection('users')
-                        .where('cpfCnpj', '==', cpfCnpjFormatado)
+                        .where('identificacao', '==', identificacaoFormatada)
                         .limit(1)
                         .get();
                     
                     if (userDoc.empty) {
-                        throw new Error('CPF/CNPJ não encontrado. Verifique ou use o email cadastrado.');
+                        throw new Error('Identificação não encontrada. Verifique ou use o email cadastrado.');
                     }
                     
                     // Pega o email do documento encontrado
                     email = userDoc.docs[0].data().email;
                     
                     if (!email) {
-                        throw new Error('Email não encontrado para este CPF/CNPJ');
+                        throw new Error('Email não encontrado para esta identificação');
                     }
                 }
                 
@@ -294,13 +294,13 @@
                 // Trata erros específicos do Firebase
                 switch(error.code) {
                     case 'auth/user-not-found':
-                        errorMessage = 'Usuário não encontrado. Verifique seu CPF/CNPJ ou email.';
+                        errorMessage = 'Usuário não encontrado. Verifique sua identificação ou email.';
                         break;
                     case 'auth/wrong-password':
                         errorMessage = 'Senha incorreta. Tente novamente.';
                         break;
                     case 'auth/invalid-email':
-                        errorMessage = 'Email ou CPF/CNPJ inválido.';
+                        errorMessage = 'Email ou identificação inválida.';
                         break;
                     case 'auth/too-many-requests':
                         errorMessage = 'Muitas tentativas. Tente novamente mais tarde.';
@@ -321,7 +321,7 @@
             const identificacao = document.getElementById('loginInput').value.trim();
             
             if (!identificacao) {
-                alert('Digite seu CPF/CNPJ ou Email para recuperar a senha');
+                alert('Digite sua identificação ou Email para recuperar a senha');
                 return;
             }
             
@@ -330,21 +330,21 @@
                 
                 // Se não for um email, busca no Firestore
                 if (!identificacao.includes('@')) {
-                    const cpfCnpjFormatado = formatarIdentificacao(identificacao);
+                    const identificacaoFormatada = formatarIdentificacao(identificacao);
                     const userDoc = await db.collection('users')
-                        .where('cpfCnpj', '==', cpfCnpjFormatado)
+                        .where('identificacao', '==', identificacaoFormatada)
                         .limit(1)
                         .get();
                     
                     if (userDoc.empty) {
-                        alert('CPF/CNPJ não encontrado. Verifique ou use o email cadastrado.');
+                        alert('Identificação não encontrada. Verifique ou use o email cadastrado.');
                         return;
                     }
                     
                     email = userDoc.docs[0].data().email;
                     
                     if (!email) {
-                        alert('Email não encontrado para este CPF/CNPJ');
+                        alert('Email não encontrado para esta identificação');
                         return;
                     }
                 }
