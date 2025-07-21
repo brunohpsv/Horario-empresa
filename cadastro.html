@@ -310,22 +310,6 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="senha">Senha</label>
-                    <div class="senha-input-container">
-                        <input type="password" id="senha" minlength="6" required>
-                        <button type="button" class="btn-toggle-senha">👁️</button>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirmarSenha">Confirmar Senha</label>
-                    <div class="senha-input-container">
-                        <input type="password" id="confirmarSenha" minlength="6" required>
-                        <button type="button" class="btn-toggle-senha">👁️</button>
-                    </div>
-                </div>
-                
-                <div class="form-group">
                     <label for="maquinas">Quantas máquinas irão usar? (Máximo 30)</label>
                     <input type="number" id="maquinas" min="1" max="30" value="1" required>
                     <div class="exemplo">Para mais de 30 máquinas, entre em contato para negociar o valor</div>
@@ -356,7 +340,7 @@
                 
                 <div id="credenciaisAcesso" class="credenciais-acesso">
                     <h3>Suas Credenciais de Acesso</h3>
-                    <p><strong>E-mail:</strong> <span id="cred-email"></span></p>
+                    <p><strong>Login:</strong> <span id="cred-login"></span></p>
                     <p><strong>Senha:</strong> <span id="cred-senha"></span></p>
                     <p>Guarde essas informações em local seguro. Você poderá alterar a senha após o primeiro login.</p>
                 </div>
@@ -413,6 +397,22 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // Função para gerar senha aleatória
+        function gerarSenha() {
+            const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let senha = '';
+            for (let i = 0; i < 8; i++) {
+                senha += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+            }
+            return senha;
+        }
+
+        // Função para gerar código de login numérico
+        function gerarCodigoLogin(nomeEmpresa) {
+            const codigo = Math.floor(10000000 + Math.random() * 90000000);
+            return `${nomeEmpresa.split(' ')[0]} - ${codigo}`;
+        }
+
         // Alternar entre CPF e CNPJ
         document.getElementById('tipo-pessoa').addEventListener('change', function() {
             const label = document.getElementById('label-identificacao');
@@ -456,17 +456,16 @@
             try {
                 // Coletar dados do formulário
                 const email = document.getElementById('email').value;
-                const senha = document.getElementById('senha').value;
+                const nomeFantasia = document.getElementById('nome-fantasia').value;
                 
-                // Verificar se as senhas coincidem
-                if (senha !== document.getElementById('confirmarSenha').value) {
-                    throw new Error("As senhas não coincidem");
-                }
+                // Gerar senha e login automaticamente
+                const senha = gerarSenha();
+                const login = gerarCodigoLogin(nomeFantasia);
                 
                 const formData = {
                     tipoPessoa: document.getElementById('tipo-pessoa').value,
                     identificacao: document.getElementById('identificacao').value,
-                    nomeFantasia: document.getElementById('nome-fantasia').value,
+                    nomeFantasia: nomeFantasia,
                     endereco: document.getElementById('endereco').value,
                     bairro: document.getElementById('bairro').value,
                     numero: document.getElementById('numero').value,
@@ -475,6 +474,8 @@
                     cep: document.getElementById('cep').value,
                     telefone: document.getElementById('telefone').value,
                     email: email,
+                    login: login,
+                    senha: senha, // Armazenando a senha no Firestore também
                     maquinas: document.getElementById('maquinas').value,
                     servicos: document.getElementById('servicos').value,
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
@@ -482,7 +483,7 @@
                     status: 'pendente'
                 };
 
-                // 1. Criar usuário no Authentication
+                // 1. Criar usuário no Authentication (usando email e senha gerada)
                 const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
                 const userId = userCredential.user.uid;
                 
@@ -511,7 +512,7 @@
                 // 4. Mostrar mensagem de sucesso
                 document.getElementById('mensagemSucesso').style.display = 'block';
                 document.getElementById('credenciaisAcesso').style.display = 'block';
-                document.getElementById('cred-email').textContent = email;
+                document.getElementById('cred-login').textContent = login;
                 document.getElementById('cred-senha').textContent = senha;
                 
                 // 5. Limpar formulário
@@ -545,20 +546,6 @@
                 value = `${value.substring(0,5)}-${value.substring(5,8)}`;
             }
             e.target.value = value;
-        });
-
-        // Função para mostrar/esconder senha
-        document.querySelectorAll('.btn-toggle-senha').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const input = this.previousElementSibling;
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    this.textContent = '👁️';
-                } else {
-                    input.type = 'password';
-                    this.textContent = '👁️';
-                }
-            });
         });
     </script>
 </body>
