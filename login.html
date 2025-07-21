@@ -161,7 +161,7 @@
         <div class="auth-container">
             <h2>Login</h2>
             <form id="loginForm">
-                <input type="text" id="loginInput" placeholder="Digite seu CPF/CNPJ" required>
+                <input type="text" id="loginInput" placeholder="Digite seu CPF/CNPJ ou Email" required>
                 <div class="error-message" id="loginError"></div>
                 
                 <input type="password" id="senha" placeholder="Senha" required>
@@ -180,10 +180,27 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <script>
-        // URL do seu Apps Script Web App (SUBSTITUA pela sua URL real)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaJF68P9Y29xXqLTUOugY7U0PAJzAZLi1F6JPhPQfxwdudkSbUmhtmuqbrEYpYWxp7sA/exec';
-        
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+            authDomain: "banco-de-dados-d253e.firebaseapp.com",
+            projectId: "banco-de-dados-d253e",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
+            messagingSenderId: "1005413315224",
+            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+        };
+
+        // Inicializa o Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
         function toggleLoader(show) {
             document.getElementById('loader').style.display = show ? 'block' : 'none';
             document.getElementById('btnText').style.display = show ? 'none' : 'inline';
@@ -203,7 +220,7 @@
             
             // Validação básica
             if (!identificacao) {
-                document.getElementById('loginError').textContent = 'Digite seu CPF/CNPJ';
+                document.getElementById('loginError').textContent = 'Digite seu CPF/CNPJ ou Email';
                 document.getElementById('loginError').style.display = 'block';
                 return;
             }
@@ -217,35 +234,111 @@
             try {
                 toggleLoader(true);
                 
-                // Faz a requisição para o Google Apps Script
-                const response = await fetch(`${SCRIPT_URL}?identificacao=${encodeURIComponent(identificacao)}&senha=${encodeURIComponent(senha)}`);
-                
-                if (!response.ok) {
-                    throw new Error('Erro na conexão com o servidor');
+                // Verifica se é email ou CPF/CNPJ
+                let email = identificacao;
+                if (!identificacao.includes('@')) {
+                    // Busca o email associado ao CPF/CNPJ no Firestore
+                    const userDoc = await db.collection('users').where('cpfCnpj', '==', identificacao).get();
+                    
+                    if (userDoc.empty) {
+                        throw new Error('CPF/CNPJ não cadastrado');
+                    }
+                    
+                    // Pega o primeiro documento encontrado (deveria ser único)
+                    email = userDoc.docs[0].data().email;
                 }
                 
-                const result = await response.json();
+                // Faz o login com email/senha no Firebase
+                const userCredential = await auth.signInWithEmailAndPassword(email, senha);
                 
-                if (!result.success) {
-                    throw new Error(result.message || 'CPF/CNPJ ou senha incorretos');
+                // Se chegou aqui, o login foi bem-sucedido
+                const user = userCredential.user;
+                
+                // Busca dados adicionais do usuário no Firestore
+                const userData = await db.collection('users').doc(user.uid).get();
+                
+                if (!userData.exists) {
+                    throw new Error('Dados do usuário não encontrados');
                 }
                 
                 // Salva os dados no localStorage e redireciona
-                localStorage.setItem('userData', JSON.stringify(result.userData));
+                localStorage.setItem('userData', JSON.stringify({
+                    uid: user.uid,
+                    email: user.email,
+                    ...userData.data() // Inclui todos os dados adicionais do Firestore
+                }));
+                
                 window.location.href = 'painel.html';
                 
             } catch (error) {
                 console.error('Erro no login:', error);
-                document.getElementById('loginError').textContent = error.message;
+                let errorMessage = 'Erro ao fazer login';
+                
+                // Trata erros específicos do Firebase
+                switch(error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'Usuário não cadastrado';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'Senha incorreta';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Email ou CPF/CNPJ inválido';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Muitas tentativas. Tente novamente mais tarde';
+                        break;
+                    default:
+                        errorMessage = error.message || 'Erro ao fazer login';
+                }
+                
+                document.getElementById('loginError').textContent = errorMessage;
                 document.getElementById('loginError').style.display = 'block';
             } finally {
                 toggleLoader(false);
             }
         });
 
-        document.getElementById('forgotPassword').addEventListener('click', function(e) {
+        document.getElementById('forgotPassword').addEventListener('click', async function(e) {
             e.preventDefault();
-            alert('Para recuperar sua senha, entre em contato com o suporte pelo email: suporte@horario.site');
+            const identificacao = document.getElementById('loginInput').value.trim();
+            
+            if (!identificacao) {
+                alert('Digite seu CPF/CNPJ ou Email para recuperar a senha');
+                return;
+            }
+            
+            try {
+                let email = identificacao;
+                
+                // Se não for um email, busca no Firestore
+                if (!identificacao.includes('@')) {
+                    const userDoc = await db.collection('users').where('cpfCnpj', '==', identificacao).get();
+                    
+                    if (userDoc.empty) {
+                        alert('CPF/CNPJ não encontrado');
+                        return;
+                    }
+                    
+                    email = userDoc.docs[0].data().email;
+                }
+                
+                // Envia email de redefinição de senha
+                await auth.sendPasswordResetEmail(email);
+                alert('Email de redefinição de senha enviado para o email associado a este cadastro');
+                
+            } catch (error) {
+                console.error('Erro ao enviar email de redefinição:', error);
+                alert('Erro ao enviar email de redefinição. Verifique os dados informados.');
+            }
+        });
+
+        // Verifica se o usuário já está logado
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Usuário já está autenticado, redireciona para o painel
+                window.location.href = 'painel.html';
+            }
         });
     </script>
 </body>
