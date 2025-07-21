@@ -519,16 +519,33 @@
         </div>
     </footer>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/pt-br.js'></script>
     
     <script>
-        // URL do seu Apps Script Web App
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwtQ2SCdgH_H-Gwc1qprqaZtYjOok49SLG6e_AjC0oqZOBV3_iWH0Qq8sHZfgoHIRqFSA/exec';
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+            authDomain: "banco-de-dados-d253e.firebaseapp.com",
+            projectId: "banco-de-dados-d253e",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
+            messagingSenderId: "1005413315224",
+            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+        };
+
+        // Inicializa o Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
         
-        // Verificação de autenticação (agora usando localStorage)
+        // Verificação de autenticação
         document.addEventListener('DOMContentLoaded', function() {
             const userData = localStorage.getItem('userData');
             
@@ -537,12 +554,13 @@
                 window.location.href = 'https://horario.site/login.html';
             } else {
                 // Usuário autenticado, carrega os dados
-                loadUserData(JSON.parse(userData));
-                loadHorariosConfig(JSON.parse(userData));
+                const parsedData = JSON.parse(userData);
+                loadUserData(parsedData);
+                loadHorariosConfig(parsedData);
                 document.getElementById('loaderOverlay').style.display = 'none';
                 
                 // Inicializa horários futuros
-                inicializarHorariosFuturos(JSON.parse(userData));
+                inicializarHorariosFuturos(parsedData);
             }
         });
 
@@ -557,23 +575,16 @@
                     const dataStr = date.toLocaleDateString('pt-BR').replace(/\//g, '-');
                     
                     // Verificar se já existe configuração para esta data
-                    const response = await fetch(`${SCRIPT_URL}?action=getHorarios&data=${dataStr}&identificacao=${userData.identificacao}`);
-                    const result = await response.json();
+                    const horariosRef = db.collection('horarios').doc(`${userData.uid}_${dataStr}`);
+                    const doc = await horariosRef.get();
                     
-                    if (!result.exists) {
+                    if (!doc.exists) {
                         // Criar novo registro de horários
-                        await fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                action: 'createHorarios',
-                                identificacao: userData.identificacao,
-                                data: dataStr,
-                                horariosDisponiveis: gerarHorariosPadrao(userData.horariosConfig),
-                                horariosAgendados: []
-                            })
+                        await horariosRef.set({
+                            identificacao: userData.identificacao,
+                            data: dataStr,
+                            horariosDisponiveis: gerarHorariosPadrao(userData.horariosConfig),
+                            horariosAgendados: []
                         });
                     }
                 }
@@ -627,12 +638,10 @@
                 if (userData.horariosConfig) {
                     loadHorariosData(userData.horariosConfig);
                 } else {
-                    // Tenta buscar do Google Sheets
-                    const response = await fetch(`${SCRIPT_URL}?action=getHorariosConfig&identificacao=${userData.identificacao}`);
-                    const result = await response.json();
-                    
-                    if (result.success && result.horariosConfig) {
-                        loadHorariosData(result.horariosConfig);
+                    // Tenta buscar do Firestore
+                    const userDoc = await db.collection('users').doc(userData.uid).get();
+                    if (userDoc.exists && userDoc.data().horariosConfig) {
+                        loadHorariosData(userDoc.data().horariosConfig);
                     }
                 }
             } catch (error) {
@@ -666,43 +675,29 @@
             }
         }
 
-        // Salva as configurações de horários no Google Sheets
+        // Salva as configurações de horários no Firebase
         async function saveHorariosConfig(userData, config) {
             try {
-                // Atualiza a configuração no Google Sheets
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'saveHorariosConfig',
-                        identificacao: userData.identificacao,
-                        config: config
-                    })
+                // Atualiza a configuração no Firestore
+                await db.collection('users').doc(userData.uid).update({
+                    horariosConfig: config
                 });
                 
-                const result = await response.json();
+                // Atualiza o localStorage
+                const updatedUserData = {...userData, horariosConfig: config};
+                localStorage.setItem('userData', JSON.stringify(updatedUserData));
                 
-                if (result.success) {
-                    // Atualiza o localStorage
-                    const updatedUserData = {...userData, horariosConfig: config};
-                    localStorage.setItem('userData', JSON.stringify(updatedUserData));
-                    
-                    // Mostra mensagem de sucesso
-                    const successMessage = document.getElementById('successMessage');
-                    successMessage.style.display = 'block';
-                    setTimeout(() => {
-                        successMessage.style.display = 'none';
-                    }, 3000);
-                    
-                    // Atualiza os horários futuros com a nova configuração
-                    await inicializarHorariosFuturos(updatedUserData);
-                    
-                    return true;
-                } else {
-                    throw new Error(result.message || 'Erro ao salvar configurações');
-                }
+                // Mostra mensagem de sucesso
+                const successMessage = document.getElementById('successMessage');
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+                
+                // Atualiza os horários futuros com a nova configuração
+                await inicializarHorariosFuturos(updatedUserData);
+                
+                return true;
             } catch (error) {
                 console.error('Erro ao salvar configurações:', error);
                 alert('Erro ao salvar configurações. Tente novamente.');
@@ -794,8 +789,12 @@
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', function(e) {
             e.preventDefault();
-            localStorage.removeItem('userData');
-            window.location.href = 'https://horario.site/login.html';
+            auth.signOut().then(() => {
+                localStorage.removeItem('userData');
+                window.location.href = 'https://horario.site/login.html';
+            }).catch(error => {
+                console.error('Erro ao fazer logout:', error);
+            });
         });
 
         // Sistema de abas
@@ -902,7 +901,7 @@
                 ultimaAtualizacao: new Date().toISOString()
             };
             
-            // Salvar no Google Sheets
+            // Salvar no Firebase
             await saveHorariosConfig(userData, config);
         });
     </script>
