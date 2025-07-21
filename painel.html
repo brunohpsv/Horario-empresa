@@ -545,23 +545,43 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         
-        // Verificação de autenticação
+        // Verificação de autenticação e carregamento de dados
         document.addEventListener('DOMContentLoaded', function() {
-            const userData = localStorage.getItem('userData');
-            
-            if (!userData) {
-                // Usuário não autenticado, redireciona para login
-                window.location.href = 'https://horario.site/login.html';
-            } else {
-                // Usuário autenticado, carrega os dados
-                const parsedData = JSON.parse(userData);
-                loadUserData(parsedData);
-                loadHorariosConfig(parsedData);
-                document.getElementById('loaderOverlay').style.display = 'none';
-                
-                // Inicializa horários futuros
-                inicializarHorariosFuturos(parsedData);
-            }
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    // Usuário não autenticado, redireciona para login
+                    window.location.href = 'https://horario.site/login.html';
+                } else {
+                    try {
+                        // Busca os dados do usuário no Firestore
+                        const userDoc = await db.collection('usuarios').where('email', '==', user.email).get();
+                        
+                        if (userDoc.empty) {
+                            throw new Error('Dados do usuário não encontrados');
+                        }
+                        
+                        // Pega o primeiro documento (deveria ter apenas um com o mesmo email)
+                        const doc = userDoc.docs[0];
+                        const userData = doc.data();
+                        
+                        // Adiciona o ID do documento aos dados do usuário
+                        userData.id = doc.id;
+                        
+                        // Carrega os dados do usuário
+                        loadUserData(userData);
+                        loadHorariosConfig(userData);
+                        document.getElementById('loaderOverlay').style.display = 'none';
+                        
+                        // Inicializa horários futuros
+                        inicializarHorariosFuturos(userData);
+                    } catch (error) {
+                        console.error('Erro ao carregar dados do usuário:', error);
+                        alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
+                        auth.signOut();
+                        window.location.href = 'https://horario.site/login.html';
+                    }
+                }
+            });
         });
 
         // Função para inicializar horários futuros
@@ -575,7 +595,7 @@
                     const dataStr = date.toLocaleDateString('pt-BR').replace(/\//g, '-');
                     
                     // Verificar se já existe configuração para esta data
-                    const horariosRef = db.collection('horarios').doc(`${userData.uid}_${dataStr}`);
+                    const horariosRef = db.collection('horarios').doc(`${userData.id}_${dataStr}`);
                     const doc = await horariosRef.get();
                     
                     if (!doc.exists) {
@@ -639,7 +659,7 @@
                     loadHorariosData(userData.horariosConfig);
                 } else {
                     // Tenta buscar do Firestore
-                    const userDoc = await db.collection('users').doc(userData.uid).get();
+                    const userDoc = await db.collection('usuarios').doc(userData.id).get();
                     if (userDoc.exists && userDoc.data().horariosConfig) {
                         loadHorariosData(userDoc.data().horariosConfig);
                     }
@@ -679,13 +699,9 @@
         async function saveHorariosConfig(userData, config) {
             try {
                 // Atualiza a configuração no Firestore
-                await db.collection('users').doc(userData.uid).update({
+                await db.collection('usuarios').doc(userData.id).update({
                     horariosConfig: config
                 });
-                
-                // Atualiza o localStorage
-                const updatedUserData = {...userData, horariosConfig: config};
-                localStorage.setItem('userData', JSON.stringify(updatedUserData));
                 
                 // Mostra mensagem de sucesso
                 const successMessage = document.getElementById('successMessage');
@@ -695,7 +711,7 @@
                 }, 3000);
                 
                 // Atualiza os horários futuros com a nova configuração
-                await inicializarHorariosFuturos(updatedUserData);
+                await inicializarHorariosFuturos({...userData, horariosConfig: config});
                 
                 return true;
             } catch (error) {
@@ -790,7 +806,6 @@
         document.getElementById('logoutBtn').addEventListener('click', function(e) {
             e.preventDefault();
             auth.signOut().then(() => {
-                localStorage.removeItem('userData');
                 window.location.href = 'https://horario.site/login.html';
             }).catch(error => {
                 console.error('Erro ao fazer logout:', error);
@@ -870,39 +885,57 @@
         document.getElementById('horariosForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const userData = JSON.parse(localStorage.getItem('userData'));
-            if (!userData) return;
+            // Obtém o usuário autenticado
+            const user = auth.currentUser;
+            if (!user) return;
             
-            // Coletar dados do formulário
-            const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
-            const horarioAbertura = document.getElementById('horarioAbertura').value;
-            const horarioFechamento = document.getElementById('horarioFechamento').value;
-            const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
-            const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
-            
-            // Validação básica
-            if (diasSelecionados.length === 0) {
-                alert('Selecione pelo menos um dia de funcionamento');
-                return;
+            try {
+                // Busca os dados do usuário no Firestore
+                const userDoc = await db.collection('usuarios').where('email', '==', user.email).get();
+                
+                if (userDoc.empty) {
+                    throw new Error('Dados do usuário não encontrados');
+                }
+                
+                // Pega o primeiro documento (deveria ter apenas um com o mesmo email)
+                const doc = userDoc.docs[0];
+                const userData = doc.data();
+                userData.id = doc.id;
+                
+                // Coletar dados do formulário
+                const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
+                const horarioAbertura = document.getElementById('horarioAbertura').value;
+                const horarioFechamento = document.getElementById('horarioFechamento').value;
+                const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
+                const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
+                
+                // Validação básica
+                if (diasSelecionados.length === 0) {
+                    alert('Selecione pelo menos um dia de funcionamento');
+                    return;
+                }
+                
+                if (!horarioAbertura || !horarioFechamento) {
+                    alert('Preencha os horários de abertura e fechamento');
+                    return;
+                }
+                
+                // Criar objeto de configuração
+                const config = {
+                    diasFuncionamento: diasSelecionados,
+                    horarioAbertura,
+                    horarioFechamento,
+                    duracaoAtendimento: parseInt(duracaoAtendimento),
+                    intervaloAtendimento: parseInt(intervaloAtendimento),
+                    ultimaAtualizacao: new Date().toISOString()
+                };
+                
+                // Salvar no Firebase
+                await saveHorariosConfig(userData, config);
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                alert('Erro ao salvar configurações. Tente novamente.');
             }
-            
-            if (!horarioAbertura || !horarioFechamento) {
-                alert('Preencha os horários de abertura e fechamento');
-                return;
-            }
-            
-            // Criar objeto de configuração
-            const config = {
-                diasFuncionamento: diasSelecionados,
-                horarioAbertura,
-                horarioFechamento,
-                duracaoAtendimento: parseInt(duracaoAtendimento),
-                intervaloAtendimento: parseInt(intervaloAtendimento),
-                ultimaAtualizacao: new Date().toISOString()
-            };
-            
-            // Salvar no Firebase
-            await saveHorariosConfig(userData, config);
         });
     </script>
 </body>
