@@ -207,6 +207,11 @@
             document.getElementById('loginBtn').disabled = show;
         }
 
+        // Função para formatar CPF/CNPJ (remove caracteres não numéricos)
+        function formatarIdentificacao(identificacao) {
+            return identificacao.replace(/\D/g, '');
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -234,18 +239,29 @@
             try {
                 toggleLoader(true);
                 
-                // Verifica se é email ou CPF/CNPJ
                 let email = identificacao;
+                
+                // Verifica se é email ou CPF/CNPJ
                 if (!identificacao.includes('@')) {
+                    // Formata o CPF/CNPJ (remove pontos, traços, etc.)
+                    const cpfCnpjFormatado = formatarIdentificacao(identificacao);
+                    
                     // Busca o email associado ao CPF/CNPJ no Firestore
-                    const userDoc = await db.collection('users').where('cpfCnpj', '==', identificacao).get();
+                    const userDoc = await db.collection('users')
+                        .where('cpfCnpj', '==', cpfCnpjFormatado)
+                        .limit(1)
+                        .get();
                     
                     if (userDoc.empty) {
-                        throw new Error('CPF/CNPJ não cadastrado');
+                        throw new Error('CPF/CNPJ não encontrado. Verifique ou use o email cadastrado.');
                     }
                     
-                    // Pega o primeiro documento encontrado (deveria ser único)
+                    // Pega o email do documento encontrado
                     email = userDoc.docs[0].data().email;
+                    
+                    if (!email) {
+                        throw new Error('Email não encontrado para este CPF/CNPJ');
+                    }
                 }
                 
                 // Faz o login com email/senha no Firebase
@@ -258,10 +274,10 @@
                 const userData = await db.collection('users').doc(user.uid).get();
                 
                 if (!userData.exists) {
-                    throw new Error('Dados do usuário não encontrados');
+                    throw new Error('Dados adicionais do usuário não encontrados');
                 }
                 
-                // Salva os dados no localStorage e redireciona
+                // Salva os dados no localStorage
                 localStorage.setItem('userData', JSON.stringify({
                     uid: user.uid,
                     email: user.email,
@@ -278,19 +294,19 @@
                 // Trata erros específicos do Firebase
                 switch(error.code) {
                     case 'auth/user-not-found':
-                        errorMessage = 'Usuário não cadastrado';
+                        errorMessage = 'Usuário não encontrado. Verifique seu CPF/CNPJ ou email.';
                         break;
                     case 'auth/wrong-password':
-                        errorMessage = 'Senha incorreta';
+                        errorMessage = 'Senha incorreta. Tente novamente.';
                         break;
                     case 'auth/invalid-email':
-                        errorMessage = 'Email ou CPF/CNPJ inválido';
+                        errorMessage = 'Email ou CPF/CNPJ inválido.';
                         break;
                     case 'auth/too-many-requests':
-                        errorMessage = 'Muitas tentativas. Tente novamente mais tarde';
+                        errorMessage = 'Muitas tentativas. Tente novamente mais tarde.';
                         break;
                     default:
-                        errorMessage = error.message || 'Erro ao fazer login';
+                        errorMessage = error.message || 'Erro ao fazer login. Tente novamente.';
                 }
                 
                 document.getElementById('loginError').textContent = errorMessage;
@@ -314,14 +330,23 @@
                 
                 // Se não for um email, busca no Firestore
                 if (!identificacao.includes('@')) {
-                    const userDoc = await db.collection('users').where('cpfCnpj', '==', identificacao).get();
+                    const cpfCnpjFormatado = formatarIdentificacao(identificacao);
+                    const userDoc = await db.collection('users')
+                        .where('cpfCnpj', '==', cpfCnpjFormatado)
+                        .limit(1)
+                        .get();
                     
                     if (userDoc.empty) {
-                        alert('CPF/CNPJ não encontrado');
+                        alert('CPF/CNPJ não encontrado. Verifique ou use o email cadastrado.');
                         return;
                     }
                     
                     email = userDoc.docs[0].data().email;
+                    
+                    if (!email) {
+                        alert('Email não encontrado para este CPF/CNPJ');
+                        return;
+                    }
                 }
                 
                 // Envia email de redefinição de senha
@@ -330,7 +355,7 @@
                 
             } catch (error) {
                 console.error('Erro ao enviar email de redefinição:', error);
-                alert('Erro ao enviar email de redefinição. Verifique os dados informados.');
+                alert('Erro ao enviar email de redefinição. Verifique os dados informados ou entre em contato com o suporte.');
             }
         });
     </script>
