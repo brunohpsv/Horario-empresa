@@ -391,9 +391,7 @@
         import { 
             getFirestore, 
             doc,
-            setDoc,
-            collection,
-            addDoc
+            setDoc
         } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
         import {
             getAuth,
@@ -405,7 +403,7 @@
             apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
             authDomain: "banco-de-dados-d253e.firebaseapp.com",
             projectId: "banco-de-dados-d253e",
-            storageBucket: "banco-de-dados-d253e.firebasestorage.app",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
             messagingSenderId: "1005413315224",
             appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
         };
@@ -459,6 +457,11 @@
                 // Coletar dados do formulário
                 const email = document.getElementById('email').value;
                 const senha = document.getElementById('senha').value;
+                
+                // Verificar se as senhas coincidem
+                if (senha !== document.getElementById('confirmarSenha').value) {
+                    throw new Error("As senhas não coincidem");
+                }
                 
                 const formData = {
                     tipoPessoa: document.getElementById('tipo-pessoa').value,
