@@ -503,6 +503,10 @@
             background-color: #F44336;
             color: white;
         }
+	   .fc-day {
+               position: relative; /* Importante para posicionar o ícone */
+	  }
+	
     </style>
 </head>
 <body>
@@ -746,22 +750,29 @@
         }
 
         // Função para verificar se um dia tem agendamentos
-        async function checkDayForAgendamentos(date, cell, userId) {
-            try {
-                const dateKey = date.format('YYYY-MM-DD'); // Formato corrigido para YYYY-MM-DD
-                const agendamentosRef = db.collection('usuarios').doc(userId)
-                    .collection('agendamentos').where('data', '==', dateKey);
-                
-                const querySnapshot = await agendamentosRef.get();
-                
-                if (!querySnapshot.empty) {
-                    // Adiciona classe para mostrar o ícone de alerta
-                    $(cell).addClass('has-agendamento');
-                }
-            } catch (error) {
-                console.error("Erro ao verificar agendamentos:", error);
-            }
+async function checkDayForAgendamentos(date, cell, userId) {
+    try {
+        const dateKey = date.format('YYYY-MM-DD');
+        const agendamentosRef = db.collection('usuarios').doc(userId)
+            .collection('agendamentos').where('data', '==', dateKey);
+        
+        const querySnapshot = await agendamentosRef.get();
+        
+        if (!querySnapshot.empty) {
+            // Cria um elemento de ícone de alerta
+            const alertIcon = document.createElement('div');
+            alertIcon.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #f44336; position: absolute; top: 5px; right: 5px; font-size: 14px;"></i>';
+            
+            // Adiciona o ícone ao cell do dia
+            cell.appendChild(alertIcon);
+            
+            // Opcional: muda a cor de fundo do dia
+            cell.style.backgroundColor = '#fff6f6';
         }
+    } catch (error) {
+        console.error("Erro ao verificar agendamentos:", error);
+    }
+}
 
         // Função para carregar agendamentos de um dia específico
         async function loadAgendamentosForDay(userId, dateKey, dateStr) {
