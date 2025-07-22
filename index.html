@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,10 +9,6 @@ html
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <!-- Flatpickr para calendário -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
     <!-- Estilos atualizados -->
     <style>
         * {
@@ -226,213 +221,6 @@ html
             margin-left: 5px;
         }
 
-        /* Modal de Agendamento */
-        .modal-agendamento {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            z-index: 1000;
-            overflow-y: auto;
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 40px auto;
-            width: 90%;
-            max-width: 800px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            background-color: #000;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .modal-body {
-            padding: 20px;
-        }
-
-        .steps-container {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .step {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            position: relative;
-            color: #999;
-            font-weight: bold;
-        }
-
-        .step.active {
-            color: #000;
-        }
-
-        .step.completed {
-            color: #4CAF50;
-        }
-
-        .step:not(:last-child):after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            right: 0;
-            width: 20px;
-            height: 1px;
-            background-color: #ddd;
-        }
-
-        .step-content {
-            display: none;
-        }
-
-        .step-content.active {
-            display: block;
-        }
-
-        .calendar-container {
-            margin: 20px auto;
-            max-width: 600px;
-        }
-
-        .horarios-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .horario-btn {
-            padding: 10px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .horario-btn:hover {
-            background-color: #e9e9e9;
-        }
-
-        .horario-btn.selected {
-            background-color: #4CAF50;
-            color: white;
-            border-color: #4CAF50;
-        }
-
-        .horario-btn.disabled {
-            background-color: #f5f5f5;
-            color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .resumo-agendamento {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .resumo-item {
-            margin-bottom: 10px;
-            display: flex;
-        }
-
-        .resumo-label {
-            font-weight: bold;
-            min-width: 120px;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 20px;
-            background-color: #f5f5f5;
-            border-top: 1px solid #ddd;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .btn-primary {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #45a049;
-        }
-
-        .btn-secondary {
-            background-color: #f5f5f5;
-            color: #333;
-            border: 1px solid #ddd;
-        }
-
-        .btn-secondary:hover {
-            background-color: #e9e9e9;
-        }
-
-        .btn-print {
-            background-color: #2196F3;
-            color: white;
-        }
-
-        .btn-print:hover {
-            background-color: #0b7dda;
-        }
-
         @media (max-width: 768px) {
             .filtro-container {
                 flex-direction: column;
@@ -473,15 +261,6 @@ html
                 text-align: left;
                 margin-top: 10px;
                 min-width: auto;
-            }
-
-            .modal-content {
-                width: 95%;
-                margin: 20px auto;
-            }
-
-            .horarios-container {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             }
         }
     </style>
@@ -537,97 +316,6 @@ html
         </div>
     </section>
 
-    <!-- Modal de Agendamento -->
-    <div id="modalAgendamento" class="modal-agendamento">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="modalEmpresaNome">Agendamento</div>
-                <button class="close-modal">&times;</button>
-            </div>
-            
-            <div class="modal-body">
-                <div class="steps-container">
-                    <div class="step active" id="step1">1. Data</div>
-                    <div class="step" id="step2">2. Horário</div>
-                    <div class="step" id="step3">3. Dados</div>
-                    <div class="step" id="step4">4. Confirmação</div>
-                </div>
-                
-                <!-- Passo 1: Seleção de Data -->
-                <div class="step-content active" id="stepContent1">
-                    <h4>Selecione a data desejada</h4>
-                    <div class="calendar-container">
-                        <input type="text" id="calendarInput" class="form-control" placeholder="Selecione uma data">
-                    </div>
-                </div>
-                
-                <!-- Passo 2: Seleção de Horário -->
-                <div class="step-content" id="stepContent2">
-                    <h4>Selecione o horário</h4>
-                    <p>Horários disponíveis para <span id="selectedDateText"></span></p>
-                    <div class="horarios-container" id="horariosContainer">
-                        <!-- Horários serão preenchidos dinamicamente -->
-                    </div>
-                </div>
-                
-                <!-- Passo 3: Formulário de Dados -->
-                <div class="step-content" id="stepContent3">
-                    <h4>Preencha seus dados</h4>
-                    <div class="form-group">
-                        <label for="nomeCliente">Nome Completo</label>
-                        <input type="text" id="nomeCliente" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="cpfCliente">CPF</label>
-                        <input type="text" id="cpfCliente" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="telefoneCliente">Telefone</label>
-                        <input type="tel" id="telefoneCliente" required>
-                    </div>
-                </div>
-                
-                <!-- Passo 4: Confirmação -->
-                <div class="step-content" id="stepContent4">
-                    <h4>Confirmação do Agendamento</h4>
-                    <div class="resumo-agendamento">
-                        <div class="resumo-item">
-                            <div class="resumo-label">Empresa:</div>
-                            <div id="resumoEmpresa"></div>
-                        </div>
-                        <div class="resumo-item">
-                            <div class="resumo-label">Data:</div>
-                            <div id="resumoData"></div>
-                        </div>
-                        <div class="resumo-item">
-                            <div class="resumo-label">Horário:</div>
-                            <div id="resumoHorario"></div>
-                        </div>
-                        <div class="resumo-item">
-                            <div class="resumo-label">Nome:</div>
-                            <div id="resumoNome"></div>
-                        </div>
-                        <div class="resumo-item">
-                            <div class="resumo-label">CPF:</div>
-                            <div id="resumoCpf"></div>
-                        </div>
-                        <div class="resumo-item">
-                            <div class="resumo-label">Telefone:</div>
-                            <div id="resumoTelefone"></div>
-                        </div>
-                    </div>
-                    <p>Seu agendamento será confirmado após o envio. Um comprovante será gerado para você.</p>
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="btnVoltar">Voltar</button>
-                <button class="btn btn-primary" id="btnAvancar">Avançar</button>
-                <button class="btn btn-print" id="btnImprimir" style="display: none;"><i class="fas fa-print"></i> Imprimir</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         // Configuração do Firebase
         const firebaseConfig = {
@@ -651,13 +339,6 @@ html
         let isFirstLoad = true;
         let userLocation = null;
         let empresasComDistancia = [];
-        
-        // Variáveis para o agendamento
-        let empresaSelecionada = null;
-        let selectedDate = null;
-        let selectedTime = null;
-        let currentStep = 1;
-        const totalSteps = 4;
 
         // Função para calcular distância entre coordenadas (Haversine formula)
         function calcularDistancia(lat1, lon1, lat2, lon2) {
@@ -706,239 +387,7 @@ html
                 <div class="divider"></div>
             `;
             
-            // Adiciona evento de clique para abrir o modal de agendamento
-            empresaElement.addEventListener('click', () => {
-                abrirModalAgendamento(empresa);
-            });
-            
             return empresaElement;
-        }
-
-        // Função para abrir o modal de agendamento
-        function abrirModalAgendamento(empresa) {
-            empresaSelecionada = empresa;
-            currentStep = 1;
-            
-            // Atualiza o título do modal
-            document.getElementById('modalEmpresaNome').textContent = `Agendamento - ${empresa.nomeFantasia || 'Empresa'}`;
-            
-            // Inicializa o calendário
-            initCalendar();
-            
-            // Mostra o modal
-            document.getElementById('modalAgendamento').style.display = 'block';
-            
-            // Atualiza os passos
-            updateSteps();
-        }
-
-        // Função para inicializar o calendário
-        function initCalendar() {
-            const today = new Date();
-            const config = {
-                locale: 'pt',
-                minDate: today,
-                maxDate: new Date(today.getFullYear(), today.getMonth() + 2, 0), // 2 meses à frente
-                dateFormat: 'd/m/Y',
-                onChange: function(selectedDates, dateStr, instance) {
-                    selectedDate = dateStr;
-                    document.getElementById('selectedDateText').textContent = dateStr;
-                    
-                    // Gera horários fictícios para demonstração
-                    gerarHorariosDisponiveis();
-                }
-            };
-            
-            flatpickr("#calendarInput", config);
-        }
-
-        // Função para gerar horários disponíveis (fictícios para demonstração)
-        function gerarHorariosDisponiveis() {
-            const container = document.getElementById('horariosContainer');
-            container.innerHTML = '';
-            
-            // Horários de exemplo
-            const horarios = [
-                '08:00', '09:00', '10:00', '11:00', 
-                '14:00', '15:00', '16:00', '17:00'
-            ];
-            
-            horarios.forEach(horario => {
-                const btn = document.createElement('div');
-                btn.className = 'horario-btn';
-                btn.textContent = horario;
-                btn.addEventListener('click', function() {
-                    // Remove seleção anterior
-                    document.querySelectorAll('.horario-btn.selected').forEach(el => {
-                        el.classList.remove('selected');
-                    });
-                    
-                    // Seleciona este horário
-                    this.classList.add('selected');
-                    selectedTime = horario;
-                });
-                
-                container.appendChild(btn);
-            });
-        }
-
-        // Função para atualizar os passos do agendamento
-        function updateSteps() {
-            // Atualiza as classes dos passos
-            for (let i = 1; i <= totalSteps; i++) {
-                const step = document.getElementById(`step${i}`);
-                const content = document.getElementById(`stepContent${i}`);
-                
-                if (i < currentStep) {
-                    step.className = 'step completed';
-                    content.className = 'step-content';
-                } else if (i === currentStep) {
-                    step.className = 'step active';
-                    content.className = 'step-content active';
-                } else {
-                    step.className = 'step';
-                    content.className = 'step-content';
-                }
-            }
-            
-            // Atualiza botões
-            const btnVoltar = document.getElementById('btnVoltar');
-            const btnAvancar = document.getElementById('btnAvancar');
-            const btnImprimir = document.getElementById('btnImprimir');
-            
-            btnVoltar.style.display = currentStep === 1 ? 'none' : 'block';
-            
-            if (currentStep === totalSteps) {
-                btnAvancar.textContent = 'Confirmar';
-                btnImprimir.style.display = 'block';
-            } else {
-                btnAvancar.textContent = 'Avançar';
-                btnImprimir.style.display = 'none';
-            }
-        }
-
-        // Função para validar o passo atual
-        function validarPassoAtual() {
-            switch(currentStep) {
-                case 1:
-                    if (!selectedDate) {
-                        alert('Por favor, selecione uma data.');
-                        return false;
-                    }
-                    return true;
-                case 2:
-                    if (!selectedTime) {
-                        alert('Por favor, selecione um horário.');
-                        return false;
-                    }
-                    return true;
-                case 3:
-                    const nome = document.getElementById('nomeCliente').value.trim();
-                    const cpf = document.getElementById('cpfCliente').value.trim();
-                    const telefone = document.getElementById('telefoneCliente').value.trim();
-                    
-                    if (!nome || !cpf || !telefone) {
-                        alert('Por favor, preencha todos os campos.');
-                        return false;
-                    }
-                    
-                    // Atualiza o resumo
-                    document.getElementById('resumoEmpresa').textContent = empresaSelecionada.nomeFantasia || 'Empresa';
-                    document.getElementById('resumoData').textContent = selectedDate;
-                    document.getElementById('resumoHorario').textContent = selectedTime;
-                    document.getElementById('resumoNome').textContent = nome;
-                    document.getElementById('resumoCpf').textContent = cpf;
-                    document.getElementById('resumoTelefone').textContent = telefone;
-                    
-                    return true;
-                default:
-                    return true;
-            }
-        }
-
-        // Função para avançar no agendamento
-        function avancarAgendamento() {
-            if (currentStep === totalSteps) {
-                // Confirmar agendamento
-                alert('Agendamento confirmado com sucesso!');
-                fecharModalAgendamento();
-                return;
-            }
-            
-            if (validarPassoAtual()) {
-                currentStep++;
-                updateSteps();
-            }
-        }
-
-        // Função para voltar no agendamento
-        function voltarAgendamento() {
-            if (currentStep > 1) {
-                currentStep--;
-                updateSteps();
-            }
-        }
-
-        // Função para fechar o modal
-        function fecharModalAgendamento() {
-            document.getElementById('modalAgendamento').style.display = 'none';
-            // Limpa os dados do agendamento
-            empresaSelecionada = null;
-            selectedDate = null;
-            selectedTime = null;
-            currentStep = 1;
-            document.getElementById('calendarInput').value = '';
-            document.getElementById('nomeCliente').value = '';
-            document.getElementById('cpfCliente').value = '';
-            document.getElementById('telefoneCliente').value = '';
-        }
-
-        // Função para imprimir o comprovante
-        function imprimirComprovante() {
-            const printContent = `
-                <h2 style="text-align: center; margin-bottom: 20px;">Comprovante de Agendamento</h2>
-                <div style="margin-bottom: 15px;">
-                    <strong>Empresa:</strong> ${document.getElementById('resumoEmpresa').textContent}
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>Data:</strong> ${document.getElementById('resumoData').textContent}
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>Horário:</strong> ${document.getElementById('resumoHorario').textContent}
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>Cliente:</strong> ${document.getElementById('resumoNome').textContent}
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>CPF:</strong> ${document.getElementById('resumoCpf').textContent}
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>Telefone:</strong> ${document.getElementById('resumoTelefone').textContent}
-                </div>
-                <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">
-                    Comprovante gerado em ${new Date().toLocaleString()}
-                </div>
-            `;
-            
-            const win = window.open('', '_blank');
-            win.document.write(`
-                <html>
-                    <head>
-                        <title>Comprovante de Agendamento</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; padding: 20px; }
-                            h2 { color: #333; }
-                        </style>
-                    </head>
-                    <body>
-                        ${printContent}
-                        <script>
-                            setTimeout(() => { window.print(); }, 100);
-                        </script>
-                    </body>
-                </html>
-            `);
-            win.document.close();
         }
 
         // Função para exibir empresas
@@ -1062,144 +511,192 @@ html
                 empresasComDistancia = [...empresasFiltradas];
             }
             
-                        exibirEmpresas(empresasFiltradas);
+            exibirEmpresas(empresasFiltradas);
+        }
+
+        // Função para obter a localização do usuário
+        function obterLocalizacaoUsuario() {
+            const geolocationBtn = document.getElementById('geolocation-btn');
+            
+            if (!navigator.geolocation) {
+                alert('Geolocalização não é suportada pelo seu navegador.');
+                return;
+            }
+            
+            geolocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Localizando...';
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+                    
+                    geolocationBtn.innerHTML = '<i class="fas fa-check-circle"></i> Localização ativa';
+                    geolocationBtn.style.backgroundColor = '#4CAF50';
+                    
+                    // Aplica os filtros com a nova localização
+                    filtrarEmpresas();
+                },
+                (error) => {
+                    console.error('Erro ao obter localização:', error);
+                    geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Minha Localização';
+                    
+                    let errorMessage = 'Erro ao obter localização.';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'Permissão de localização negada.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'Informação de localização indisponível.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'Tempo de espera para localização expirado.';
+                            break;
+                    }
+                    
+                    alert(errorMessage);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
         }
 
         // Função para carregar empresas do Firestore
-        function carregarEmpresas() {
-            const listaEmpresas = document.getElementById('empresas-lista');
-            
-            db.collection("empresas").get()
-                .then((querySnapshot) => {
-                    todasEmpresas = [];
-                    servicosDisponiveis.clear();
-                    cidadesDisponiveis.clear();
-                    estadosDisponiveis.clear();
+        async function carregarEmpresas() {
+            try {
+                const listaEmpresas = document.getElementById('empresas-lista');
+                
+                if (isFirstLoad) {
+                    listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
+                }
+                
+                // Busca os dados do Firestore
+                const querySnapshot = await db.collection("usuarios").get();
+                
+                todasEmpresas = [];
+                cidadesDisponiveis = new Set();
+                estadosDisponiveis = new Set();
+                servicosDisponiveis = new Set();
+                
+                querySnapshot.forEach((doc) => {
+                    const empresaData = doc.data();
+                    empresaData.id = doc.id; // Adiciona o ID do documento
+                    todasEmpresas.push(empresaData);
                     
-                    querySnapshot.forEach((doc) => {
-                        const empresa = doc.data();
-                        empresa.id = doc.id;
-                        todasEmpresas.push(empresa);
-                        
-                        // Coleta serviços disponíveis
-                        if (Array.isArray(empresa.servicos)) {
-                            empresa.servicos.forEach(servico => servicosDisponiveis.add(servico));
-                        } else if (empresa.servicos) {
-                            servicosDisponiveis.add(empresa.servicos);
+                    // Adiciona cidade e estado aos conjuntos
+                    if (empresaData.cidade) cidadesDisponiveis.add(empresaData.cidade);
+                    if (empresaData.estado) estadosDisponiveis.add(empresaData.estado);
+                    
+                    // Processa os serviços
+                    if (empresaData.servicos) {
+                        if (Array.isArray(empresaData.servicos)) {
+                            empresaData.servicos.forEach(servico => {
+                                if (servico && typeof servico === 'string') {
+                                    servicosDisponiveis.add(servico.trim());
+                                }
+                            });
+                        } else if (typeof empresaData.servicos === 'string') {
+                            servicosDisponiveis.add(empresaData.servicos.trim());
                         }
-                        
-                        // Coleta cidades e estados disponíveis
-                        if (empresa.cidade) cidadesDisponiveis.add(empresa.cidade);
-                        if (empresa.estado) estadosDisponiveis.add(empresa.estado);
+                    }
+                });
+                
+                // Atualiza o dropdown de serviços (sem duplicatas)
+                const selectServico = document.getElementById('servico');
+                const currentService = selectServico.value;
+                selectServico.innerHTML = '<option value="">Todos os serviços</option>';
+                
+                // Converte Set para Array, ordena e remove duplicatas
+                Array.from(servicosDisponiveis)
+                    .filter((servico, index, self) => 
+                        self.findIndex(s => s.toLowerCase() === servico.toLowerCase()) === index
+                    ) // Remove duplicatas case insensitive
+                    .sort((a, b) => a.localeCompare(b))
+                    .forEach(servico => {
+                        const option = document.createElement('option');
+                        option.value = servico;
+                        option.textContent = servico;
+                        if (servico === currentService) option.selected = true;
+                        selectServico.appendChild(option);
                     });
-                    
-                    // Preenche dropdown de estados
-                    const selectEstado = document.getElementById('estado');
-                    Array.from(estadosDisponiveis).sort().forEach(estado => {
+                
+                // Atualiza dropdown de estados apenas com os estados existentes
+                const selectEstado = document.getElementById('estado');
+                selectEstado.innerHTML = '<option value="">Todos os estados</option>'; // Limpa e mantém apenas a opção padrão
+                
+                // Adiciona apenas os estados que existem nas empresas
+                Array.from(estadosDisponiveis)
+                    .sort()
+                    .forEach(estado => {
                         const option = document.createElement('option');
                         option.value = estado;
                         option.textContent = estado;
                         selectEstado.appendChild(option);
                     });
-                    
-                    // Preenche dropdown de serviços
-                    const selectServico = document.getElementById('servico');
-                    Array.from(servicosDisponiveis).sort().forEach(servico => {
-                        const option = document.createElement('option');
-                        option.value = servico;
-                        option.textContent = servico;
-                        selectServico.appendChild(option);
-                    });
-                    
-                    // Exibe todas as empresas inicialmente
-                    exibirEmpresas(todasEmpresas);
-                    
-                    // Se tivermos localização do usuário, calcula distâncias
-                    if (userLocation) {
-                        empresasComDistancia = todasEmpresas.map(empresa => {
-                            if (empresa.latitude && empresa.longitude) {
-                                const distancia = calcularDistancia(
-                                    userLocation.latitude,
-                                    userLocation.longitude,
-                                    parseFloat(empresa.latitude),
-                                    parseFloat(empresa.longitude)
-                                );
-                                return {...empresa, distancia};
-                            }
-                            return empresa;
-                        });
-                        
-                        exibirEmpresas(empresasComDistancia);
-                    }
-                })
-                .catch((error) => {
-                    console.error("Erro ao carregar empresas: ", error);
-                    listaEmpresas.innerHTML = '<div class="error-message">Erro ao carregar empresas. Por favor, tente novamente mais tarde.</div>';
-                });
-        }
-
-        // Função para obter localização do usuário
-        function obterLocalizacaoUsuario() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        userLocation = {
-                            latitude: position.coords.latitude,
-                            longitude: position.coords.longitude
-                        };
-                        
-                        // Recalcula distâncias e reexibe empresas
-                        if (todasEmpresas.length > 0) {
-                            empresasComDistancia = todasEmpresas.map(empresa => {
-                                if (empresa.latitude && empresa.longitude) {
-                                    const distancia = calcularDistancia(
-                                        userLocation.latitude,
-                                        userLocation.longitude,
-                                        parseFloat(empresa.latitude),
-                                        parseFloat(empresa.longitude)
-                                    );
-                                    return {...empresa, distancia};
-                                }
-                                return empresa;
-                            });
-                            
-                            exibirEmpresas(empresasComDistancia);
-                        }
-                        
-                        // Mostra mensagem de sucesso
-                        alert('Localização obtida com sucesso! As empresas serão ordenadas por proximidade.');
-                    },
-                    (error) => {
-                        console.error("Erro ao obter localização: ", error);
-                        alert('Não foi possível obter sua localização. Mostrando empresas sem ordenação por distância.');
-                    }
-                );
-            } else {
-                alert("Geolocalização não é suportada por este navegador.");
+                
+                // Atualiza dropdown de cidades
+                atualizarCidades();
+                
+                // Exibe as empresas com os filtros atuais
+                filtrarEmpresas();
+                
+            } catch (error) {
+                console.error('Erro ao carregar empresas:', error);
+                
+                const errorMessage = document.getElementById('empresas-lista');
+                errorMessage.innerHTML = `
+                    <div class="error-message">
+                        Ocorreu um erro ao carregar as empresas.<br>
+                        <small>${error.message}</small><br>
+                        <button onclick="carregarEmpresas()" class="btn btn-sm btn-primary mt-2">Tentar novamente</button>
+                    </div>
+                `;
+                
+                // Se não for o primeiro carregamento, mantém os dados antigos
+                if (!isFirstLoad) {
+                    return;
+                }
             }
         }
 
-        // Event Listeners
-        document.getElementById('estado').addEventListener('change', atualizarCidades);
-        document.getElementById('cidade').addEventListener('change', filtrarEmpresas);
-        document.getElementById('servico').addEventListener('change', filtrarEmpresas);
-        document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
-        document.getElementById('geolocation-btn').addEventListener('click', obterLocalizacaoUsuario);
-        document.querySelector('.close-modal').addEventListener('click', fecharModalAgendamento);
-        document.getElementById('btnVoltar').addEventListener('click', voltarAgendamento);
-        document.getElementById('btnAvancar').addEventListener('click', avancarAgendamento);
-        document.getElementById('btnImprimir').addEventListener('click', imprimirComprovante);
+        // Função para verificar se é hora de atualizar (00:10)
+        function verificarAtualizacaoDiaria() {
+            const agora = new Date();
+            const horas = agora.getHours();
+            const minutos = agora.getMinutes();
+            
+            // Verifica se são 00:10
+            if (horas === 0 && minutos === 10) {
+                carregarEmpresas();
+            }
+        }
 
-        // Inicialização
+        // Inicia quando a página carrega
         document.addEventListener('DOMContentLoaded', () => {
+            // Event listeners para os filtros
+            document.getElementById('cidade').addEventListener('change', filtrarEmpresas);
+            document.getElementById('estado').addEventListener('change', () => {
+                atualizarCidades();
+                filtrarEmpresas();
+            });
+            document.getElementById('servico').addEventListener('change', filtrarEmpresas);
+            document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
+            
+            // Adiciona busca inteligente com debounce para o campo de nome da empresa
+            let timeout;
+            document.getElementById('nome-empresa').addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(filtrarEmpresas, 300);
+            });
+            
+            // Event listener para o botão de geolocalização
+            document.getElementById('geolocation-btn').addEventListener('click', obterLocalizacaoUsuario);
+            
+            // Inicia o carregamento
             carregarEmpresas();
             
-            // Configura o evento de clique fora do modal para fechá-lo
-            document.getElementById('modalAgendamento').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('modalAgendamento')) {
-                    fecharModalAgendamento();
-                }
-            });
+            // Configura a verificação diária às 00:10
+            setInterval(verificarAtualizacaoDiaria, 60000); // Verifica a cada minuto
         });
     </script>
 </body>
