@@ -480,6 +480,29 @@
         #voltar-mes:hover {
             background-color: #45a049;
         }
+        
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-confirmado {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .status-pendente {
+            background-color: #FFC107;
+            color: black;
+        }
+        
+        .status-cancelado {
+            background-color: #F44336;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -713,7 +736,7 @@
                     if (view.name === 'agendaDay') {
                         const date = view.intervalStart;
                         const dateStr = date.format('DD/MM/YYYY');
-                        const dateKey = date.format('DD-MM-YYYY');
+                        const dateKey = date.format('YYYY-MM-DD'); // Formato corrigido para YYYY-MM-DD
                         
                         // Carrega os agendamentos para este dia
                         loadAgendamentosForDay(userData.id, dateKey, dateStr);
@@ -725,7 +748,7 @@
         // Função para verificar se um dia tem agendamentos
         async function checkDayForAgendamentos(date, cell, userId) {
             try {
-                const dateKey = date.format('DD-MM-YYYY');
+                const dateKey = date.format('YYYY-MM-DD'); // Formato corrigido para YYYY-MM-DD
                 const agendamentosRef = db.collection('usuarios').doc(userId)
                     .collection('agendamentos').where('data', '==', dateKey);
                 
@@ -758,30 +781,50 @@
                 `;
                 
                 if (!querySnapshot.empty) {
+                    // Ordena os agendamentos por horário
+                    const agendamentos = [];
                     querySnapshot.forEach(doc => {
                         const agendamento = doc.data();
+                        agendamento.id = doc.id;
+                        agendamentos.push(agendamento);
+                    });
+                    
+                    // Ordena por horário
+                    agendamentos.sort((a, b) => {
+                        return a.horario.localeCompare(b.horario);
+                    });
+                    
+                    // Gera o HTML para cada agendamento
+                    agendamentos.forEach(agendamento => {
+                        const statusClass = getStatusClass(agendamento.status);
+                        
                         agendamentosHTML += `
                             <div class="agendamento-item">
                                 <div class="agendamento-header">
                                     <span>${agendamento.horario}</span>
                                     <span>${agendamento.servico || 'Serviço não especificado'}</span>
+                                    <span class="status-badge ${statusClass}">${agendamento.status || 'confirmado'}</span>
                                 </div>
                                 <div class="agendamento-body">
                                     <div class="agendamento-info">
                                         <strong>Cliente</strong>
-                                        <div>${agendamento.nomeCliente || 'Não informado'}</div>
+                                        <div>${agendamento.clienteNome || 'Não informado'}</div>
+                                    </div>
+                                    <div class="agendamento-info">
+                                        <strong>Documento</strong>
+                                        <div>${agendamento.clienteDocumento || 'Não informado'}</div>
                                     </div>
                                     <div class="agendamento-info">
                                         <strong>Telefone</strong>
-                                        <div>${agendamento.telefoneCliente || 'Não informado'}</div>
+                                        <div>${agendamento.clienteTelefone || 'Não informado'}</div>
                                     </div>
                                     <div class="agendamento-info">
                                         <strong>E-mail</strong>
-                                        <div>${agendamento.emailCliente || 'Não informado'}</div>
+                                        <div>${agendamento.clienteEmail || 'Não informado'}</div>
                                     </div>
                                     <div class="agendamento-info">
-                                        <strong>Observações</strong>
-                                        <div>${agendamento.observacoes || 'Nenhuma observação'}</div>
+                                        <strong>Data do Agendamento</strong>
+                                        <div>${formatFirestoreTimestamp(agendamento.dataCriacao)}</div>
                                     </div>
                                 </div>
                             </div>
@@ -824,6 +867,42 @@
                     location.reload();
                 });
             }
+        }
+
+        // Função para formatar timestamp do Firestore
+        function formatFirestoreTimestamp(timestamp) {
+            if (!timestamp) return 'Data não disponível';
+            
+            try {
+                // Se for um objeto Timestamp do Firestore
+                if (timestamp.toDate) {
+                    const date = timestamp.toDate();
+                    return date.toLocaleString('pt-BR');
+                }
+                
+                // Se já for uma string ou outro formato
+                return new Date(timestamp).toLocaleString('pt-BR');
+            } catch (e) {
+                console.error('Erro ao formatar timestamp:', e);
+                return 'Data inválida';
+            }
+        }
+
+        // Função para obter a classe CSS baseada no status
+        function getStatusClass(status) {
+            if (!status) return 'status-confirmado';
+            
+            status = status.toLowerCase();
+            
+            if (status.includes('confirmado')) {
+                return 'status-confirmado';
+            } else if (status.includes('pendente')) {
+                return 'status-pendente';
+            } else if (status.includes('cancelado')) {
+                return 'status-cancelado';
+            }
+            
+            return 'status-confirmado';
         }
 
         // Carrega os dados do usuário
