@@ -780,14 +780,26 @@
                     console.log("Agendamento salvo com ID: ", docRef.id);
                     agendamentoConfirmado = true;
                     
-                    // Também adiciona ao array de horariosAgendados no documento principal (opcional)
-                    db.collection("usuarios").doc(empresaSelecionada.id).update({
-                        horariosAgendados: firebase.firestore.FieldValue.arrayUnion(novoAgendamento)
+                    // Atualiza o array de horariosAgendados no documento principal
+                    return db.collection("usuarios").doc(empresaSelecionada.id).update({
+                        horariosAgendados: firebase.firestore.FieldValue.arrayUnion({
+                            id: docRef.id,
+                            ...novoAgendamento
+                        })
                     });
+                })
+                .then(() => {
+                    console.log("Agendamento atualizado no documento principal");
                 })
                 .catch((error) => {
                     console.error("Erro ao confirmar agendamento:", error);
                     mostrarErro("Ocorreu um erro ao confirmar seu agendamento. Por favor, tente novamente.");
+                    
+                    // Volta para o passo 3 para permitir nova tentativa
+                    document.getElementById('step-4').classList.remove('active');
+                    document.getElementById('step-3').classList.add('active');
+                    document.getElementById('panel-4').classList.remove('active');
+                    document.getElementById('panel-3').classList.add('active');
                 });
         }
 
