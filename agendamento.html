@@ -671,8 +671,8 @@
                     return;
                 }
                 
-                // Se tudo estiver válido, confirma o agendamento
-                confirmarAgendamento();
+                // Se tudo estiver válido, preenche o resumo e avança para a confirmação
+                preencherResumoAgendamento();
                 return;
             }
             
@@ -697,6 +697,38 @@
                 // Passo 2 → 3: Prepara o formulário
                 document.getElementById('btn-next-2').disabled = true;
             }
+        }
+
+        // Função para preencher o resumo do agendamento
+        function preencherResumoAgendamento() {
+            const nome = document.getElementById('nome').value.trim();
+            const documento = document.getElementById('documento').value.trim();
+            const telefone = document.getElementById('telefone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            // Preenche o resumo do agendamento
+            document.getElementById('resumo-empresa').textContent = empresaSelecionada.nomeFantasia || "Empresa não identificada";
+            document.getElementById('resumo-servico').textContent = servicoSelecionado;
+            document.getElementById('resumo-data').textContent = formatarDataExibicao(dataSelecionada);
+            document.getElementById('resumo-horario').textContent = horarioSelecionado;
+            document.getElementById('resumo-cliente').textContent = nome;
+            document.getElementById('resumo-documento').textContent = documento;
+            document.getElementById('resumo-contato').textContent = telefone + (email ? ` (${email})` : '');
+            
+            // Oculta a mensagem de erro se estiver visível
+            document.getElementById('error-message').style.display = 'none';
+            
+            // Atualiza os passos
+            document.getElementById('step-3').classList.remove('active');
+            document.getElementById('step-3').classList.add('completed');
+            document.getElementById('step-4').classList.add('active');
+            
+            // Atualiza os painéis
+            document.getElementById('panel-3').classList.remove('active');
+            document.getElementById('panel-4').classList.add('active');
+            
+            // Confirma o agendamento no Firebase
+            confirmarAgendamento();
         }
 
         // Função para voltar ao passo anterior
@@ -752,23 +784,6 @@
             .then(() => {
                 console.log("Agendamento salvo no documento da empresa!");
                 agendamentoConfirmado = true;
-                
-                // Preenche o resumo do agendamento
-                document.getElementById('resumo-empresa').textContent = empresaSelecionada.nomeFantasia || "Empresa não identificada";
-                document.getElementById('resumo-servico').textContent = servicoSelecionado;
-                document.getElementById('resumo-data').textContent = formatarDataExibicao(dataSelecionada);
-                document.getElementById('resumo-horario').textContent = horarioSelecionado;
-                document.getElementById('resumo-cliente').textContent = nome;
-                document.getElementById('resumo-documento').textContent = documento;
-                document.getElementById('resumo-contato').textContent = telefone;
-                
-                // Avança para o passo 4 (confirmação)
-                document.getElementById('step-3').classList.remove('active');
-                document.getElementById('step-3').classList.add('completed');
-                document.getElementById('step-4').classList.add('active');
-                
-                document.getElementById('panel-3').classList.remove('active');
-                document.getElementById('panel-4').classList.add('active');
             })
             .catch((error) => {
                 console.error("Erro ao confirmar agendamento:", error);
