@@ -127,24 +127,27 @@
         }
 
         .empresas-container {
-            padding: 5px 40px 20px;
+            padding: 0 0 20px 0;
+            margin-top: 0;
         }
 
         .empresas-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 3px;
+            width: 100%;
         }
 
         .empresa-item {
             background-color: white;
-            padding: 8px 15px;
+            padding: 15px 40px;
             border: 1px solid #eee;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
         }
 
         .empresa-item:hover {
@@ -159,22 +162,22 @@
             font-size: 14px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 2px;
+            margin-bottom: 5px;
             text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .empresa-endereco {
             font-size: 11px;
             color: #666;
+            margin-top: 5px;
         }
 
         .servico-tag {
             font-size: 12px;
             color: #d32f2f;
             font-weight: bold;
+            text-align: right;
+            min-width: 150px;
         }
 
         .divider {
@@ -221,7 +224,19 @@
             }
             
             .empresas-container {
-                padding: 5px 15px 15px;
+                padding: 0 0 15px 0;
+            }
+            
+            .empresa-item {
+                padding: 15px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .servico-tag {
+                text-align: left;
+                margin-top: 10px;
+                min-width: auto;
             }
         }
     </style>
@@ -352,12 +367,10 @@
             
             empresaElement.innerHTML = `
                 <div class="empresa-info">
-                    <div class="empresa-nome">
-                        ${empresa.nomeFantasia || 'Nome não informado'}
-                        <span class="servico-tag">${servico}</span>
-                    </div>
+                    <div class="empresa-nome">${empresa.nomeFantasia || 'Nome não informado'}</div>
                     <div class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</div>
                 </div>
+                <div class="servico-tag">${servico}</div>
                 <div class="divider"></div>
             `;
             
