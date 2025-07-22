@@ -159,6 +159,7 @@
 
         .empresa-info {
             flex: 1;
+            text-align: left; /* Alinha o texto à esquerda */
         }
 
         .empresa-nome {
@@ -390,29 +391,20 @@
                 return;
             }
             
-            if (isFirstLoad) {
-                listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid"></div>';
-                isFirstLoad = false;
-            }
-            
-            const gridEmpresas = document.getElementById('empresas-grid') || listaEmpresas;
-            const existingIds = new Set();
-            
-            document.querySelectorAll('.empresa-item').forEach(item => {
-                existingIds.add(item.dataset.id);
-            });
+            // Limpa completamente a lista antes de adicionar novos itens
+            listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid"></div>';
+            const gridEmpresas = document.getElementById('empresas-grid');
             
             empresas.forEach(empresa => {
-                const empresaId = empresa.id || JSON.stringify(empresa);
-                if (!existingIds.has(empresaId)) {
-                    const empresaElement = createEmpresaElement(empresa);
-                    empresaElement.dataset.id = empresaId;
-                    gridEmpresas.appendChild(empresaElement);
-                }
+                const empresaElement = createEmpresaElement(empresa);
+                empresaElement.dataset.id = empresa.id || JSON.stringify(empresa);
+                gridEmpresas.appendChild(empresaElement);
             });
+            
+            isFirstLoad = false;
         }
 
-        // Função para filtrar empresas
+        // Função para filtrar empresas de forma inteligente
         function filtrarEmpresas() {
             const cidade = document.getElementById('cidade').value.toLowerCase();
             const estado = document.getElementById('estado').value;
@@ -432,10 +424,13 @@
                     servicosEmpresa = [empresa.servicos.toLowerCase()];
                 }
                 
-                return (!cidade || cidadeEmpresa.includes(cidade)) &&
-                       (!estado || estadoEmpresa === estado) &&
-                       (!servico || servicosEmpresa.some(s => s.includes(servico))) &&
-                       (!nomeEmpresa || nome.includes(nomeEmpresa));
+                // Verifica todos os filtros de forma combinada
+                const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
+                const estadoMatch = !estado || estadoEmpresa === estado;
+                const servicoMatch = !servico || servicosEmpresa.some(s => s.includes(servico));
+                const nomeMatch = !nomeEmpresa || nome.includes(nomeEmpresa);
+                
+                return cidadeMatch && estadoMatch && servicoMatch && nomeMatch;
             });
             
             exibirEmpresas(empresasFiltradas);
@@ -484,7 +479,7 @@
                     selectServico.appendChild(option);
                 });
                 
-                // Exibe as empresas
+                // Exibe as empresas com os filtros atuais
                 filtrarEmpresas();
                 
             } catch (error) {
