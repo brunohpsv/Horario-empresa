@@ -539,41 +539,37 @@
             // Formata a data como YYYY-MM-DD para usar como ID no Firestore
             const dataFormatada = formatarDataFirestore(dataSelecionada);
 
-            // Verifica se a empresa já tem horários agendados
-            db.collection("usuarios").doc(empresaSelecionada.id).get()
-                .then((doc) => {
-                    if (doc.exists) {
-                        const empresaData = doc.data();
-                        const horariosAgendados = empresaData.horariosAgendados || [];
+            // Consulta os agendamentos existentes para esta data e serviço
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("agendamentos")
+                .where("data", "==", dataFormatada)
+                .where("servico", "==", servicoSelecionado)
+                .get()
+                .then((querySnapshot) => {
+                    const horariosOcupados = [];
+                    querySnapshot.forEach((doc) => {
+                        horariosOcupados.push(doc.data().horario);
+                    });
 
-                        // Filtra os horários agendados para esta data e serviço
-                        const horariosOcupados = horariosAgendados
-                            .filter(agendamento => 
-                                agendamento.data === dataFormatada && 
-                                agendamento.servico === servicoSelecionado
-                            )
-                            .map(agendamento => agendamento.horario);
+                    // Gera os horários disponíveis (exemplo: das 08:00 às 18:00, de hora em hora)
+                    const horariosDisponiveis = [];
+                    const horaInicio = 8; // 8:00
+                    const horaFim = 18;   // 18:00
 
-                        // Gera os horários disponíveis (exemplo: das 08:00 às 18:00, de hora em hora)
-                        const horariosDisponiveis = [];
-                        const horaInicio = 8; // 8:00
-                        const horaFim = 18;   // 18:00
+                    for (let hora = horaInicio; hora < horaFim; hora++) {
+                        const horario = `${hora}:00`;
 
-                        for (let hora = horaInicio; hora < horaFim; hora++) {
-                            const horario = `${hora}:00`;
+                        // Verifica se o horário já está agendado
+                        const disponivel = !horariosOcupados.includes(horario);
 
-                            // Verifica se o horário já está agendado
-                            const disponivel = !horariosOcupados.includes(horario);
-
-                            horariosDisponiveis.push({
-                                horario: horario,
-                                disponivel: disponivel
-                            });
-                        }
-
-                        // Exibe os horários na tela
-                        exibirHorariosDisponiveis(horariosDisponiveis);
+                        horariosDisponiveis.push({
+                            horario: horario,
+                            disponivel: disponivel
+                        });
                     }
+
+                    // Exibe os horários na tela
+                    exibirHorariosDisponiveis(horariosDisponiveis);
                 })
                 .catch((error) => {
                     console.error("Erro ao carregar horários:", error);
@@ -673,8 +669,6 @@
 
                 // Se tudo estiver válido, confirma o agendamento
                 confirmarAgendamento();
-                // Se tudo estiver válido, preenche o resumo e avança para a confirmação
-                preencherResumoAgendamento();
                 return;
             }
 
@@ -728,9 +722,6 @@
             // Atualiza os painéis
             document.getElementById('panel-3').classList.remove('active');
             document.getElementById('panel-4').classList.add('active');
-            
-            // Confirma o agendamento no Firebase
-            confirmarAgendamento();
         }
 
         // Função para voltar ao passo anterior
@@ -779,35 +770,21 @@
                 status: "confirmado"
             };
 
-            // Adiciona o agendamento ao array de horariosAgendados no documento da empresa
-            db.collection("usuarios").doc(empresaSelecionada.id).update({
-                horariosAgendados: firebase.firestore.FieldValue.arrayUnion(novoAgendamento)
-            })
-            .then(() => {
-                console.log("Agendamento salvo no documento da empresa!");
-                agendamentoConfirmado = true;
-                
-                // Preenche o resumo do agendamento
-                document.getElementById('resumo-empresa').textContent = empresaSelecionada.nomeFantasia || "Empresa não identificada";
-                document.getElementById('resumo-servico').textContent = servicoSelecionado;
-                document.getElementById('resumo-data').textContent = formatarDataExibicao(dataSelecionada);
-                document.getElementById('resumo-horario').textContent = horarioSelecionado;
-                document.getElementById('resumo-cliente').textContent = nome;
-                document.getElementById('resumo-documento').textContent = documento;
-                document.getElementById('resumo-contato').textContent = telefone;
-                
-                // Avança para o passo 4 (confirmação)
-                document.getElementById('step-3').classList.remove('active');
-                document.getElementById('step-3').classList.add('completed');
-                document.getElementById('step-4').classList.add('active');
-                
-                document.getElementById('panel-3').classList.remove('active');
-                document.getElementById('panel-4').classList.add('active');
-            })
-            .catch((error) => {
-                console.error("Erro ao confirmar agendamento:", error);
-                mostrarErro("Ocorreu um erro ao confirmar seu agendamento. Por favor, tente novamente.");
-            });
+            // Adiciona um novo documento na subcoleção "agendamentos"
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("agendamentos")
+                .add(novoAgendamento)
+                .then((docRef) => {
+                    console.log("Agendamento salvo com ID: ", docRef.id);
+                    agendamentoConfirmado = true;
+                    
+                    // Preenche o resumo do agendamento
+                    preencherResumoAgendamento();
+                })
+                .catch((error) => {
+                    console.error("Erro ao confirmar agendamento:", error);
+                    mostrarErro("Ocorreu um erro ao confirmar seu agendamento. Por favor, tente novamente.");
+                });
         }
 
         // Inicializa a página quando o DOM estiver carregado
