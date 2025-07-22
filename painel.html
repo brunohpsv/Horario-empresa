@@ -157,6 +157,7 @@
         .fc-day {
             border-color: #f0f0f0;
             min-height: 70px;
+            position: relative;
         }
         
         .fc-day-number {
@@ -198,6 +199,14 @@
             justify-content: center;
             font-size: 12px;
             font-weight: bold;
+        }
+        
+        .alert-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: #f44336;
+            font-size: 14px;
         }
         
         /* ESTILOS DAS OUTRAS ABAS */
@@ -503,10 +512,6 @@
             background-color: #F44336;
             color: white;
         }
-	   .fc-day {
-               position: relative; /* Importante para posicionar o ícone */
-	  }
-	
     </style>
 </head>
 <body>
@@ -740,7 +745,7 @@
                     if (view.name === 'agendaDay') {
                         const date = view.intervalStart;
                         const dateStr = date.format('DD/MM/YYYY');
-                        const dateKey = date.format('YYYY-MM-DD'); // Formato corrigido para YYYY-MM-DD
+                        const dateKey = date.format('YYYY-MM-DD');
                         
                         // Carrega os agendamentos para este dia
                         loadAgendamentosForDay(userData.id, dateKey, dateStr);
@@ -750,29 +755,29 @@
         }
 
         // Função para verificar se um dia tem agendamentos
-async function checkDayForAgendamentos(date, cell, userId) {
-    try {
-        const dateKey = date.format('YYYY-MM-DD');
-        const agendamentosRef = db.collection('usuarios').doc(userId)
-            .collection('agendamentos').where('data', '==', dateKey);
-        
-        const querySnapshot = await agendamentosRef.get();
-        
-        if (!querySnapshot.empty) {
-            // Cria um elemento de ícone de alerta
-            const alertIcon = document.createElement('div');
-            alertIcon.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #f44336; position: absolute; top: 5px; right: 5px; font-size: 14px;"></i>';
-            
-            // Adiciona o ícone ao cell do dia
-            cell.appendChild(alertIcon);
-            
-            // Opcional: muda a cor de fundo do dia
-            cell.style.backgroundColor = '#fff6f6';
+        async function checkDayForAgendamentos(date, cell, userId) {
+            try {
+                const dateKey = date.format('YYYY-MM-DD');
+                const agendamentosRef = db.collection('usuarios').doc(userId)
+                    .collection('agendamentos').where('data', '==', dateKey);
+                
+                const querySnapshot = await agendamentosRef.get();
+                
+                if (!querySnapshot.empty) {
+                    // Cria um elemento de ícone de alerta
+                    const alertIcon = document.createElement('i');
+                    alertIcon.className = 'fas fa-exclamation-circle alert-icon';
+                    
+                    // Adiciona o ícone ao cell do dia
+                    cell[0].appendChild(alertIcon);
+                    
+                    // Opcional: muda a cor de fundo do dia
+                    cell.css('background-color', '#fff6f6');
+                }
+            } catch (error) {
+                console.error("Erro ao verificar agendamentos:", error);
+            }
         }
-    } catch (error) {
-        console.error("Erro ao verificar agendamentos:", error);
-    }
-}
 
         // Função para carregar agendamentos de um dia específico
         async function loadAgendamentosForDay(userId, dateKey, dateStr) {
