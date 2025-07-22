@@ -9,7 +9,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <!-- Estilos permanecem os mesmos -->
+    <!-- Estilos atualizados -->
     <style>
         * {
             margin: 0;
@@ -133,12 +133,12 @@
         .empresas-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 10px;
+            gap: 5px;
         }
 
         .empresa-item {
             background-color: white;
-            padding: 15px;
+            padding: 10px 15px;
             border: 1px solid #eee;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -149,39 +149,28 @@
         }
 
         .empresa-nome {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             text-transform: uppercase;
         }
 
         .empresa-endereco {
-            font-size: 14px;
+            font-size: 12px;
             color: #666;
-            opacity: 0.5;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .servico-tag {
             display: inline-block;
-            font-size: 12px;
+            font-size: 11px;
             color: #d32f2f;
             font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .empresa-contato {
-            font-size: 14px;
-            color: #444;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
 
         .divider {
-            margin: 10px 0;
+            margin: 5px 0;
             height: 1px;
             background-color: #eee;
         }
@@ -242,7 +231,6 @@
     </style>
 </head>
 <body>
-    <!-- Cabeçalho e filtros permanecem os mesmos -->
     <header>
         <div class="logo">HORÁRIO</div>
         <nav>
@@ -348,23 +336,7 @@
         // Variáveis globais
         let todasEmpresas = [];
         let servicosDisponiveis = new Set();
-        let refreshInterval;
         let isFirstLoad = true;
-
-        // Função para formatar telefone
-        function formatarTelefone(numero) {
-            if (!numero) return '';
-            
-            const digits = numero.replace(/\D/g, '');
-            
-            if (digits.length === 11) {
-                return `(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7)}`;
-            } else if (digits.length === 10) {
-                return `(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6)}`;
-            }
-            
-            return numero;
-        }
 
         // Função para criar elemento de empresa
         function createEmpresaElement(empresa) {
@@ -372,7 +344,6 @@
             empresaElement.className = 'empresa-item';
             empresaElement.dataset.id = empresa.id || Math.random().toString(36).substring(2, 9);
             
-            const telefoneFormatado = formatarTelefone(empresa.telefone || empresa.telefoneComercial || '');
             const enderecoCompleto = [
                 empresa.endereco,
                 empresa.numero,
@@ -380,11 +351,15 @@
                 empresa.bairro
             ].filter(Boolean).join(', ');
             
+            // Obtém o primeiro serviço se for um array
+            const servico = Array.isArray(empresa.servicos) 
+                ? empresa.servicos[0] 
+                : empresa.servicos || 'Serviço não especificado';
+            
             empresaElement.innerHTML = `
-                <div class="empresa-nome">${empresa.nome || empresa.nomeEmpresa || 'Nome não informado'}</div>
+                <div class="empresa-nome">${empresa.nomeFantasia || 'Nome não informado'}</div>
                 <div class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'} ${empresa.cidade || ''}${empresa.estado ? ' - ' + empresa.estado : ''}</div>
-                <div class="servico-tag">${empresa.servico || empresa.tipoServico || 'Serviço não especificado'}</div>
-                ${telefoneFormatado ? `<div class="empresa-contato"><i class="fas fa-phone"></i> ${telefoneFormatado}</div>` : ''}
+                <div class="servico-tag">${servico}</div>
                 <div class="divider"></div>
             `;
             
@@ -437,18 +412,25 @@
         function filtrarEmpresas() {
             const cidade = document.getElementById('cidade').value.toLowerCase();
             const estado = document.getElementById('estado').value;
-            const servico = document.getElementById('servico').value;
+            const servico = document.getElementById('servico').value.toLowerCase();
             const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
             
             const empresasFiltradas = todasEmpresas.filter(empresa => {
-                const nome = (empresa.nome || empresa.nomeEmpresa || '').toLowerCase();
+                const nome = (empresa.nomeFantasia || '').toLowerCase();
                 const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
                 const estadoEmpresa = (empresa.estado || '');
-                const servicoEmpresa = (empresa.servico || empresa.tipoServico || '').toLowerCase();
+                
+                // Verifica serviços (pode ser string ou array)
+                let servicosEmpresa = [];
+                if (Array.isArray(empresa.servicos)) {
+                    servicosEmpresa = empresa.servicos.map(s => s.toLowerCase());
+                } else if (empresa.servicos) {
+                    servicosEmpresa = [empresa.servicos.toLowerCase()];
+                }
                 
                 return (!cidade || cidadeEmpresa.includes(cidade)) &&
                        (!estado || estadoEmpresa === estado) &&
-                       (!servico || servicoEmpresa.includes(servico.toLowerCase())) &&
+                       (!servico || servicosEmpresa.some(s => s.includes(servico))) &&
                        (!nomeEmpresa || nome.includes(nomeEmpresa));
             });
             
@@ -477,8 +459,12 @@
                 // Processa os serviços disponíveis
                 servicosDisponiveis = new Set();
                 todasEmpresas.forEach(empresa => {
-                    if (empresa.servico || empresa.tipoServico) {
-                        servicosDisponiveis.add(empresa.servico || empresa.tipoServico);
+                    if (empresa.servicos) {
+                        if (Array.isArray(empresa.servicos)) {
+                            empresa.servicos.forEach(servico => servicosDisponiveis.add(servico));
+                        } else {
+                            servicosDisponiveis.add(empresa.servicos);
+                        }
                     }
                 });
                 
@@ -516,15 +502,16 @@
             }
         }
 
-        // Função para iniciar o intervalo de atualização
-        function startRefreshInterval() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-            }
+        // Função para verificar se é hora de atualizar (00:10)
+        function verificarAtualizacaoDiaria() {
+            const agora = new Date();
+            const horas = agora.getHours();
+            const minutos = agora.getMinutes();
             
-            refreshInterval = setInterval(() => {
+            // Verifica se são 00:10
+            if (horas === 0 && minutos === 10) {
                 carregarEmpresas();
-            }, 10000); // Atualiza a cada 10 segundos
+            }
         }
 
         // Inicia quando a página carrega
@@ -541,7 +528,9 @@
             
             // Inicia o carregamento
             carregarEmpresas();
-            startRefreshInterval();
+            
+            // Configura a verificação diária às 00:10
+            setInterval(verificarAtualizacaoDiaria, 60000); // Verifica a cada minuto
         });
     </script>
 </body>
