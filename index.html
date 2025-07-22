@@ -387,6 +387,11 @@
                 <div class="divider"></div>
             `;
             
+            // Adiciona evento de clique para redirecionar para a página de agendamento
+            empresaElement.addEventListener('click', function() {
+                window.location.href = `agendamento.html?id=${empresa.id}`;
+            });
+            
             return empresaElement;
         }
 
