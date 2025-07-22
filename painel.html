@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle | HORÁRIO</title>
     <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' rel='stylesheet' />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -175,6 +176,28 @@
         
         .fc-day:hover {
             background: #f8f8f8;
+        }
+        
+        /* Ícone de alerta no calendário */
+        .fc-day.has-agendamento {
+            position: relative;
+        }
+        
+        .fc-day.has-agendamento .fc-day-number:after {
+            content: '!';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background-color: #f44336;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
         }
         
         /* ESTILOS DAS OUTRAS ABAS */
@@ -390,6 +413,73 @@
             font-weight: bold;
             display: none;
         }
+        
+        /* Estilos para a lista de agendamentos */
+        .day-agendamentos {
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .day-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .agendamento-item {
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .agendamento-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .agendamento-body {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .agendamento-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .agendamento-info strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        .no-agendamentos {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-size: 16px;
+        }
+        
+        #voltar-mes {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        #voltar-mes:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -545,6 +635,9 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         
+        // Variável global para armazenar dados do usuário
+        let currentUserData = null;
+        
         // Verificação de autenticação e carregamento de dados
         document.addEventListener('DOMContentLoaded', function() {
             auth.onAuthStateChanged(async (user) => {
@@ -566,6 +659,7 @@
                         
                         // Adiciona o ID do documento aos dados do usuário
                         userData.id = doc.id;
+                        currentUserData = userData;
                         
                         // Carrega os dados do usuário
                         loadUserData(userData);
@@ -574,6 +668,9 @@
                         
                         // Inicializa horários futuros
                         inicializarHorariosFuturos(userData);
+                        
+                        // Inicializa o calendário com os agendamentos
+                        initializeCalendar(userData);
                     } catch (error) {
                         console.error('Erro ao carregar dados do usuário:', error);
                         alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
@@ -583,6 +680,155 @@
                 }
             });
         });
+
+        // Função para inicializar o calendário com os agendamentos
+        function initializeCalendar(userData) {
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaDay'
+                },
+                defaultView: 'month',
+                locale: 'pt-br',
+                navLinks: true,
+                selectable: true,
+                selectHelper: false,
+                editable: false,
+                eventLimit: false,
+                height: 600,
+                aspectRatio: 1.8,
+                dayRender: function(date, cell) {
+                    // Verifica se há agendamentos para este dia
+                    checkDayForAgendamentos(date, cell, userData.id);
+                    
+                    if (date.day() === 0 || date.day() === 6) {
+                        cell.css('background-color', '#f9f9f9');
+                    }
+                },
+                viewRender: function(view, element) {
+                    if (view.name === 'agendaDay') {
+                        const dateStr = view.intervalStart.format('DD/MM/YYYY');
+                        const dateKey = view.intervalStart.format('DD-MM-YYYY');
+                        
+                        // Carrega os agendamentos para este dia
+                        loadAgendamentosForDay(userData.id, dateKey, dateStr);
+                    }
+                }
+            });
+        }
+
+        // Função para verificar se um dia tem agendamentos
+        async function checkDayForAgendamentos(date, cell, userId) {
+            try {
+                const dateStr = date.format('DD-MM-YYYY');
+                const horariosRef = db.collection('horarios').doc(`${userId}_${dateStr}`);
+                const doc = await horariosRef.get();
+                
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.horariosAgendados && data.horariosAgendados.length > 0) {
+                        // Adiciona classe para mostrar o ícone de alerta
+                        $(cell).addClass('has-agendamento');
+                    }
+                }
+            } catch (error) {
+                console.error("Erro ao verificar agendamentos:", error);
+            }
+        }
+
+        // Função para carregar agendamentos de um dia específico
+        async function loadAgendamentosForDay(userId, dateKey, dateStr) {
+            try {
+                const horariosRef = db.collection('horarios').doc(`${userId}_${dateKey}`);
+                const doc = await horariosRef.get();
+                
+                let agendamentosHTML = `
+                    <div style="margin-bottom: 20px; width: 100%; max-width: 1200px; margin: 0 auto;">
+                        <button id="voltar-mes">← Voltar para o Mês</button>
+                        <div class="day-title">LISTA DO DIA - ${dateStr}</div>
+                    </div>
+                    <div class="day-container">
+                        <div class="day-agendamentos">
+                `;
+                
+                if (doc.exists) {
+                    const data = doc.data();
+                    
+                    if (data.horariosAgendados && data.horariosAgendados.length > 0) {
+                        data.horariosAgendados.forEach(agendamento => {
+                            agendamentosHTML += `
+                                <div class="agendamento-item">
+                                    <div class="agendamento-header">
+                                        <span>${agendamento.horario}</span>
+                                        <span>${agendamento.servico || 'Serviço não especificado'}</span>
+                                    </div>
+                                    <div class="agendamento-body">
+                                        <div class="agendamento-info">
+                                            <strong>Cliente</strong>
+                                            <div>${agendamento.nomeCliente || 'Não informado'}</div>
+                                        </div>
+                                        <div class="agendamento-info">
+                                            <strong>Telefone</strong>
+                                            <div>${agendamento.telefoneCliente || 'Não informado'}</div>
+                                        </div>
+                                        <div class="agendamento-info">
+                                            <strong>E-mail</strong>
+                                            <div>${agendamento.emailCliente || 'Não informado'}</div>
+                                        </div>
+                                        <div class="agendamento-info">
+                                            <strong>Observações</strong>
+                                            <div>${agendamento.observacoes || 'Nenhuma observação'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        agendamentosHTML += `
+                            <div class="no-agendamentos">
+                                Nenhum agendamento encontrado para este dia.
+                            </div>
+                        `;
+                    }
+                } else {
+                    agendamentosHTML += `
+                        <div class="no-agendamentos">
+                            Nenhum agendamento encontrado para este dia.
+                        </div>
+                    `;
+                }
+                
+                agendamentosHTML += `
+                        </div>
+                    </div>
+                `;
+                
+                $('#calendar').html(agendamentosHTML);
+                
+                // Botão para voltar ao mês - RECARREGA A PÁGINA
+                $('#voltar-mes').click(function() {
+                    location.reload();
+                });
+            } catch (error) {
+                console.error("Erro ao carregar agendamentos:", error);
+                $('#calendar').html(`
+                    <div style="margin-bottom: 20px; width: 100%; max-width: 1200px; margin: 0 auto;">
+                        <button id="voltar-mes">← Voltar para o Mês</button>
+                        <div class="day-title">LISTA DO DIA - ${dateStr}</div>
+                    </div>
+                    <div class="day-container">
+                        <div class="no-agendamentos">
+                            Ocorreu um erro ao carregar os agendamentos. Tente novamente.
+                        </div>
+                    </div>
+                `);
+                
+                $('#voltar-mes').click(function() {
+                    location.reload();
+                });
+            }
+        }
 
         // Função para inicializar horários futuros
         async function inicializarHorariosFuturos(userData) {
@@ -825,83 +1071,14 @@
                 document.getElementById(tabId).classList.add('active');
             });
         });
-        
-        // CALENDÁRIO
-        $(document).ready(function() {
-            // Inicializa o calendário principal
-            $('#calendar').fullCalendar({
-                header: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'month,agendaDay'
-                },
-                defaultView: 'month',
-                locale: 'pt-br',
-                navLinks: true,
-                selectable: true,
-                selectHelper: false,
-                editable: false,
-                eventLimit: false,
-                height: 600,
-                aspectRatio: 1.8,
-                events: [],
-                dayRender: function(date, cell) {
-                    if (date.day() === 0 || date.day() === 6) {
-                        cell.css('background-color', '#f9f9f9');
-                    }
-                },
-                viewRender: function(view, element) {
-                    if (view.name === 'agendaDay') {
-                        const dateStr = view.intervalStart.format('DD/MM/YYYY');
-                        $('#calendar').html(`
-                            <div style="margin-bottom: 20px; width: 100%; max-width: 1200px; margin: 0 auto;">
-                                <button id="voltar-mes">← Voltar para o Mês</button>
-                                <div class="day-title">LISTA DO DIA - ${dateStr}</div>
-                            </div>
-                            <div class="day-container">
-                                LISTA DO DIA
-                            </div>
-                        `);
-                        
-                        // Botão para voltar ao mês - RECARREGA A PÁGINA
-                        $('#voltar-mes').click(function() {
-                            location.reload();
-                        });
-                    }
-                }
-            });
-        });
-
-        // Botão Cancelar Assinatura
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('btn-cancelar')) {
-                if(confirm('Tem certeza que deseja cancelar sua assinatura?')) {
-                    alert('Assinatura cancelada com sucesso. Seu acesso será mantido até o final do período contratado.');
-                }
-            }
-        });
 
         // Formulário de Configuração de Horários
         document.getElementById('horariosForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Obtém o usuário autenticado
-            const user = auth.currentUser;
-            if (!user) return;
+            if (!currentUserData) return;
             
             try {
-                // Busca os dados do usuário no Firestore
-                const userDoc = await db.collection('usuarios').where('email', '==', user.email).get();
-                
-                if (userDoc.empty) {
-                    throw new Error('Dados do usuário não encontrados');
-                }
-                
-                // Pega o primeiro documento (deveria ter apenas um com o mesmo email)
-                const doc = userDoc.docs[0];
-                const userData = doc.data();
-                userData.id = doc.id;
-                
                 // Coletar dados do formulário
                 const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
                 const horarioAbertura = document.getElementById('horarioAbertura').value;
@@ -931,7 +1108,7 @@
                 };
                 
                 // Salvar no Firebase
-                await saveHorariosConfig(userData, config);
+                await saveHorariosConfig(currentUserData, config);
             } catch (error) {
                 console.error('Erro ao salvar configurações:', error);
                 alert('Erro ao salvar configurações. Tente novamente.');
