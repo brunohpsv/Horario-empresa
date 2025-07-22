@@ -273,6 +273,15 @@
             display: none;
         }
 
+        .success-message {
+            color: #388e3c;
+            background-color: #edf7ed;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .container-agendamento {
                 margin: 15px;
@@ -322,6 +331,7 @@
         </ul>
 
         <div class="error-message" id="error-message"></div>
+        <div class="success-message" id="success-message"></div>
 
         <div class="step-content">
             <!-- Passo 1: Escolher Data -->
@@ -542,12 +552,14 @@
             // Verifica se a empresa já tem horários agendados
             db.collection("usuarios").doc(empresaSelecionada.id).collection("agendamentos")
                 .where("data", "==", dataFormatada)
-                .where("servico", "==", servicoSelecionado)
                 .get()
                 .then((querySnapshot) => {
                     const horariosOcupados = [];
                     querySnapshot.forEach((doc) => {
-                        horariosOcupados.push(doc.data().horario);
+                        const agendamento = doc.data();
+                        if (agendamento.servico === servicoSelecionado) {
+                            horariosOcupados.push(agendamento.horario);
+                        }
                     });
                     
                     // Gera os horários disponíveis (exemplo: das 08:00 às 18:00, de hora em hora)
@@ -633,6 +645,19 @@
             const errorElement = document.getElementById('error-message');
             errorElement.textContent = mensagem;
             errorElement.style.display = 'block';
+            
+            // Oculta mensagem de sucesso se estiver visível
+            document.getElementById('success-message').style.display = 'none';
+        }
+
+        // Função para mostrar mensagem de sucesso
+        function mostrarSucesso(mensagem) {
+            const successElement = document.getElementById('success-message');
+            successElement.textContent = mensagem;
+            successElement.style.display = 'block';
+            
+            // Oculta mensagem de erro se estiver visível
+            document.getElementById('error-message').style.display = 'none';
         }
 
         // Função para avançar para o próximo passo
@@ -779,6 +804,7 @@
                 .then((docRef) => {
                     console.log("Agendamento salvo com ID: ", docRef.id);
                     agendamentoConfirmado = true;
+                    mostrarSucesso("Agendamento confirmado com sucesso!");
                     
                     // Atualiza o array de horariosAgendados no documento principal
                     return db.collection("usuarios").doc(empresaSelecionada.id).update({
