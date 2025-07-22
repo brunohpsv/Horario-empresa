@@ -40,10 +40,12 @@
         nav ul {
             display: flex;
             list-style: none;
+            align-items: center;
+            gap: 15px;
         }
         
         nav ul li {
-            margin-left: 30px;
+            margin-left: 0;
         }
         
         nav ul li a {
@@ -52,6 +54,9 @@
             font-size: 16px;
             transition: color 0.3s;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
         nav ul li a:hover {
@@ -66,6 +71,19 @@
         
         .login-btn:hover {
             background-color: #45a049;
+        }
+
+        .location-btn {
+            background-color: #2196F3;
+            padding: 8px 16px;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .location-btn:hover {
+            background-color: #0b7dda;
         }
 
         .filtro-section {
@@ -194,6 +212,15 @@
             margin: 20px;
         }
 
+        .distance-badge {
+            background-color: #2196F3;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
         @media (max-width: 768px) {
             .filtro-container {
                 flex-direction: column;
@@ -213,6 +240,7 @@
             nav ul {
                 width: 100%;
                 justify-content: space-between;
+                flex-wrap: wrap;
             }
             
             nav ul li {
@@ -243,6 +271,7 @@
         <nav>
             <ul>
                 <li><a href="index.html">Início</a></li>
+                <li><a id="geolocation-btn" class="location-btn"><i class="fas fa-map-marker-alt"></i> Minha Localização</a></li>
                 <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
             </ul>
         </nav>
@@ -308,6 +337,21 @@
         let cidadesDisponiveis = new Set();
         let estadosDisponiveis = new Set();
         let isFirstLoad = true;
+        let userLocation = null;
+        let empresasComDistancia = [];
+
+        // Função para calcular distância entre coordenadas (Haversine formula)
+        function calcularDistancia(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Raio da Terra em km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Distância em km
+        }
 
         // Função para criar elemento de empresa
         function createEmpresaElement(empresa) {
@@ -329,9 +373,14 @@
                 ? empresa.servicos[0] 
                 : empresa.servicos || 'Serviço não especificado';
             
+            // Adiciona badge de distância se disponível
+            const distanciaBadge = empresa.distancia 
+                ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
+                : '';
+            
             empresaElement.innerHTML = `
                 <div class="empresa-info">
-                    <div class="empresa-nome">${empresa.nomeFantasia || 'Nome não informado'}</div>
+                    <div class="empresa-nome">${empresa.nomeFantasia || 'Nome não informado'}${distanciaBadge}</div>
                     <div class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</div>
                 </div>
                 <div class="servico-tag">${servico}</div>
@@ -357,6 +406,15 @@
             // Limpa completamente a lista antes de adicionar novos itens
             listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid"></div>';
             const gridEmpresas = document.getElementById('empresas-grid');
+            
+            // Ordena por distância se disponível
+            if (userLocation) {
+                empresas.sort((a, b) => {
+                    const distA = a.distancia || Infinity;
+                    const distB = b.distancia || Infinity;
+                    return distA - distB;
+                });
+            }
             
             empresas.forEach(empresa => {
                 const empresaElement = createEmpresaElement(empresa);
@@ -412,7 +470,7 @@
             const servico = document.getElementById('servico').value.toLowerCase();
             const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
             
-            const empresasFiltradas = todasEmpresas.filter(empresa => {
+            let empresasFiltradas = todasEmpresas.filter(empresa => {
                 const nome = (empresa.nomeFantasia || '').toLowerCase();
                 const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
                 const estadoEmpresa = (empresa.estado || '');
@@ -434,7 +492,73 @@
                 return cidadeMatch && estadoMatch && servicoMatch && nomeMatch;
             });
             
+            // Se temos localização do usuário, calculamos distâncias
+            if (userLocation) {
+                empresasFiltradas = empresasFiltradas.map(empresa => {
+                    if (empresa.latitude && empresa.longitude) {
+                        const distancia = calcularDistancia(
+                            userLocation.latitude,
+                            userLocation.longitude,
+                            parseFloat(empresa.latitude),
+                            parseFloat(empresa.longitude)
+                        );
+                        return {...empresa, distancia};
+                    }
+                    return empresa;
+                });
+                
+                // Armazenamos as empresas com distância para reordenar depois
+                empresasComDistancia = [...empresasFiltradas];
+            }
+            
             exibirEmpresas(empresasFiltradas);
+        }
+
+        // Função para obter a localização do usuário
+        function obterLocalizacaoUsuario() {
+            const geolocationBtn = document.getElementById('geolocation-btn');
+            
+            if (!navigator.geolocation) {
+                alert('Geolocalização não é suportada pelo seu navegador.');
+                return;
+            }
+            
+            geolocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Localizando...';
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+                    
+                    geolocationBtn.innerHTML = '<i class="fas fa-check-circle"></i> Localização ativa';
+                    geolocationBtn.style.backgroundColor = '#4CAF50';
+                    
+                    // Aplica os filtros com a nova localização
+                    filtrarEmpresas();
+                },
+                (error) => {
+                    console.error('Erro ao obter localização:', error);
+                    geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Minha Localização';
+                    
+                    let errorMessage = 'Erro ao obter localização.';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'Permissão de localização negada.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'Informação de localização indisponível.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'Tempo de espera para localização expirado.';
+                            break;
+                    }
+                    
+                    alert(errorMessage);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
         }
 
         // Função para carregar empresas do Firestore
@@ -564,6 +688,9 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(filtrarEmpresas, 300);
             });
+            
+            // Event listener para o botão de geolocalização
+            document.getElementById('geolocation-btn').addEventListener('click', obterLocalizacaoUsuario);
             
             // Inicia o carregamento
             carregarEmpresas();
