@@ -82,10 +82,9 @@
             display: block;
         }
         
-        /* ESTILO ATUALIZADO DO CALENDÁRIO - MAIOR */
+        /* ESTILO SIMPLIFICADO DO CALENDÁRIO */
         #calendar {
             background-color: white;
-            border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             width: 100%;
             height: 600px;
@@ -98,7 +97,6 @@
             width: 100%;
             height: calc(100vh - 180px);
             background-color: white;
-            border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             padding: 20px;
             display: flex;
@@ -106,7 +104,7 @@
             align-items: center;
         }
         
-        /* Estilos do calendário */
+        /* Estilos simplificados do calendário */
         .fc-toolbar {
             margin-bottom: 10px;
             padding: 10px;
@@ -125,9 +123,6 @@
             background: white;
             border: 1px solid #ddd;
             color: #555;
-            border-radius: 3px;
-            box-shadow: none;
-            text-shadow: none;
             padding: 5px 10px;
             height: auto;
         }
@@ -136,20 +131,11 @@
             background: #f5f5f5;
         }
         
-        .fc-button-group {
-            border: none;
-        }
-        
-        .fc-button-active {
-            background: #e0e0e0;
-        }
-        
         .fc-day-header {
             padding: 8px 0;
             font-weight: 500;
             color: #555;
             font-size: 0.85em;
-            text-transform: uppercase;
             background: #f8f8f8;
             border-color: #e0e0e0;
         }
@@ -171,49 +157,25 @@
             background-color: #f5f9ff !important;
         }
         
-        .fc-day.fc-state-highlight {
-            background: #e6f2ff;
-        }
-        
-        .fc-day:hover {
-            background: #f8f8f8;
-        }
-        
-        /* Ícone de alerta no calendário */
+        /* Ícone de alerta no calendário - CENTRALIZADO E MAIOR */
         .fc-day.has-agendamento {
             position: relative;
         }
         
-        .fc-day.has-agendamento .fc-day-number:after {
-            content: '!';
+        .fc-day.has-agendamento .day-alert {
             position: absolute;
-            top: 2px;
-            right: 2px;
-            background-color: #f44336;
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .alert-icon {
-            position: absolute;
-            top: 5px;
-            right: 5px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             color: #f44336;
-            font-size: 14px;
+            font-size: 24px;
+            z-index: 2;
         }
         
         /* ESTILOS DAS OUTRAS ABAS */
         .configuracoes-form {
             background-color: white;
             padding: 30px;
-            border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             width: 100%;
         }
@@ -221,7 +183,6 @@
         .info-adicionais {
             background-color: #f9f9f9;
             padding: 30px;
-            border-radius: 8px;
             border-left: 4px solid #4CAF50;
             width: 100%;
         }
@@ -255,7 +216,6 @@
             border: none;
             padding: 12px 20px;
             font-size: 16px;
-            border-radius: 4px;
             cursor: pointer;
             margin-top: 20px;
         }
@@ -313,11 +273,10 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* NOVOS ESTILOS PARA CONFIGURAÇÃO DE HORÁRIOS */
+        /* ESTILOS PARA CONFIGURAÇÃO DE HORÁRIOS */
         .horarios-config {
             background-color: white;
             padding: 30px;
-            border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             margin-bottom: 30px;
         }
@@ -345,7 +304,6 @@
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 4px;
             font-size: 16px;
         }
 
@@ -361,7 +319,6 @@
             align-items: center;
             background: #f5f5f5;
             padding: 8px 15px;
-            border-radius: 4px;
             cursor: pointer;
         }
 
@@ -385,7 +342,6 @@
             border: none;
             padding: 12px 20px;
             font-size: 16px;
-            border-radius: 4px;
             cursor: pointer;
             margin-top: 20px;
         }
@@ -397,7 +353,6 @@
         .horarios-exemplo {
             background-color: #f8f9fa;
             padding: 15px;
-            border-radius: 4px;
             margin-top: 20px;
             font-size: 14px;
         }
@@ -423,7 +378,7 @@
             display: none;
         }
         
-        /* Estilos para a lista de agendamentos */
+        /* ESTILOS SIMPLIFICADOS PARA LISTA DE AGENDAMENTOS */
         .day-agendamentos {
             width: 100%;
             max-width: 800px;
@@ -438,10 +393,9 @@
         
         .agendamento-item {
             background-color: #f9f9f9;
-            border-radius: 4px;
             padding: 15px;
             margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #4CAF50;
         }
         
         .agendamento-header {
@@ -453,14 +407,9 @@
         }
         
         .agendamento-body {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px;
-        }
-        
-        .agendamento-info {
-            flex: 1;
-            min-width: 200px;
         }
         
         .agendamento-info strong {
@@ -481,7 +430,6 @@
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 4px;
             cursor: pointer;
             margin-bottom: 15px;
         }
@@ -492,7 +440,6 @@
         
         .status-badge {
             padding: 3px 8px;
-            border-radius: 12px;
             font-size: 12px;
             font-weight: bold;
             text-transform: uppercase;
@@ -512,6 +459,27 @@
             background-color: #F44336;
             color: white;
         }
+        
+        /* Seção de Relatório */
+        .relatorio-section {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .relatorio-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .relatorio-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -525,7 +493,6 @@
         <nav>
             <ul>
                 <li><a href="#" class="tab-link" data-tab="calendario">CALENDÁRIO</a></li>
-                <li><a href="#" class="tab-link" data-tab="relatorio">RELATÓRIO</a></li>
                 <li><a href="#" class="tab-link" data-tab="configuracoes">CONFIGURAÇÕES</a></li>
                 <li><a href="#" id="logoutBtn" class="logout-btn">SAIR</a></li>
             </ul>
@@ -538,97 +505,117 @@
             <div id="calendar"></div>
         </div>
         
-        <!-- Aba Relatório -->
-        <div id="relatorio" class="tab-content">
-            <h2>Relatórios</h2>
-            <p>Esta seção será desenvolvida em breve.</p>
-        </div>
-        
         <!-- Aba Configurações -->
         <div id="configuracoes" class="tab-content">
-            <div class="configuracoes-form">
-                <!-- Seção de Configuração de Horários -->
-                <div class="horarios-config">
-                    <h3>CONFIGURAÇÃO DE HORÁRIOS DE ATENDIMENTO</h3>
-                    
-                    <form id="horariosForm">
-                        <div class="form-group">
-                            <label>Dias de funcionamento:</label>
-                            <div class="dias-semana" id="diasSemana">
-                                <label class="dia-checkbox"><input type="checkbox" name="dia" value="1"> Segunda</label>
-                                <label class="dia-checkbox"><input type="checkbox" name="dia" value="2"> Terça</label>
-                                <label class="dia-checkbox"><input type="checkbox" name="dia" value="3"> Quarta</label>
-                                <label class="dia-checkbox"><input type="checkbox" name="dia" value="4"> Quinta</label>
-                                <label class="dia-checkbox"><input type="checkbox" name="dia" value="5"> Sexta</label>
-                                <label class="dia-checkbox"><input type="checkbox" name="dia" value="6"> Sábado</label>
-                                <label class="dia-checkbox"><input type="checkbox" name="dia" value="0"> Domingo</label>
-                            </div>
+            <!-- Seção de Configuração de Horários -->
+            <div class="horarios-config">
+                <h3>CONFIGURAÇÃO DE HORÁRIOS DE ATENDIMENTO</h3>
+                
+                <form id="horariosForm">
+                    <div class="form-group">
+                        <label>Dias de funcionamento:</label>
+                        <div class="dias-semana" id="diasSemana">
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="1"> Segunda</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="2"> Terça</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="3"> Quarta</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="4"> Quinta</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="5"> Sexta</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="6"> Sábado</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="0"> Domingo</label>
                         </div>
-                        
-                        <div class="form-group">
-                            <label>Horário de funcionamento:</label>
-                            <div class="horarios-container">
-                                <div class="horario-input">
-                                    <label>Abertura</label>
-                                    <input type="time" id="horarioAbertura" required>
-                                </div>
-                                <div class="horario-input">
-                                    <label>Fechamento</label>
-                                    <input type="time" id="horarioFechamento" required>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="duracaoAtendimento">Duração de cada atendimento (minutos):</label>
-                            <select id="duracaoAtendimento" required>
-                                <option value="15">15 minutos</option>
-                                <option value="30" selected>30 minutos</option>
-                                <option value="45">45 minutos</option>
-                                <option value="60">60 minutos</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="intervaloAtendimento">Intervalo entre atendimentos (minutos):</label>
-                            <select id="intervaloAtendimento" required>
-                                <option value="0">Sem intervalo</option>
-                                <option value="5">5 minutos</option>
-                                <option value="10">10 minutos</option>
-                                <option value="15" selected>15 minutos</option>
-                                <option value="20">20 minutos</option>
-                                <option value="30">30 minutos</option>
-                            </select>
-                        </div>
-                        
-                        <button type="submit" class="btn-salvar">Salvar Configurações</button>
-                        <div class="success-message" id="successMessage">Configurações salvas com sucesso!</div>
-                    </form>
-                    
-                    <div class="horarios-exemplo">
-                        <h4>Como funciona:</h4>
-                        <ul>
-                            <li>Selecione os dias da semana em que seu estabelecimento está aberto</li>
-                            <li>Defina o horário de abertura e fechamento</li>
-                            <li>Escolha quanto tempo dura cada atendimento</li>
-                            <li>Defina um intervalo entre os atendimentos (opcional)</li>
-                        </ul>
-                        <p>O sistema calculará automaticamente os horários disponíveis para agendamento.</p>
                     </div>
+                    
+                    <div class="form-group">
+                        <label>Horário de funcionamento:</label>
+                        <div class="horarios-container">
+                            <div class="horario-input">
+                                <label>Abertura</label>
+                                <input type="time" id="horarioAbertura" required>
+                            </div>
+                            <div class="horario-input">
+                                <label>Fechamento</label>
+                                <input type="time" id="horarioFechamento" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="duracaoAtendimento">Duração de cada atendimento (minutos):</label>
+                        <select id="duracaoAtendimento" required>
+                            <option value="15">15 minutos</option>
+                            <option value="30" selected>30 minutos</option>
+                            <option value="45">45 minutos</option>
+                            <option value="60">60 minutos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="intervaloAtendimento">Intervalo entre atendimentos (minutos):</label>
+                        <select id="intervaloAtendimento" required>
+                            <option value="0">Sem intervalo</option>
+                            <option value="5">5 minutos</option>
+                            <option value="10">10 minutos</option>
+                            <option value="15" selected>15 minutos</option>
+                            <option value="20">20 minutos</option>
+                            <option value="30">30 minutos</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn-salvar">Salvar Configurações</button>
+                    <div class="success-message" id="successMessage">Configurações salvas com sucesso!</div>
+                </form>
+                
+                <div class="horarios-exemplo">
+                    <h4>Como funciona:</h4>
+                    <ul>
+                        <li>Selecione os dias da semana em que seu estabelecimento está aberto</li>
+                        <li>Defina o horário de abertura e fechamento</li>
+                        <li>Escolha quanto tempo dura cada atendimento</li>
+                        <li>Defina um intervalo entre os atendimentos (opcional)</li>
+                    </ul>
+                    <p>O sistema calculará automaticamente os horários disponíveis para agendamento.</p>
+                </div>
+            </div>
+            
+            <!-- Seção de Relatório -->
+            <div class="relatorio-section">
+                <h3>SOLICITAR RELATÓRIO</h3>
+                <p>Solicite um relatório completo dos seus agendamentos.</p>
+                
+                <form id="relatorioForm">
+                    <div class="form-group">
+                        <label for="periodoRelatorio">Período do relatório:</label>
+                        <select id="periodoRelatorio" required>
+                            <option value="7">Últimos 7 dias</option>
+                            <option value="15">Últimos 15 dias</option>
+                            <option value="30" selected>Últimos 30 dias</option>
+                            <option value="90">Últimos 3 meses</option>
+                            <option value="180">Últimos 6 meses</option>
+                            <option value="365">Últimos 12 meses</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn-salvar">Solicitar Relatório</button>
+                </form>
+                
+                <div class="relatorio-info">
+                    <p><strong>Como funciona:</strong> Ao solicitar o relatório, nossa equipe irá preparar um arquivo com todos os dados dos seus agendamentos no período selecionado.</p>
+                    <p>O relatório será enviado para o e-mail cadastrado no prazo máximo de 24 horas.</p>
+                    <p>Para dúvidas ou solicitações específicas, entre em contato: <strong>relatorios@horario.site</strong></p>
+                </div>
+            </div>
+            
+            <!-- Informações Cadastrais -->
+            <div class="info-adicionais" id="userInfoContainer">
+                <h2>INFORMAÇÕES CADASTRAIS</h2>
+                <div id="userDataLoader" style="text-align: center;">Carregando dados...</div>
+                
+                <div class="info-contato">
+                    <p>Para alterar estas informações, entre em contato pelo e-mail: <strong>suporte@horario.site</strong></p>
+                    <p>Inclua no assunto: "Alteração de Cadastro - [Seu CNPJ]"</p>
                 </div>
                 
-                <!-- Informações Cadastrais -->
-                <div class="info-adicionais" id="userInfoContainer">
-                    <h2>INFORMAÇÕES CADASTRAIS</h2>
-                    <div id="userDataLoader" style="text-align: center;">Carregando dados...</div>
-                    
-                    <div class="info-contato">
-                        <p>Para alterar estas informações, entre em contato pelo e-mail: <strong>suporte@horario.site</strong></p>
-                        <p>Inclua no assunto: "Alteração de Cadastro - [Seu CNPJ]"</p>
-                    </div>
-                    
-                    <button type="button" class="btn-cancelar">Cancelar Assinatura</button>
-                </div>
+                <button type="button" class="btn-cancelar">Cancelar Assinatura</button>
             </div>
         </div>
     </div>
@@ -764,9 +751,10 @@
                 const querySnapshot = await agendamentosRef.get();
                 
                 if (!querySnapshot.empty) {
-                    // Cria um elemento de ícone de alerta
-                    const alertIcon = document.createElement('i');
-                    alertIcon.className = 'fas fa-exclamation-circle alert-icon';
+                    // Cria um elemento de ícone de alerta (agora maior e centralizado)
+                    const alertIcon = document.createElement('div');
+                    alertIcon.className = 'day-alert';
+                    alertIcon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
                     
                     // Adiciona o ícone ao cell do dia
                     cell[0].appendChild(alertIcon);
@@ -810,7 +798,7 @@
                         return a.horario.localeCompare(b.horario);
                     });
                     
-                    // Gera o HTML para cada agendamento
+                    // Gera o HTML para cada agendamento (agora mais simples)
                     agendamentos.forEach(agendamento => {
                         const statusClass = getStatusClass(agendamento.status);
                         
@@ -827,20 +815,12 @@
                                         <div>${agendamento.clienteNome || 'Não informado'}</div>
                                     </div>
                                     <div class="agendamento-info">
-                                        <strong>Documento</strong>
-                                        <div>${agendamento.clienteDocumento || 'Não informado'}</div>
-                                    </div>
-                                    <div class="agendamento-info">
                                         <strong>Telefone</strong>
                                         <div>${agendamento.clienteTelefone || 'Não informado'}</div>
                                     </div>
                                     <div class="agendamento-info">
                                         <strong>E-mail</strong>
                                         <div>${agendamento.clienteEmail || 'Não informado'}</div>
-                                    </div>
-                                    <div class="agendamento-info">
-                                        <strong>Data do Agendamento</strong>
-                                        <div>${formatFirestoreTimestamp(agendamento.dataCriacao)}</div>
                                     </div>
                                 </div>
                             </div>
@@ -1143,6 +1123,21 @@
                 console.error('Erro ao salvar configurações:', error);
                 alert('Erro ao salvar configurações. Tente novamente.');
             }
+        });
+        
+        // Formulário de Solicitação de Relatório
+        document.getElementById('relatorioForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!currentUserData) return;
+            
+            const periodo = document.getElementById('periodoRelatorio').value;
+            
+            // Mostra mensagem de sucesso
+            alert(`Relatório solicitado com sucesso! Você receberá um e-mail com o relatório dos últimos ${periodo} dias em até 24 horas.`);
+            
+            // Aqui você pode adicionar lógica para enviar a solicitação para o backend
+            // Por exemplo, criar um documento em uma coleção de solicitações de relatório
         });
     </script>
 </body>
