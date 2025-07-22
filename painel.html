@@ -666,9 +666,6 @@
                         loadHorariosConfig(userData);
                         document.getElementById('loaderOverlay').style.display = 'none';
                         
-                        // Inicializa horários futuros
-                        inicializarHorariosFuturos(userData);
-                        
                         // Inicializa o calendário com os agendamentos
                         initializeCalendar(userData);
                     } catch (error) {
@@ -706,10 +703,17 @@
                         cell.css('background-color', '#f9f9f9');
                     }
                 },
+                dayClick: function(date, jsEvent, view) {
+                    if (view.name === 'month') {
+                        $('#calendar').fullCalendar('changeView', 'agendaDay');
+                        $('#calendar').fullCalendar('gotoDate', date);
+                    }
+                },
                 viewRender: function(view, element) {
                     if (view.name === 'agendaDay') {
-                        const dateStr = view.intervalStart.format('DD/MM/YYYY');
-                        const dateKey = view.intervalStart.format('DD-MM-YYYY');
+                        const date = view.intervalStart;
+                        const dateStr = date.format('DD/MM/YYYY');
+                        const dateKey = date.format('DD-MM-YYYY');
                         
                         // Carrega os agendamentos para este dia
                         loadAgendamentosForDay(userData.id, dateKey, dateStr);
@@ -721,16 +725,15 @@
         // Função para verificar se um dia tem agendamentos
         async function checkDayForAgendamentos(date, cell, userId) {
             try {
-                const dateStr = date.format('DD-MM-YYYY');
-                const horariosRef = db.collection('horarios').doc(`${userId}_${dateStr}`);
-                const doc = await horariosRef.get();
+                const dateKey = date.format('DD-MM-YYYY');
+                const agendamentosRef = db.collection('usuarios').doc(userId)
+                    .collection('agendamentos').where('data', '==', dateKey);
                 
-                if (doc.exists) {
-                    const data = doc.data();
-                    if (data.horariosAgendados && data.horariosAgendados.length > 0) {
-                        // Adiciona classe para mostrar o ícone de alerta
-                        $(cell).addClass('has-agendamento');
-                    }
+                const querySnapshot = await agendamentosRef.get();
+                
+                if (!querySnapshot.empty) {
+                    // Adiciona classe para mostrar o ícone de alerta
+                    $(cell).addClass('has-agendamento');
                 }
             } catch (error) {
                 console.error("Erro ao verificar agendamentos:", error);
@@ -740,8 +743,10 @@
         // Função para carregar agendamentos de um dia específico
         async function loadAgendamentosForDay(userId, dateKey, dateStr) {
             try {
-                const horariosRef = db.collection('horarios').doc(`${userId}_${dateKey}`);
-                const doc = await horariosRef.get();
+                const agendamentosRef = db.collection('usuarios').doc(userId)
+                    .collection('agendamentos').where('data', '==', dateKey);
+                
+                const querySnapshot = await agendamentosRef.get();
                 
                 let agendamentosHTML = `
                     <div style="margin-bottom: 20px; width: 100%; max-width: 1200px; margin: 0 auto;">
@@ -752,45 +757,36 @@
                         <div class="day-agendamentos">
                 `;
                 
-                if (doc.exists) {
-                    const data = doc.data();
-                    
-                    if (data.horariosAgendados && data.horariosAgendados.length > 0) {
-                        data.horariosAgendados.forEach(agendamento => {
-                            agendamentosHTML += `
-                                <div class="agendamento-item">
-                                    <div class="agendamento-header">
-                                        <span>${agendamento.horario}</span>
-                                        <span>${agendamento.servico || 'Serviço não especificado'}</span>
+                if (!querySnapshot.empty) {
+                    querySnapshot.forEach(doc => {
+                        const agendamento = doc.data();
+                        agendamentosHTML += `
+                            <div class="agendamento-item">
+                                <div class="agendamento-header">
+                                    <span>${agendamento.horario}</span>
+                                    <span>${agendamento.servico || 'Serviço não especificado'}</span>
+                                </div>
+                                <div class="agendamento-body">
+                                    <div class="agendamento-info">
+                                        <strong>Cliente</strong>
+                                        <div>${agendamento.nomeCliente || 'Não informado'}</div>
                                     </div>
-                                    <div class="agendamento-body">
-                                        <div class="agendamento-info">
-                                            <strong>Cliente</strong>
-                                            <div>${agendamento.nomeCliente || 'Não informado'}</div>
-                                        </div>
-                                        <div class="agendamento-info">
-                                            <strong>Telefone</strong>
-                                            <div>${agendamento.telefoneCliente || 'Não informado'}</div>
-                                        </div>
-                                        <div class="agendamento-info">
-                                            <strong>E-mail</strong>
-                                            <div>${agendamento.emailCliente || 'Não informado'}</div>
-                                        </div>
-                                        <div class="agendamento-info">
-                                            <strong>Observações</strong>
-                                            <div>${agendamento.observacoes || 'Nenhuma observação'}</div>
-                                        </div>
+                                    <div class="agendamento-info">
+                                        <strong>Telefone</strong>
+                                        <div>${agendamento.telefoneCliente || 'Não informado'}</div>
+                                    </div>
+                                    <div class="agendamento-info">
+                                        <strong>E-mail</strong>
+                                        <div>${agendamento.emailCliente || 'Não informado'}</div>
+                                    </div>
+                                    <div class="agendamento-info">
+                                        <strong>Observações</strong>
+                                        <div>${agendamento.observacoes || 'Nenhuma observação'}</div>
                                     </div>
                                 </div>
-                            `;
-                        });
-                    } else {
-                        agendamentosHTML += `
-                            <div class="no-agendamentos">
-                                Nenhum agendamento encontrado para este dia.
                             </div>
                         `;
-                    }
+                    });
                 } else {
                     agendamentosHTML += `
                         <div class="no-agendamentos">
@@ -828,64 +824,6 @@
                     location.reload();
                 });
             }
-        }
-
-        // Função para inicializar horários futuros
-        async function inicializarHorariosFuturos(userData) {
-            try {
-                if (!userData.horariosConfig) return;
-                
-                for (let i = 0; i < 7; i++) {
-                    const date = new Date();
-                    date.setDate(date.getDate() + i);
-                    const dataStr = date.toLocaleDateString('pt-BR').replace(/\//g, '-');
-                    
-                    // Verificar se já existe configuração para esta data
-                    const horariosRef = db.collection('horarios').doc(`${userData.id}_${dataStr}`);
-                    const doc = await horariosRef.get();
-                    
-                    if (!doc.exists) {
-                        // Criar novo registro de horários
-                        await horariosRef.set({
-                            identificacao: userData.identificacao,
-                            data: dataStr,
-                            horariosDisponiveis: gerarHorariosPadrao(userData.horariosConfig),
-                            horariosAgendados: []
-                        });
-                    }
-                }
-            } catch (error) {
-                console.error("Erro ao inicializar horários futuros:", error);
-            }
-        }
-
-        // Função para gerar horários padrão baseados na configuração
-        function gerarHorariosPadrao(config) {
-            if (!config) return [];
-            
-            const horarios = [];
-            const [horaAbertura, minutoAbertura] = config.horarioAbertura.split(':').map(Number);
-            const [horaFechamento, minutoFechamento] = config.horarioFechamento.split(':').map(Number);
-            
-            const inicio = new Date();
-            inicio.setHours(horaAbertura, minutoAbertura, 0, 0);
-            
-            const fim = new Date();
-            fim.setHours(horaFechamento, minutoFechamento, 0, 0);
-            
-            let horarioAtual = new Date(inicio);
-            
-            while (horarioAtual < fim) {
-                const horas = String(horarioAtual.getHours()).padStart(2, '0');
-                const minutos = String(horarioAtual.getMinutes()).padStart(2, '0');
-                horarios.push(`${horas}:${minutos}`);
-                
-                // Avança o horário pela duração + intervalo
-                horarioAtual.setMinutes(horarioAtual.getMinutes() + 
-                    config.duracaoAtendimento + config.intervaloAtendimento);
-            }
-            
-            return horarios;
         }
 
         // Carrega os dados do usuário
@@ -955,9 +893,6 @@
                 setTimeout(() => {
                     successMessage.style.display = 'none';
                 }, 3000);
-                
-                // Atualiza os horários futuros com a nova configuração
-                await inicializarHorariosFuturos({...userData, horariosConfig: config});
                 
                 return true;
             } catch (error) {
