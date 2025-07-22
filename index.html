@@ -127,52 +127,58 @@
         }
 
         .empresas-container {
-            padding: 20px 40px;
+            padding: 5px 40px 20px;
         }
 
         .empresas-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 5px;
+            gap: 3px;
         }
 
         .empresa-item {
             background-color: white;
-            padding: 10px 15px;
+            padding: 8px 15px;
             border: 1px solid #eee;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .empresa-item:hover {
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
+        .empresa-info {
+            flex: 1;
+        }
+
         .empresa-nome {
             font-size: 14px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .empresa-endereco {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
-            margin-bottom: 3px;
         }
 
         .servico-tag {
-            display: inline-block;
-            font-size: 11px;
+            font-size: 12px;
             color: #d32f2f;
             font-weight: bold;
         }
 
         .divider {
-            margin: 5px 0;
-            height: 1px;
-            background-color: #eee;
+            display: none;
         }
 
         .loading {
@@ -188,16 +194,6 @@
             background-color: #fde8e8;
             border-radius: 0;
             margin: 20px;
-        }
-
-        .update-notice {
-            text-align: center;
-            padding: 10px;
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            font-size: 14px;
-            margin-bottom: 10px;
-            display: none;
         }
 
         @media (max-width: 768px) {
@@ -225,7 +221,7 @@
             }
             
             .empresas-container {
-                padding: 15px;
+                padding: 5px 15px 15px;
             }
         }
     </style>
@@ -305,10 +301,6 @@
         </div>
     </section>
     
-    <div class="update-notice" id="update-notice">
-        Dados atualizados com sucesso!
-    </div>
-    
     <section class="empresas-container">
         <div id="empresas-lista" class="loading">
             <div class="spinner-border text-primary" role="status">
@@ -348,7 +340,9 @@
                 empresa.endereco,
                 empresa.numero,
                 empresa.complemento,
-                empresa.bairro
+                empresa.bairro,
+                empresa.cidade,
+                empresa.estado ? ' - ' + empresa.estado : ''
             ].filter(Boolean).join(', ');
             
             // Obtém o primeiro serviço se for um array
@@ -357,9 +351,13 @@
                 : empresa.servicos || 'Serviço não especificado';
             
             empresaElement.innerHTML = `
-                <div class="empresa-nome">${empresa.nomeFantasia || 'Nome não informado'}</div>
-                <div class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'} ${empresa.cidade || ''}${empresa.estado ? ' - ' + empresa.estado : ''}</div>
-                <div class="servico-tag">${servico}</div>
+                <div class="empresa-info">
+                    <div class="empresa-nome">
+                        ${empresa.nomeFantasia || 'Nome não informado'}
+                        <span class="servico-tag">${servico}</span>
+                    </div>
+                    <div class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</div>
+                </div>
                 <div class="divider"></div>
             `;
             
@@ -389,23 +387,14 @@
                 existingIds.add(item.dataset.id);
             });
             
-            let newCount = 0;
             empresas.forEach(empresa => {
                 const empresaId = empresa.id || JSON.stringify(empresa);
                 if (!existingIds.has(empresaId)) {
                     const empresaElement = createEmpresaElement(empresa);
                     empresaElement.dataset.id = empresaId;
                     gridEmpresas.appendChild(empresaElement);
-                    newCount++;
                 }
             });
-            
-            if (newCount > 0 && !isFirstLoad) {
-                const notice = document.getElementById('update-notice');
-                notice.textContent = `${newCount} nova(s) empresa(s) adicionada(s)!`;
-                notice.style.display = 'block';
-                setTimeout(() => notice.style.display = 'none', 3000);
-            }
         }
 
         // Função para filtrar empresas
