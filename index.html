@@ -72,6 +72,7 @@
             background-color: white;
             padding: 20px 40px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
         }
 
         .filtro-container {
@@ -79,11 +80,14 @@
             gap: 15px;
             flex-wrap: wrap;
             align-items: flex-end;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .filtro-item {
             flex: 1;
-            min-width: 150px;
+            min-width: 180px;
         }
 
         .filtro-item label {
@@ -123,6 +127,7 @@
             height: 36px;
             border-radius: 4px;
             transition: all 0.3s;
+            min-width: 40px;
         }
 
         .filtro-geo-btn:hover {
@@ -132,6 +137,9 @@
         .empresas-container {
             padding: 0 0 20px 0;
             margin-top: 0;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .empresas-grid {
@@ -159,7 +167,7 @@
 
         .empresa-info {
             flex: 1;
-            text-align: left; /* Alinha o texto à esquerda */
+            text-align: left;
         }
 
         .empresa-nome {
@@ -260,50 +268,25 @@
         <div class="filtro-container">
             <div class="filtro-item">
                 <label for="cidade">CIDADE</label>
-                <input type="text" id="cidade" placeholder="Digite a cidade">
+                <select id="cidade">
+                    <option value="">Todas as cidades</option>
+                </select>
             </div>
             
             <div class="filtro-item">
                 <label for="estado">ESTADO</label>
                 <select id="estado">
-                    <option value="">Todos</option>
-                    <option value="AC">Acre</option>
-                    <option value="AL">Alagoas</option>
-                    <option value="AP">Amapá</option>
-                    <option value="AM">Amazonas</option>
-                    <option value="BA">Bahia</option>
-                    <option value="CE">Ceará</option>
-                    <option value="DF">Distrito Federal</option>
-                    <option value="ES">Espírito Santo</option>
-                    <option value="GO">Goiás</option>
-                    <option value="MA">Maranhão</option>
-                    <option value="MT">Mato Grosso</option>
-                    <option value="MS">Mato Grosso do Sul</option>
-                    <option value="MG">Minas Gerais</option>
-                    <option value="PA">Pará</option>
-                    <option value="PB">Paraíba</option>
-                    <option value="PR">Paraná</option>
-                    <option value="PE">Pernambuco</option>
-                    <option value="PI">Piauí</option>
-                    <option value="RJ">Rio de Janeiro</option>
-                    <option value="RN">Rio Grande do Norte</option>
-                    <option value="RS">Rio Grande do Sul</option>
-                    <option value="RO">Rondônia</option>
-                    <option value="RR">Roraima</option>
-                    <option value="SC">Santa Catarina</option>
-                    <option value="SP">São Paulo</option>
-                    <option value="SE">Sergipe</option>
-                    <option value="TO">Tocantins</option>
+                    <option value="">Todos os estados</option>
                 </select>
             </div>
             
             <div class="filtro-item">
-                <label for="nome-empresa">EMPRESA</label>
+                <label for="nome-empresa">NOME DA EMPRESA</label>
                 <input type="text" id="nome-empresa" placeholder="Digite o nome">
             </div>
             
             <div class="filtro-item">
-                <label for="servico">SERVIÇOS</label>
+                <label for="servico">TIPOS DE SERVIÇO</label>
                 <select id="servico">
                     <option value="">Todos os serviços</option>
                 </select>
@@ -344,6 +327,8 @@
         // Variáveis globais
         let todasEmpresas = [];
         let servicosDisponiveis = new Set();
+        let cidadesDisponiveis = new Set();
+        let estadosDisponiveis = new Set();
         let isFirstLoad = true;
 
         // Função para criar elemento de empresa
@@ -384,9 +369,9 @@
             
             if (empresas.length === 0) {
                 if (isFirstLoad) {
-                    listaEmpresas.innerHTML = '<div class="error-message">Nenhuma empresa encontrada com os filtros selecionados.</div>';
+                    listaEmpresas.innerHTML = '<div class="error-message">Nenhuma empresa cadastrada no momento.</div>';
                 } else {
-                    listaEmpresas.innerHTML = '<div class="error-message">Nenhuma empresa corresponde aos critérios de filtro.</div>';
+                    listaEmpresas.innerHTML = '<div class="error-message">Nenhuma empresa encontrada com os critérios selecionados.</div>';
                 }
                 return;
             }
@@ -402,6 +387,44 @@
             });
             
             isFirstLoad = false;
+        }
+
+        // Função para atualizar dropdown de cidades baseado no estado selecionado
+        function atualizarCidades() {
+            const estadoSelecionado = document.getElementById('estado').value;
+            const selectCidade = document.getElementById('cidade');
+            
+            // Limpa as opções atuais, mantendo apenas a primeira
+            selectCidade.innerHTML = '<option value="">Todas as cidades</option>';
+            
+            if (!estadoSelecionado) {
+                // Se nenhum estado selecionado, mostra todas as cidades
+                Array.from(cidadesDisponiveis).sort().forEach(cidade => {
+                    const option = document.createElement('option');
+                    option.value = cidade;
+                    option.textContent = cidade;
+                    selectCidade.appendChild(option);
+                });
+            } else {
+                // Filtra cidades pelo estado selecionado
+                const cidadesFiltradas = todasEmpresas
+                    .filter(empresa => empresa.estado === estadoSelecionado)
+                    .map(empresa => empresa.cidade)
+                    .filter(cidade => cidade); // Remove valores undefined
+                
+                // Usamos Set para remover duplicatas
+                const cidadesUnicas = [...new Set(cidadesFiltradas)];
+                
+                cidadesUnicas.sort().forEach(cidade => {
+                    const option = document.createElement('option');
+                    option.value = cidade;
+                    option.textContent = cidade;
+                    selectCidade.appendChild(option);
+                });
+            }
+            
+            // Reaplica o filtro
+            filtrarEmpresas();
         }
 
         // Função para filtrar empresas de forma inteligente
@@ -424,7 +447,7 @@
                     servicosEmpresa = [empresa.servicos.toLowerCase()];
                 }
                 
-                // Verifica todos os filtros de forma combinada
+                // Verifica todos os filtros de forma combinada com busca parcial
                 const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
                 const estadoMatch = !estado || estadoEmpresa === estado;
                 const servicoMatch = !servico || servicosEmpresa.some(s => s.includes(servico));
@@ -449,35 +472,68 @@
                 const querySnapshot = await db.collection("usuarios").get();
                 
                 todasEmpresas = [];
+                cidadesDisponiveis = new Set();
+                estadosDisponiveis = new Set();
+                servicosDisponiveis = new Set();
+                
                 querySnapshot.forEach((doc) => {
                     const empresaData = doc.data();
                     empresaData.id = doc.id; // Adiciona o ID do documento
                     todasEmpresas.push(empresaData);
-                });
-                
-                // Processa os serviços disponíveis
-                servicosDisponiveis = new Set();
-                todasEmpresas.forEach(empresa => {
-                    if (empresa.servicos) {
-                        if (Array.isArray(empresa.servicos)) {
-                            empresa.servicos.forEach(servico => servicosDisponiveis.add(servico));
-                        } else {
-                            servicosDisponiveis.add(empresa.servicos);
+                    
+                    // Adiciona cidade e estado aos conjuntos
+                    if (empresaData.cidade) cidadesDisponiveis.add(empresaData.cidade);
+                    if (empresaData.estado) estadosDisponiveis.add(empresaData.estado);
+                    
+                    // Processa os serviços
+                    if (empresaData.servicos) {
+                        if (Array.isArray(empresaData.servicos)) {
+                            empresaData.servicos.forEach(servico => {
+                                if (servico && typeof servico === 'string') {
+                                    servicosDisponiveis.add(servico.trim());
+                                }
+                            });
+                        } else if (typeof empresaData.servicos === 'string') {
+                            servicosDisponiveis.add(empresaData.servicos.trim());
                         }
                     }
                 });
                 
-                // Atualiza o dropdown de serviços
+                // Atualiza o dropdown de serviços (sem duplicatas)
                 const selectServico = document.getElementById('servico');
                 const currentService = selectServico.value;
                 selectServico.innerHTML = '<option value="">Todos os serviços</option>';
-                Array.from(servicosDisponiveis).sort().forEach(servico => {
-                    const option = document.createElement('option');
-                    option.value = servico;
-                    option.textContent = servico;
-                    if (servico === currentService) option.selected = true;
-                    selectServico.appendChild(option);
-                });
+                
+                // Converte Set para Array, ordena e remove duplicatas
+                Array.from(servicosDisponiveis)
+                    .filter((servico, index, self) => 
+                        self.findIndex(s => s.toLowerCase() === servico.toLowerCase()) === index
+                    ) // Remove duplicatas case insensitive
+                    .sort((a, b) => a.localeCompare(b))
+                    .forEach(servico => {
+                        const option = document.createElement('option');
+                        option.value = servico;
+                        option.textContent = servico;
+                        if (servico === currentService) option.selected = true;
+                        selectServico.appendChild(option);
+                    });
+                
+                // Atualiza dropdown de estados apenas com os estados existentes
+                const selectEstado = document.getElementById('estado');
+                selectEstado.innerHTML = '<option value="">Todos os estados</option>'; // Limpa e mantém apenas a opção padrão
+                
+                // Adiciona apenas os estados que existem nas empresas
+                Array.from(estadosDisponiveis)
+                    .sort()
+                    .forEach(estado => {
+                        const option = document.createElement('option');
+                        option.value = estado;
+                        option.textContent = estado;
+                        selectEstado.appendChild(option);
+                    });
+                
+                // Atualiza dropdown de cidades
+                atualizarCidades();
                 
                 // Exibe as empresas com os filtros atuais
                 filtrarEmpresas();
@@ -516,13 +572,23 @@
         // Inicia quando a página carrega
         document.addEventListener('DOMContentLoaded', () => {
             // Event listeners para os filtros
-            document.getElementById('cidade').addEventListener('input', filtrarEmpresas);
-            document.getElementById('estado').addEventListener('change', filtrarEmpresas);
+            document.getElementById('cidade').addEventListener('change', filtrarEmpresas);
+            document.getElementById('estado').addEventListener('change', () => {
+                atualizarCidades();
+                filtrarEmpresas();
+            });
             document.getElementById('servico').addEventListener('change', filtrarEmpresas);
             document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
             
+            // Adiciona busca inteligente com debounce para o campo de nome da empresa
+            let timeout;
+            document.getElementById('nome-empresa').addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(filtrarEmpresas, 300);
+            });
+            
             document.getElementById('geolocalizacao').addEventListener('click', () => {
-                alert('Geolocalização ativada - esta funcionalidade seria implementada com a API de geolocalização do navegador');
+                alert('Geolocalização ativada - esta funcionalidade será implementada com a API de geolocalização do navegador');
             });
             
             // Inicia o carregamento
