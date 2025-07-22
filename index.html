@@ -83,6 +83,7 @@
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
+            justify-content: center;
         }
 
         .filtro-item {
@@ -114,26 +115,6 @@
             border-color: #4CAF50;
             outline: none;
             box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-        }
-
-        .filtro-geo-btn {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 36px;
-            border-radius: 4px;
-            transition: all 0.3s;
-            min-width: 40px;
-            flex: 0 0 auto;
-        }
-
-        .filtro-geo-btn:hover {
-            background-color: #45a049;
         }
 
         .empresas-container {
@@ -293,12 +274,6 @@
                 <select id="servico">
                     <option value="">Todos os serviços</option>
                 </select>
-            </div>
-            
-            <div class="filtro-item">
-                <button class="filtro-geo-btn" id="geolocalizacao" title="Usar minha localização">
-                    <i class="fas fa-location-arrow"></i>
-                </button>
             </div>
         </div>
     </section>
@@ -588,10 +563,6 @@
             document.getElementById('nome-empresa').addEventListener('input', () => {
                 clearTimeout(timeout);
                 timeout = setTimeout(filtrarEmpresas, 300);
-            });
-            
-            document.getElementById('geolocalizacao').addEventListener('click', () => {
-                alert('Geolocalização ativada - esta funcionalidade será implementada com a API de geolocalização do navegador');
             });
             
             // Inicia o carregamento
