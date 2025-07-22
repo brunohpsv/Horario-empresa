@@ -325,28 +325,15 @@
         </div>
     </section>
 
-    <!-- SDKs do Firebase e código JavaScript -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyClmS9QnPH_HpLzN8mGW2s2PjfH4HXEAt8",
-            authDomain: "horariosite-669d1.firebaseapp.com",
-            projectId: "horariosite-669d1",
-            storageBucket: "horariosite-669d1.appspot.com",
-            messagingSenderId: "154976451283"
-        };
-
-        // Inicializa o Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
         // Variáveis globais
         let todasEmpresas = [];
         let servicosDisponiveis = new Set();
         let refreshInterval;
         let isFirstLoad = true;
+
+        // URL do primeiro código que está servindo os dados
+        const DATA_SOURCE_URL = 'https://brunohpsv.github.io/dados/'; // Substitua pela URL real do primeiro código
 
         // Função para formatar telefone
         function formatarTelefone(numero) {
@@ -452,8 +439,8 @@
             exibirEmpresas(empresasFiltradas);
         }
 
-        // Função para carregar empresas do Firestore (agora da coleção 'usuarios')
-        async function carregarEmpresasFirestore() {
+        // Função para carregar empresas do primeiro código
+        async function carregarEmpresas() {
             try {
                 const listaEmpresas = document.getElementById('empresas-lista');
                 
@@ -461,21 +448,45 @@
                     listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
                 }
                 
-                const snapshot = await db.collection("usuarios").where("tipo", "==", "empresa").get();
+                // Faz uma requisição para o primeiro código para obter os dados
+                const response = await fetch(DATA_SOURCE_URL);
+                const text = await response.text();
+                
+                // Extrai os dados da página (isso depende de como o primeiro código exibe os dados)
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const dataItems = doc.querySelectorAll('#data-list li');
+                
                 todasEmpresas = [];
                 servicosDisponiveis = new Set();
                 
-                snapshot.forEach(doc => {
-                    const empresa = {
-                        id: doc.id,
-                        ...doc.data()
-                    };
-                    todasEmpresas.push(empresa);
+                dataItems.forEach(item => {
+                    const content = item.textContent;
+                    // Parseia os dados conforme o formato exibido no primeiro código
+                    // Você precisará ajustar esta parte conforme o formato real dos dados
+                    const lines = content.split('\n').filter(line => line.trim() !== '');
+                    const empresa = {};
                     
-                    if (empresa.servico) {
-                        servicosDisponiveis.add(empresa.servico);
-                    } else if (empresa.tipoServico) {
-                        servicosDisponiveis.add(empresa.tipoServico);
+                    lines.forEach(line => {
+                        const parts = line.split(':').map(part => part.trim());
+                        if (parts.length >= 2) {
+                            const key = parts[0];
+                            const value = parts.slice(1).join(':').trim();
+                            empresa[key.toLowerCase()] = value;
+                        }
+                    });
+                    
+                    if (Object.keys(empresa).length > 0) {
+                        // Adiciona lógica para mapear campos conforme necessário
+                        empresa.nome = empresa.nome || empresa['nome empresa'] || '';
+                        empresa.servico = empresa.servico || empresa.tiposervico || '';
+                        empresa.cidade = empresa.cidade || '';
+                        empresa.estado = empresa.estado || '';
+                        
+                        todasEmpresas.push(empresa);
+                        if (empresa.servico) {
+                            servicosDisponiveis.add(empresa.servico);
+                        }
                     }
                 });
                 
@@ -513,7 +524,7 @@
             }
             
             refreshInterval = setInterval(() => {
-                carregarEmpresasFirestore();
+                carregarEmpresas();
             }, 10000);
         }
 
@@ -528,7 +539,7 @@
                 alert('Geolocalização ativada - esta funcionalidade seria implementada com a API de geolocalização do navegador');
             });
             
-            carregarEmpresasFirestore();
+            carregarEmpresas();
             startRefreshInterval();
         });
     </script>
