@@ -332,8 +332,8 @@
         let refreshInterval;
         let isFirstLoad = true;
 
-        // URL do primeiro código que está servindo os dados
-        const DATA_SOURCE_URL = 'https://brunohpsv.github.io/dados/'; // Substitua pela URL real do primeiro código
+        // URL do endpoint que fornece os dados em JSON
+        const DATA_SOURCE_URL = 'https://brunohpsv.github.io/dados/dados.json'; // Arquivo JSON com os dados
 
         // Função para formatar telefone
         function formatarTelefone(numero) {
@@ -439,7 +439,7 @@
             exibirEmpresas(empresasFiltradas);
         }
 
-        // Função para carregar empresas do primeiro código
+        // Função para carregar empresas do endpoint JSON
         async function carregarEmpresas() {
             try {
                 const listaEmpresas = document.getElementById('empresas-lista');
@@ -448,48 +448,26 @@
                     listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
                 }
                 
-                // Faz uma requisição para o primeiro código para obter os dados
+                // Faz uma requisição para o endpoint JSON
                 const response = await fetch(DATA_SOURCE_URL);
-                const text = await response.text();
                 
-                // Extrai os dados da página (isso depende de como o primeiro código exibe os dados)
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, 'text/html');
-                const dataItems = doc.querySelectorAll('#data-list li');
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
                 
-                todasEmpresas = [];
+                const data = await response.json();
+                
+                todasEmpresas = data.empresas || data || [];
                 servicosDisponiveis = new Set();
                 
-                dataItems.forEach(item => {
-                    const content = item.textContent;
-                    // Parseia os dados conforme o formato exibido no primeiro código
-                    // Você precisará ajustar esta parte conforme o formato real dos dados
-                    const lines = content.split('\n').filter(line => line.trim() !== '');
-                    const empresa = {};
-                    
-                    lines.forEach(line => {
-                        const parts = line.split(':').map(part => part.trim());
-                        if (parts.length >= 2) {
-                            const key = parts[0];
-                            const value = parts.slice(1).join(':').trim();
-                            empresa[key.toLowerCase()] = value;
-                        }
-                    });
-                    
-                    if (Object.keys(empresa).length > 0) {
-                        // Adiciona lógica para mapear campos conforme necessário
-                        empresa.nome = empresa.nome || empresa['nome empresa'] || '';
-                        empresa.servico = empresa.servico || empresa.tiposervico || '';
-                        empresa.cidade = empresa.cidade || '';
-                        empresa.estado = empresa.estado || '';
-                        
-                        todasEmpresas.push(empresa);
-                        if (empresa.servico) {
-                            servicosDisponiveis.add(empresa.servico);
-                        }
+                // Processa os dados e extrai os serviços disponíveis
+                todasEmpresas.forEach(empresa => {
+                    if (empresa.servico || empresa.tipoServico) {
+                        servicosDisponiveis.add(empresa.servico || empresa.tipoServico);
                     }
                 });
                 
+                // Atualiza o dropdown de serviços
                 const selectServico = document.getElementById('servico');
                 const currentService = selectServico.value;
                 selectServico.innerHTML = '<option value="">Todos os serviços</option>';
@@ -501,6 +479,7 @@
                     selectServico.appendChild(option);
                 });
                 
+                // Exibe as empresas filtradas
                 filtrarEmpresas();
                 
             } catch (error) {
