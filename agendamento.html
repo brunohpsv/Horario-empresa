@@ -1,3 +1,6 @@
+Vou ajustar o código conforme suas solicitações. Aqui está a versão atualizada:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -473,7 +476,7 @@
         let horarioSelecionado = null;
         let horariosDisponiveis = [];
         let agendamentoConfirmado = false;
-        let horariosPadrao = []; // Horários padrão da empresa
+        let horariosConfig = {}; // Configurações de horários da empresa
 
         // Inicializa o calendário
         const calendar = flatpickr("#calendar-input", {
@@ -520,15 +523,18 @@
                         // Atualiza o cabeçalho com os dados da empresa
                         document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || "Empresa não identificada";
 
-                        // Carrega os horários padrão da empresa
-                        if (empresaSelecionada.horariosFuncionamento) {
-                            horariosPadrao = empresaSelecionada.horariosFuncionamento;
+                        // Carrega as configurações de horários da empresa
+                        if (empresaSelecionada.horariosConfig) {
+                            horariosConfig = empresaSelecionada.horariosConfig;
                         } else {
-                            // Horários padrão caso não estejam definidos
-                            horariosPadrao = [
-                                "08:00", "09:00", "10:00", "11:00", 
-                                "13:00", "14:00", "15:00", "16:00", "17:00"
-                            ];
+                            // Configurações padrão caso não estejam definidas
+                            horariosConfig = {
+                                inicioManha: "08:00",
+                                fimManha: "12:00",
+                                inicioTarde: "13:00",
+                                fimTarde: "18:00",
+                                intervalo: 60 // minutos
+                            };
                         }
 
                         // Carrega os serviços no select
@@ -553,10 +559,27 @@
                 return;
             }
 
-            const servicos = Array.isArray(empresaSelecionada.servicos) ? 
-                empresaSelecionada.servicos : 
-                [empresaSelecionada.servicos];
+            // Processa os serviços que podem estar separados por "/"
+            let servicos = [];
+            if (Array.isArray(empresaSelecionada.servicos)) {
+                // Se for array, processa cada item
+                empresaSelecionada.servicos.forEach(item => {
+                    if (item.includes('/')) {
+                        servicos.push(...item.split('/').map(s => s.trim()));
+                    } else {
+                        servicos.push(item.trim());
+                    }
+                });
+            } else if (typeof empresaSelecionada.servicos === 'string') {
+                // Se for string, separa por "/"
+                servicos = empresaSelecionada.servicos.split('/').map(s => s.trim());
+            }
 
+            // Remove serviços vazios e duplicados
+            servicos = servicos.filter(s => s !== '');
+            servicos = [...new Set(servicos)];
+
+            // Adiciona os serviços ao select
             servicos.forEach(servico => {
                 const option = document.createElement('option');
                 option.value = servico;
@@ -571,6 +594,50 @@
             });
         }
 
+        // Função para gerar horários baseados na configuração
+        function gerarHorariosBase() {
+            if (!horariosConfig) return [];
+
+            const horarios = [];
+            const { inicioManha, fimManha, inicioTarde, fimTarde, intervalo } = horariosConfig;
+
+            // Converte horários para minutos desde meia-noite
+            function toMinutes(timeStr) {
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                return hours * 60 + minutes;
+            }
+
+            // Converte minutos para formato HH:MM
+            function toTimeString(minutes) {
+                const hrs = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+            }
+
+            // Gera horários para um período
+            function gerarPeriodo(inicio, fim) {
+                const start = toMinutes(inicio);
+                const end = toMinutes(fim);
+                const periodHorarios = [];
+
+                for (let time = start; time < end; time += intervalo) {
+                    periodHorarios.push(toTimeString(time));
+                }
+
+                return periodHorarios;
+            }
+
+            // Gera horários para manhã e tarde
+            if (inicioManha && fimManha) {
+                horarios.push(...gerarPeriodo(inicioManha, fimManha));
+            }
+            if (inicioTarde && fimTarde) {
+                horarios.push(...gerarPeriodo(inicioTarde, fimTarde));
+            }
+
+            return horarios;
+        }
+
         // Função para carregar horários disponíveis
         function carregarHorariosDisponiveis() {
             if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado) return;
@@ -582,6 +649,9 @@
             const dataFormatada = formatarDataFirestore(dataSelecionada);
             const hoje = new Date();
             const hojeFormatado = formatarDataFirestore(hoje);
+
+            // Gera os horários baseados na configuração
+            const horariosBase = gerarHorariosBase();
 
             // Consulta os agendamentos existentes para esta data e serviço
             db.collection("usuarios").doc(empresaSelecionada.id)
@@ -595,7 +665,7 @@
                         horariosOcupados.push(doc.data().horario);
                     });
 
-                    // Filtra os horários padrão para mostrar apenas os disponíveis
+                    // Filtra os horários base para mostrar apenas os disponíveis
                     const horariosDisponiveis = [];
                     
                     // Verifica se a data selecionada é hoje
@@ -605,7 +675,7 @@
                     const horaAtual = hoje.getHours();
                     const minutoAtual = hoje.getMinutes();
 
-                    horariosPadrao.forEach(horario => {
+                    horariosBase.forEach(horario => {
                         // Verifica se o horário já está agendado
                         const disponivel = !horariosOcupados.includes(horario);
                         
@@ -871,7 +941,7 @@
                     if (value.length > 9) value = value.replace(/^(\d{3})\.(\d{3})\.(\d{3})/, '$1.$2.$3-');
                     e.target.value = value.substring(0, 14);
                 } else { // CNPJ
-                    if (value.length > 2) value = value.replace(/^(\d{2})/, '$1.');
+                                        if (value.length > 2) value = value.replace(/^(\d{2})/, '$1.');
                     if (value.length > 6) value = value.replace(/^(\d{2})\.(\d{3})/, '$1.$2.');
                     if (value.length > 10) value = value.replace(/^(\d{2})\.(\d{3})\.(\d{3})/, '$1.$2.$3/');
                     if (value.length > 15) value = value.replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})/, '$1.$2.$3/$4-');
