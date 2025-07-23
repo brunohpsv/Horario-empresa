@@ -1,6 +1,3 @@
-Vou ajustar o código conforme suas solicitações. Aqui está a versão atualizada:
-
-```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -245,6 +242,15 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
             background-color: #5a6268;
         }
 
+        .btn-cancel {
+            background-color: #f44336;
+            margin-right: 10px;
+        }
+
+        .btn-cancel:hover {
+            background-color: #d32f2f;
+        }
+
         .resumo-agendamento {
             background-color: #f8f9fa;
             padding: 20px;
@@ -274,6 +280,14 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
             border-radius: 4px;
             margin-bottom: 20px;
             display: none;
+        }
+
+        .info-message {
+            color: #1976d2;
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
         }
 
         @media (max-width: 768px) {
@@ -354,16 +368,28 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
             <!-- Passo 1: Escolher Data -->
             <div class="step-panel active" id="panel-1">
                 <div class="form-group">
-                    <label for="servico">Serviço</label>
-                    <select id="servico" class="form-control">
-                        <option value="">Carregando serviços...</option>
-                    </select>
+                    <label for="documento">CPF/CNPJ</label>
+                    <input type="text" id="documento" placeholder="Digite seu CPF ou CNPJ" required>
                 </div>
-                <div class="calendar-container">
-                    <input type="text" id="calendar-input" class="form-control" placeholder="Selecione uma data">
+                <div id="info-agendamento-existente" class="info-message" style="display: none;">
+                    <h5>Você já tem um agendamento!</h5>
+                    <div id="resumo-agendamento-existente"></div>
+                    <button class="btn btn-cancel" id="btn-cancelar-agendamento">Cancelar Agendamento</button>
+                    <button class="btn" id="btn-novo-agendamento">Fazer Novo Agendamento</button>
                 </div>
-                <div class="mt-4">
-                    <button class="btn btn-next" id="btn-next-1" disabled>Avançar</button>
+                <div id="formulario-agendamento">
+                    <div class="form-group">
+                        <label for="servico">Serviço</label>
+                        <select id="servico" class="form-control">
+                            <option value="">Carregando serviços...</option>
+                        </select>
+                    </div>
+                    <div class="calendar-container">
+                        <input type="text" id="calendar-input" class="form-control" placeholder="Selecione uma data">
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn btn-next" id="btn-next-1" disabled>Avançar</button>
+                    </div>
                 </div>
             </div>
 
@@ -390,10 +416,6 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
                 <div class="form-group">
                     <label for="nome">Nome Completo</label>
                     <input type="text" id="nome" required>
-                </div>
-                <div class="form-group">
-                    <label for="documento">CPF/CNPJ</label>
-                    <input type="text" id="documento" required>
                 </div>
                 <div class="form-group">
                     <label for="telefone">Telefone</label>
@@ -475,8 +497,10 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
         let dataSelecionada = null;
         let horarioSelecionado = null;
         let horariosDisponiveis = [];
-        let agendamentoConfirmado = false;
         let horariosConfig = {}; // Configurações de horários da empresa
+        let documentoCliente = null;
+        let agendamentoExistente = null;
+        let agendamentoConfirmado = false;
 
         // Inicializa o calendário
         const calendar = flatpickr("#calendar-input", {
@@ -498,7 +522,7 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
         // Função para verificar se o botão avançar deve estar habilitado
         function verificarEstadoBotaoAvancar() {
             const btnAvancar = document.getElementById('btn-next-1');
-            btnAvancar.disabled = !(dataSelecionada && servicoSelecionado);
+            btnAvancar.disabled = !(dataSelecionada && servicoSelecionado && documentoCliente);
         }
 
         // Função para carregar os dados da empresa a partir da URL
@@ -594,6 +618,95 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
             });
         }
 
+        // Função para verificar se já existe agendamento para o CPF/CNPJ
+        function verificarAgendamentoExistente(documento) {
+            if (!empresaSelecionada || !documento) return;
+
+            const documentoLimpo = documento.replace(/\D/g, '');
+            
+            // Consulta os agendamentos existentes para este documento
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("agendamentos")
+                .where("clienteDocumento", "==", documentoLimpo)
+                .where("status", "==", "confirmado")
+                .get()
+                .then((querySnapshot) => {
+                    if (!querySnapshot.empty) {
+                        // Pega o primeiro agendamento encontrado (assumindo que só pode ter um agendamento ativo por CPF/CNPJ)
+                        querySnapshot.forEach((doc) => {
+                            agendamentoExistente = {
+                                id: doc.id,
+                                ...doc.data()
+                            };
+                            exibirAgendamentoExistente(agendamentoExistente);
+                        });
+                    } else {
+                        // Não tem agendamento existente, mostra o formulário normal
+                        document.getElementById('info-agendamento-existente').style.display = 'none';
+                        document.getElementById('formulario-agendamento').style.display = 'block';
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro ao verificar agendamento existente:", error);
+                    document.getElementById('info-agendamento-existente').style.display = 'none';
+                    document.getElementById('formulario-agendamento').style.display = 'block';
+                });
+        }
+
+        // Função para exibir informações do agendamento existente
+        function exibirAgendamentoExistente(agendamento) {
+            const infoDiv = document.getElementById('info-agendamento-existente');
+            const resumoDiv = document.getElementById('resumo-agendamento-existente');
+            
+            // Formata a data para exibição
+            const dataAgendamento = new Date(agendamento.data);
+            const dataFormatada = formatarDataExibicao(dataAgendamento);
+            
+            // Preenche o resumo
+            resumoDiv.innerHTML = `
+                <p><strong>Serviço:</strong> ${agendamento.servico}</p>
+                <p><strong>Data:</strong> ${dataFormatada}</p>
+                <p><strong>Horário:</strong> ${agendamento.horario}</p>
+            `;
+            
+            // Mostra a div de informações e esconde o formulário
+            infoDiv.style.display = 'block';
+            document.getElementById('formulario-agendamento').style.display = 'none';
+            
+            // Configura os botões
+            document.getElementById('btn-cancelar-agendamento').onclick = function() {
+                cancelarAgendamentoExistente(agendamento.id);
+            };
+            
+            document.getElementById('btn-novo-agendamento').onclick = function() {
+                infoDiv.style.display = 'none';
+                document.getElementById('formulario-agendamento').style.display = 'block';
+                agendamentoExistente = null;
+            };
+        }
+
+        // Função para cancelar um agendamento existente
+        function cancelarAgendamentoExistente(agendamentoId) {
+            if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+            
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("agendamentos")
+                .doc(agendamentoId)
+                .update({
+                    status: "cancelado"
+                })
+                .then(() => {
+                    alert("Agendamento cancelado com sucesso!");
+                    document.getElementById('info-agendamento-existente').style.display = 'none';
+                    document.getElementById('formulario-agendamento').style.display = 'block';
+                    agendamentoExistente = null;
+                })
+                .catch((error) => {
+                    console.error("Erro ao cancelar agendamento:", error);
+                    mostrarErro("Ocorreu um erro ao cancelar o agendamento. Por favor, tente novamente.");
+                });
+        }
+
         // Função para gerar horários baseados na configuração
         function gerarHorariosBase() {
             if (!horariosConfig) return [];
@@ -658,6 +771,7 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
                 .collection("agendamentos")
                 .where("data", "==", dataFormatada)
                 .where("servico", "==", servicoSelecionado)
+                .where("status", "==", "confirmado")
                 .get()
                 .then((querySnapshot) => {
                     const horariosOcupados = [];
@@ -770,8 +884,8 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
         // Função para avançar para o próximo passo
         function avancarParaProximoPasso(passoAtual) {
             // Validações antes de avançar
-            if (passoAtual === 1 && (!dataSelecionada || !servicoSelecionado)) {
-                mostrarErro("Por favor, selecione uma data e um serviço para continuar.");
+            if (passoAtual === 1 && (!dataSelecionada || !servicoSelecionado || !documentoCliente)) {
+                mostrarErro("Por favor, preencha todos os campos para continuar.");
                 return;
             }
 
@@ -783,18 +897,10 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
             if (passoAtual === 3) {
                 // Valida o formulário
                 const nome = document.getElementById('nome').value.trim();
-                const documento = document.getElementById('documento').value.trim();
                 const telefone = document.getElementById('telefone').value.trim();
 
-                if (!nome || !documento || !telefone) {
+                if (!nome || !telefone) {
                     mostrarErro("Por favor, preencha todos os campos obrigatórios.");
-                    return;
-                }
-
-                // Validação simples de CPF/CNPJ (apenas verifica se tem 11 ou 14 dígitos)
-                const documentoLimpo = documento.replace(/\D/g, '');
-                if (!(documentoLimpo.length === 11 || documentoLimpo.length === 14)) {
-                    mostrarErro("Por favor, insira um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.");
                     return;
                 }
 
@@ -829,7 +935,6 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
         // Função para preencher o resumo do agendamento
         function preencherResumoAgendamento() {
             const nome = document.getElementById('nome').value.trim();
-            const documento = document.getElementById('documento').value.trim();
             const telefone = document.getElementById('telefone').value.trim();
             const email = document.getElementById('email').value.trim();
             
@@ -839,7 +944,7 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
             document.getElementById('resumo-data').textContent = formatarDataExibicao(dataSelecionada);
             document.getElementById('resumo-horario').textContent = horarioSelecionado;
             document.getElementById('resumo-cliente').textContent = nome;
-            document.getElementById('resumo-documento').textContent = documento;
+            document.getElementById('resumo-documento').textContent = documentoCliente;
             document.getElementById('resumo-contato').textContent = telefone + (email ? ` (${email})` : '');
             
             // Oculta a mensagem de erro se estiver visível
@@ -869,7 +974,7 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
             // Ações específicas para cada passo
             if (passoAtual === 2) {
                 // Passo 2 → 1: Reativa o botão de avançar
-                document.getElementById('btn-next-1').disabled = !(dataSelecionada && servicoSelecionado);
+                document.getElementById('btn-next-1').disabled = !(dataSelecionada && servicoSelecionado && documentoCliente);
             } else if (passoAtual === 3) {
                 // Passo 3 → 2: Reativa o botão de avançar
                 document.getElementById('btn-next-2').disabled = !horarioSelecionado;
@@ -881,7 +986,6 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
             if (agendamentoConfirmado) return;
 
             const nome = document.getElementById('nome').value.trim();
-            const documento = document.getElementById('documento').value.trim();
             const telefone = document.getElementById('telefone').value.trim();
             const email = document.getElementById('email').value.trim();
 
@@ -894,7 +998,7 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
                 data: dataFormatada,
                 horario: horarioSelecionado,
                 clienteNome: nome,
-                clienteDocumento: documento,
+                clienteDocumento: documentoCliente.replace(/\D/g, ''),
                 clienteTelefone: telefone,
                 clienteEmail: email || null,
                 dataCriacao: firebase.firestore.FieldValue.serverTimestamp(),
@@ -931,7 +1035,7 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
             document.getElementById('btn-prev-2').addEventListener('click', () => voltarParaPassoAnterior(2));
             document.getElementById('btn-prev-3').addEventListener('click', () => voltarParaPassoAnterior(3));
 
-            // Máscara para CPF/CNPJ
+            // Máscara para CPF/CNPJ e verificação de agendamento existente
             document.getElementById('documento').addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
 
@@ -941,11 +1045,22 @@ Vou ajustar o código conforme suas solicitações. Aqui está a versão atualiz
                     if (value.length > 9) value = value.replace(/^(\d{3})\.(\d{3})\.(\d{3})/, '$1.$2.$3-');
                     e.target.value = value.substring(0, 14);
                 } else { // CNPJ
-                                        if (value.length > 2) value = value.replace(/^(\d{2})/, '$1.');
+                    if (value.length > 2) value = value.replace(/^(\d{2})/, '$1.');
                     if (value.length > 6) value = value.replace(/^(\d{2})\.(\d{3})/, '$1.$2.');
                     if (value.length > 10) value = value.replace(/^(\d{2})\.(\d{3})\.(\d{3})/, '$1.$2.$3/');
                     if (value.length > 15) value = value.replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})/, '$1.$2.$3/$4-');
                     e.target.value = value.substring(0, 18);
+                }
+
+                // Verifica se o documento está completo (CPF tem 11 dígitos ou CNPJ tem 14)
+                const documentoLimpo = e.target.value.replace(/\D/g, '');
+                if (documentoLimpo.length === 11 || documentoLimpo.length === 14) {
+                    documentoCliente = e.target.value;
+                    verificarAgendamentoExistente(documentoCliente);
+                    verificarEstadoBotaoAvancar();
+                } else {
+                    documentoCliente = null;
+                    verificarEstadoBotaoAvancar();
                 }
             });
 
