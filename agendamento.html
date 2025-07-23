@@ -1,6 +1,3 @@
-Vou ajustar o código para utilizar os horários configurados no campo "diasFuncionamento" do documento da empresa no Firestore. Aqui está o código completo com as modificações necessárias:
-
-```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -556,15 +553,11 @@ Vou ajustar o código para utilizar os horários configurados no campo "diasFunc
                         } else {
                             // Configurações padrão caso não estejam definidas
                             horariosConfig = {
-                                diasFuncionamento: {
-                                    segunda: { aberto: true, inicio: "08:00", fim: "18:00", intervalo: 60 },
-                                    terca: { aberto: true, inicio: "08:00", fim: "18:00", intervalo: 60 },
-                                    quarta: { aberto: true, inicio: "08:00", fim: "18:00", intervalo: 60 },
-                                    quinta: { aberto: true, inicio: "08:00", fim: "18:00", intervalo: 60 },
-                                    sexta: { aberto: true, inicio: "08:00", fim: "18:00", intervalo: 60 },
-                                    sabado: { aberto: false },
-                                    domingo: { aberto: false }
-                                }
+                                inicioManha: "08:00",
+                                fimManha: "12:00",
+                                inicioTarde: "13:00",
+                                fimTarde: "18:00",
+                                intervalo: 60 // minutos
                             };
                         }
 
@@ -714,18 +707,12 @@ Vou ajustar o código para utilizar os horários configurados no campo "diasFunc
                 });
         }
 
-        // Função para gerar horários baseados na configuração dos dias de funcionamento
-        function gerarHorariosBase(dataSelecionada) {
-            if (!horariosConfig || !horariosConfig.diasFuncionamento) return [];
-
-            const diaSemana = getDiaSemana(dataSelecionada);
-            const configDia = horariosConfig.diasFuncionamento[diaSemana];
-
-            // Se o dia não estiver configurado ou não estiver aberto, retorna vazio
-            if (!configDia || !configDia.aberto) return [];
+        // Função para gerar horários baseados na configuração
+        function gerarHorariosBase() {
+            if (!horariosConfig) return [];
 
             const horarios = [];
-            const { inicio, fim, intervalo } = configDia;
+            const { inicioManha, fimManha, inicioTarde, fimTarde, intervalo } = horariosConfig;
 
             // Converte horários para minutos desde meia-noite
             function toMinutes(timeStr) {
@@ -740,22 +727,28 @@ Vou ajustar o código para utilizar os horários configurados no campo "diasFunc
                 return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
             }
 
-            // Gera horários para o período
-            const start = toMinutes(inicio);
-            const end = toMinutes(fim);
-            const interval = intervalo || 60; // Default de 60 minutos se não especificado
+            // Gera horários para um período
+            function gerarPeriodo(inicio, fim) {
+                const start = toMinutes(inicio);
+                const end = toMinutes(fim);
+                const periodHorarios = [];
 
-            for (let time = start; time < end; time += interval) {
-                horarios.push(toTimeString(time));
+                for (let time = start; time < end; time += intervalo) {
+                    periodHorarios.push(toTimeString(time));
+                }
+
+                return periodHorarios;
+            }
+
+            // Gera horários para manhã e tarde
+            if (inicioManha && fimManha) {
+                horarios.push(...gerarPeriodo(inicioManha, fimManha));
+            }
+            if (inicioTarde && fimTarde) {
+                horarios.push(...gerarPeriodo(inicioTarde, fimTarde));
             }
 
             return horarios;
-        }
-
-        // Função para obter o dia da semana em formato compatível com a configuração
-        function getDiaSemana(date) {
-            const dias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
-            return dias[date.getDay()];
         }
 
         // Função para carregar horários disponíveis
@@ -770,13 +763,8 @@ Vou ajustar o código para utilizar os horários configurados no campo "diasFunc
             const hoje = new Date();
             const hojeFormatado = formatarDataFirestore(hoje);
 
-            // Gera os horários baseados na configuração do dia
-            const horariosBase = gerarHorariosBase(dataSelecionada);
-
-            if (horariosBase.length === 0) {
-                horariosContainer.innerHTML = '<div class="error-message">Não há horários disponíveis para este dia.</div>';
-                return;
-            }
+            // Gera os horários baseados na configuração
+            const horariosBase = gerarHorariosBase();
 
             // Consulta os agendamentos existentes para esta data e serviço
             db.collection("usuarios").doc(empresaSelecionada.id)
