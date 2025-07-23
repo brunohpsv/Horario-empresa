@@ -101,73 +101,36 @@
             margin-top: 5px;
         }
 
-        .steps-container {
-            display: flex;
-            padding: 0;
-            margin: 0;
-            list-style: none;
-            border-bottom: 1px solid #eee;
+        .form-section {
+            padding: 30px;
         }
 
-        .step {
-            flex: 1;
-            text-align: center;
-            padding: 15px 0;
-            position: relative;
-            color: #999;
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
             font-weight: bold;
         }
 
-        .step.active {
-            color: #4CAF50;
-        }
-
-        .step.completed {
-            color: #2196F3;
-        }
-
-        .step:not(:last-child):after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
-            border-left: 10px solid #eee;
-            z-index: 1;
-        }
-
-        .step.active:not(:last-child):after,
-        .step.completed:not(:last-child):after {
-            border-left-color: #f8f9fa;
-        }
-
-        .step-content {
-            padding: 30px;
-            min-height: 400px;
-        }
-
-        .step-panel {
-            display: none;
-        }
-
-        .step-panel.active {
-            display: block;
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
 
         .calendar-container {
-            margin: 0 auto;
-            max-width: 500px;
+            margin: 20px 0;
         }
 
         .horarios-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 10px;
-            margin-top: 20px;
+            margin: 20px 0;
         }
 
         .horario-btn {
@@ -198,23 +161,6 @@
             border-color: #eee;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
         .btn {
             padding: 10px 20px;
             background-color: #4CAF50;
@@ -223,23 +169,12 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-top: 20px;
+            width: 100%;
         }
 
         .btn:hover {
             background-color: #45a049;
-        }
-
-        .btn-next {
-            float: right;
-        }
-
-        .btn-prev {
-            float: left;
-            background-color: #6c757d;
-        }
-
-        .btn-prev:hover {
-            background-color: #5a6268;
         }
 
         .btn-cancel {
@@ -256,6 +191,7 @@
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
+            display: none;
         }
 
         .resumo-item {
@@ -269,7 +205,7 @@
 
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 20px;
             color: #666;
         }
 
@@ -295,9 +231,8 @@
                 margin: 15px;
             }
 
-            .step-content {
+            .form-section {
                 padding: 20px;
-                min-height: 300px;
             }
 
             .horarios-container {
@@ -305,7 +240,6 @@
             }
         }
 
-        /* Estilos para impressão */
         @media print {
             body * {
                 visibility: hidden;
@@ -321,10 +255,7 @@
                 margin: 0;
                 box-shadow: none;
             }
-            .steps-container, .btn {
-                display: none !important;
-            }
-            .step-panel:not(.active) {
+            .btn {
                 display: none !important;
             }
         }
@@ -347,128 +278,103 @@
             <div class="empresa-servico" id="empresa-servico"></div>
         </div>
 
-        <ul class="steps-container">
-            <li class="step active" id="step-1">
-                <i class="fas fa-calendar-alt"></i> Escolher Data
-            </li>
-            <li class="step" id="step-2">
-                <i class="fas fa-clock"></i> Escolher Horário
-            </li>
-            <li class="step" id="step-3">
-                <i class="fas fa-user"></i> Seus Dados
-            </li>
-            <li class="step" id="step-4">
-                <i class="fas fa-check-circle"></i> Confirmação
-            </li>
-        </ul>
-
-        <div class="error-message" id="error-message"></div>
-
-        <div class="step-content">
-            <!-- Passo 1: Escolher Data -->
-            <div class="step-panel active" id="panel-1">
+        <div class="form-section">
+            <div class="error-message" id="error-message"></div>
+            
+            <div id="info-agendamento-existente" class="info-message" style="display: none;">
+                <h5>Você já tem um agendamento!</h5>
+                <div id="resumo-agendamento-existente"></div>
+                <button class="btn btn-cancel" id="btn-cancelar-agendamento">Cancelar Agendamento</button>
+                <button class="btn" id="btn-novo-agendamento">Fazer Novo Agendamento</button>
+            </div>
+            
+            <div id="formulario-agendamento">
                 <div class="form-group">
                     <label for="documento">CPF/CNPJ</label>
                     <input type="text" id="documento" placeholder="Digite seu CPF ou CNPJ" required>
                 </div>
-                <div id="info-agendamento-existente" class="info-message" style="display: none;">
-                    <h5>Você já tem um agendamento!</h5>
-                    <div id="resumo-agendamento-existente"></div>
-                    <button class="btn btn-cancel" id="btn-cancelar-agendamento">Cancelar Agendamento</button>
-                    <button class="btn" id="btn-novo-agendamento">Fazer Novo Agendamento</button>
+                
+                <div class="form-group">
+                    <label for="servico">Serviço</label>
+                    <select id="servico" class="form-control">
+                        <option value="">Carregando serviços...</option>
+                    </select>
                 </div>
-                <div id="formulario-agendamento">
-                    <div class="form-group">
-                        <label for="servico">Serviço</label>
-                        <select id="servico" class="form-control">
-                            <option value="">Carregando serviços...</option>
-                        </select>
-                    </div>
+                
+                <div class="form-group">
+                    <label for="calendar-input">Data</label>
                     <div class="calendar-container">
                         <input type="text" id="calendar-input" class="form-control" placeholder="Selecione uma data">
                     </div>
-                    <div class="mt-4">
-                        <button class="btn btn-next" id="btn-next-1" disabled>Avançar</button>
-                    </div>
                 </div>
-            </div>
-
-            <!-- Passo 2: Escolher Horário -->
-            <div class="step-panel" id="panel-2">
-                <h4>Horários disponíveis para <span id="selected-date"></span></h4>
-                <div class="horarios-container" id="horarios-container">
-                    <div class="loading">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Carregando...</span>
+                
+                <div class="form-group" id="horario-section" style="display: none;">
+                    <label>Horários disponíveis para <span id="selected-date"></span></label>
+                    <div class="horarios-container" id="horarios-container">
+                        <div class="loading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <p>Carregando horários...</p>
                         </div>
-                        <p>Carregando horários...</p>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <button class="btn btn-prev" id="btn-prev-2">Voltar</button>
-                    <button class="btn btn-next" id="btn-next-2" disabled>Avançar</button>
+                
+                <div class="form-group" id="dados-section" style="display: none;">
+                    <h4>Preencha seus dados</h4>
+                    <div class="form-group">
+                        <label for="nome">Nome Completo</label>
+                        <input type="text" id="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefone">Telefone</label>
+                        <input type="tel" id="telefone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-mail (opcional)</label>
+                        <input type="email" id="email">
+                    </div>
                 </div>
+                
+                <button class="btn" id="btn-confirmar" style="display: none;">Confirmar Agendamento</button>
             </div>
-
-            <!-- Passo 3: Formulário de Dados -->
-            <div class="step-panel" id="panel-3">
-                <h4>Preencha seus dados</h4>
-                <div class="form-group">
-                    <label for="nome">Nome Completo</label>
-                    <input type="text" id="nome" required>
+            
+            <div class="resumo-agendamento" id="resumo-agendamento">
+                <h4>Agendamento confirmado!</h4>
+                <div class="resumo-item">
+                    <span class="resumo-label">Empresa:</span>
+                    <span id="resumo-empresa"></span>
                 </div>
-                <div class="form-group">
-                    <label for="telefone">Telefone</label>
-                    <input type="tel" id="telefone" required>
+                <div class="resumo-item">
+                    <span class="resumo-label">Serviço:</span>
+                    <span id="resumo-servico"></span>
                 </div>
-                <div class="form-group">
-                    <label for="email">E-mail (opcional)</label>
-                    <input type="email" id="email">
+                <div class="resumo-item">
+                    <span class="resumo-label">Data:</span>
+                    <span id="resumo-data"></span>
                 </div>
-                <div class="mt-4">
-                    <button class="btn btn-prev" id="btn-prev-3">Voltar</button>
-                    <button class="btn btn-next" id="btn-next-3">Concluir Agendamento</button>
+                <div class="resumo-item">
+                    <span class="resumo-label">Horário:</span>
+                    <span id="resumo-horario"></span>
                 </div>
-            </div>
-
-            <!-- Passo 4: Confirmação -->
-            <div class="step-panel" id="panel-4">
-                <div class="resumo-agendamento">
-                    <h4>Agendamento confirmado!</h4>
-                    <div class="resumo-item">
-                        <span class="resumo-label">Empresa:</span>
-                        <span id="resumo-empresa"></span>
-                    </div>
-                    <div class="resumo-item">
-                        <span class="resumo-label">Serviço:</span>
-                        <span id="resumo-servico"></span>
-                    </div>
-                    <div class="resumo-item">
-                        <span class="resumo-label">Data:</span>
-                        <span id="resumo-data"></span>
-                    </div>
-                    <div class="resumo-item">
-                        <span class="resumo-label">Horário:</span>
-                        <span id="resumo-horario"></span>
-                    </div>
-                    <div class="resumo-item">
-                        <span class="resumo-label">Cliente:</span>
-                        <span id="resumo-cliente"></span>
-                    </div>
-                    <div class="resumo-item">
-                        <span class="resumo-label">CPF/CNPJ:</span>
-                        <span id="resumo-documento"></span>
-                    </div>
-                    <div class="resumo-item">
-                        <span class="resumo-label">Contato:</span>
-                        <span id="resumo-contato"></span>
-                    </div>
+                <div class="resumo-item">
+                    <span class="resumo-label">Cliente:</span>
+                    <span id="resumo-cliente"></span>
                 </div>
+                <div class="resumo-item">
+                    <span class="resumo-label">CPF/CNPJ:</span>
+                    <span id="resumo-documento"></span>
+                </div>
+                <div class="resumo-item">
+                    <span class="resumo-label">Contato:</span>
+                    <span id="resumo-contato"></span>
+                </div>
+                
                 <div class="mt-4">
                     <button class="btn" onclick="window.print()">
                         <i class="fas fa-print"></i> Imprimir
                     </button>
-                    <button class="btn btn-next" onclick="window.location.href='index.html'">
+                    <button class="btn" onclick="window.location.href='index.html'">
                         <i class="fas fa-home"></i> Voltar ao Início
                     </button>
                 </div>
@@ -515,15 +421,10 @@
             ],
             onChange: function(selectedDates, dateStr, instance) {
                 dataSelecionada = selectedDates[0];
-                verificarEstadoBotaoAvancar();
+                document.getElementById('selected-date').textContent = formatarDataExibicao(dataSelecionada);
+                carregarHorariosDisponiveis();
             }
         });
-
-        // Função para verificar se o botão avançar deve estar habilitado
-        function verificarEstadoBotaoAvancar() {
-            const btnAvancar = document.getElementById('btn-next-1');
-            btnAvancar.disabled = !(dataSelecionada && servicoSelecionado && documentoCliente);
-        }
 
         // Função para carregar os dados da empresa a partir da URL
         function carregarDadosEmpresa() {
@@ -614,7 +515,9 @@
             // Adiciona evento de change para selecionar o serviço
             servicoSelect.addEventListener('change', function() {
                 servicoSelecionado = this.value;
-                verificarEstadoBotaoAvancar();
+                if (servicoSelecionado && dataSelecionada) {
+                    carregarHorariosDisponiveis();
+                }
             });
         }
 
@@ -757,6 +660,11 @@
 
             const horariosContainer = document.getElementById('horarios-container');
             horariosContainer.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando horários...</p></div>';
+            
+            // Mostra a seção de horários
+            document.getElementById('horario-section').style.display = 'block';
+            document.getElementById('dados-section').style.display = 'none';
+            document.getElementById('btn-confirmar').style.display = 'none';
 
             // Formata a data como YYYY-MM-DD para usar como ID no Firestore
             const dataFormatada = formatarDataFirestore(dataSelecionada);
@@ -848,7 +756,10 @@
                         // Seleciona este horário
                         this.classList.add('selected');
                         horarioSelecionado = item.horario;
-                        document.getElementById('btn-next-2').disabled = false;
+                        
+                        // Mostra a seção de dados pessoais
+                        document.getElementById('dados-section').style.display = 'block';
+                        document.getElementById('btn-confirmar').style.display = 'block';
                     });
                 }
 
@@ -881,57 +792,6 @@
             errorElement.style.display = 'block';
         }
 
-        // Função para avançar para o próximo passo
-        function avancarParaProximoPasso(passoAtual) {
-            // Validações antes de avançar
-            if (passoAtual === 1 && (!dataSelecionada || !servicoSelecionado || !documentoCliente)) {
-                mostrarErro("Por favor, preencha todos os campos para continuar.");
-                return;
-            }
-
-            if (passoAtual === 2 && !horarioSelecionado) {
-                mostrarErro("Por favor, selecione um horário para continuar.");
-                return;
-            }
-
-            if (passoAtual === 3) {
-                // Valida o formulário
-                const nome = document.getElementById('nome').value.trim();
-                const telefone = document.getElementById('telefone').value.trim();
-
-                if (!nome || !telefone) {
-                    mostrarErro("Por favor, preencha todos os campos obrigatórios.");
-                    return;
-                }
-
-                // Se tudo estiver válido, confirma o agendamento
-                confirmarAgendamento();
-                return;
-            }
-
-            // Oculta a mensagem de erro se estiver visível
-            document.getElementById('error-message').style.display = 'none';
-
-            // Atualiza os passos
-            document.getElementById(`step-${passoAtual}`).classList.remove('active');
-            document.getElementById(`step-${passoAtual}`).classList.add('completed');
-            document.getElementById(`step-${passoAtual + 1}`).classList.add('active');
-
-            // Atualiza os painéis
-            document.getElementById(`panel-${passoAtual}`).classList.remove('active');
-            document.getElementById(`panel-${passoAtual + 1}`).classList.add('active');
-
-            // Ações específicas para cada passo
-            if (passoAtual === 1) {
-                // Passo 1 → 2: Mostra a data selecionada e carrega os horários
-                document.getElementById('selected-date').textContent = formatarDataExibicao(dataSelecionada);
-                carregarHorariosDisponiveis();
-            } else if (passoAtual === 2) {
-                // Passo 2 → 3: Prepara o formulário
-                document.getElementById('btn-next-2').disabled = true;
-            }
-        }
-
         // Função para preencher o resumo do agendamento
         function preencherResumoAgendamento() {
             const nome = document.getElementById('nome').value.trim();
@@ -947,38 +807,9 @@
             document.getElementById('resumo-documento').textContent = documentoCliente;
             document.getElementById('resumo-contato').textContent = telefone + (email ? ` (${email})` : '');
             
-            // Oculta a mensagem de erro se estiver visível
-            document.getElementById('error-message').style.display = 'none';
-            
-            // Atualiza os passos
-            document.getElementById('step-3').classList.remove('active');
-            document.getElementById('step-3').classList.add('completed');
-            document.getElementById('step-4').classList.add('active');
-            
-            // Atualiza os painéis
-            document.getElementById('panel-3').classList.remove('active');
-            document.getElementById('panel-4').classList.add('active');
-        }
-
-        // Função para voltar ao passo anterior
-        function voltarParaPassoAnterior(passoAtual) {
-            // Atualiza os passos
-            document.getElementById(`step-${passoAtual}`).classList.remove('active');
-            document.getElementById(`step-${passoAtual - 1}`).classList.add('active');
-            document.getElementById(`step-${passoAtual - 1}`).classList.remove('completed');
-
-            // Atualiza os painéis
-            document.getElementById(`panel-${passoAtual}`).classList.remove('active');
-            document.getElementById(`panel-${passoAtual - 1}`).classList.add('active');
-
-            // Ações específicas para cada passo
-            if (passoAtual === 2) {
-                // Passo 2 → 1: Reativa o botão de avançar
-                document.getElementById('btn-next-1').disabled = !(dataSelecionada && servicoSelecionado && documentoCliente);
-            } else if (passoAtual === 3) {
-                // Passo 3 → 2: Reativa o botão de avançar
-                document.getElementById('btn-next-2').disabled = !horarioSelecionado;
-            }
+            // Oculta o formulário e mostra o resumo
+            document.getElementById('formulario-agendamento').style.display = 'none';
+            document.getElementById('resumo-agendamento').style.display = 'block';
         }
 
         // Função para confirmar o agendamento no Firestore
@@ -988,6 +819,12 @@
             const nome = document.getElementById('nome').value.trim();
             const telefone = document.getElementById('telefone').value.trim();
             const email = document.getElementById('email').value.trim();
+
+            // Validação dos campos
+            if (!nome || !telefone) {
+                mostrarErro("Por favor, preencha todos os campos obrigatórios.");
+                return;
+            }
 
             // Formata a data para o Firestore
             const dataFormatada = formatarDataFirestore(dataSelecionada);
@@ -1027,13 +864,8 @@
             // Carrega os dados da empresa a partir da URL
             carregarDadosEmpresa();
 
-            // Configura os botões de navegação
-            document.getElementById('btn-next-1').addEventListener('click', () => avancarParaProximoPasso(1));
-            document.getElementById('btn-next-2').addEventListener('click', () => avancarParaProximoPasso(2));
-            document.getElementById('btn-next-3').addEventListener('click', () => avancarParaProximoPasso(3));
-
-            document.getElementById('btn-prev-2').addEventListener('click', () => voltarParaPassoAnterior(2));
-            document.getElementById('btn-prev-3').addEventListener('click', () => voltarParaPassoAnterior(3));
+            // Configura o botão de confirmação
+            document.getElementById('btn-confirmar').addEventListener('click', confirmarAgendamento);
 
             // Máscara para CPF/CNPJ e verificação de agendamento existente
             document.getElementById('documento').addEventListener('input', function(e) {
@@ -1057,10 +889,8 @@
                 if (documentoLimpo.length === 11 || documentoLimpo.length === 14) {
                     documentoCliente = e.target.value;
                     verificarAgendamentoExistente(documentoCliente);
-                    verificarEstadoBotaoAvancar();
                 } else {
                     documentoCliente = null;
-                    verificarEstadoBotaoAvancar();
                 }
             });
 
