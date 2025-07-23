@@ -75,15 +75,22 @@
 
         .location-btn {
             background-color: #2196F3;
-            padding: 8px 16px;
-            border-radius: 0;
+            padding: 8px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
+            transition: all 0.3s;
         }
         
         .location-btn:hover {
             background-color: #0b7dda;
+        }
+
+        .location-btn.active {
+            background-color: #4CAF50;
         }
 
         .filtro-section {
@@ -271,7 +278,7 @@
         <nav>
             <ul>
                 <li><a href="index.html">Início</a></li>
-                <li><a id="geolocation-btn" class="location-btn"><i class="fas fa-map-marker-alt"></i> Minha Localização</a></li>
+                <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização"><i class="fas fa-map-marker-alt"></i></a></li>
                 <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
             </ul>
         </nav>
@@ -339,6 +346,7 @@
         let isFirstLoad = true;
         let userLocation = null;
         let empresasComDistancia = [];
+        let geolocationActive = false;
 
         // Função para calcular distância entre coordenadas (Haversine formula)
         function calcularDistancia(lat1, lon1, lat2, lon2) {
@@ -412,8 +420,8 @@
             listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid"></div>';
             const gridEmpresas = document.getElementById('empresas-grid');
             
-            // Ordena por distância se disponível
-            if (userLocation) {
+            // Ordena por distância se disponível e ativo
+            if (geolocationActive && userLocation) {
                 empresas.sort((a, b) => {
                     const distA = a.distancia || Infinity;
                     const distB = b.distancia || Infinity;
@@ -497,8 +505,8 @@
                 return cidadeMatch && estadoMatch && servicoMatch && nomeMatch;
             });
             
-            // Se temos localização do usuário, calculamos distâncias
-            if (userLocation) {
+            // Se temos localização do usuário e está ativa, calculamos distâncias
+            if (geolocationActive && userLocation) {
                 empresasFiltradas = empresasFiltradas.map(empresa => {
                     if (empresa.latitude && empresa.longitude) {
                         const distancia = calcularDistancia(
@@ -523,47 +531,63 @@
         function obterLocalizacaoUsuario() {
             const geolocationBtn = document.getElementById('geolocation-btn');
             
-            if (!navigator.geolocation) {
-                alert('Geolocalização não é suportada pelo seu navegador.');
-                return;
+            // Alterna o estado de ativo/inativo
+            geolocationActive = !geolocationActive;
+            
+            if (geolocationActive) {
+                if (!navigator.geolocation) {
+                    alert('Geolocalização não é suportada pelo seu navegador.');
+                    geolocationActive = false;
+                    return;
+                }
+                
+                geolocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                geolocationBtn.classList.add('active');
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+                        
+                        geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
+                        
+                        // Aplica os filtros com a nova localização
+                        filtrarEmpresas();
+                    },
+                    (error) => {
+                        console.error('Erro ao obter localização:', error);
+                        geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
+                        geolocationBtn.classList.remove('active');
+                        geolocationActive = false;
+                        
+                        let errorMessage = 'Erro ao obter localização.';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage = 'Permissão de localização negada.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage = 'Informação de localização indisponível.';
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage = 'Tempo de espera para localização expirado.';
+                                break;
+                        }
+                        
+                        alert(errorMessage);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                // Desativa a localização
+                userLocation = null;
+                geolocationBtn.classList.remove('active');
+                geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
+                
+                // Reaplica os filtros sem a localização
+                filtrarEmpresas();
             }
-            
-            geolocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Localizando...';
-            
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    userLocation = {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                    };
-                    
-                    geolocationBtn.innerHTML = '<i class="fas fa-check-circle"></i> Localização ativa';
-                    geolocationBtn.style.backgroundColor = '#4CAF50';
-                    
-                    // Aplica os filtros com a nova localização
-                    filtrarEmpresas();
-                },
-                (error) => {
-                    console.error('Erro ao obter localização:', error);
-                    geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Minha Localização';
-                    
-                    let errorMessage = 'Erro ao obter localização.';
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMessage = 'Permissão de localização negada.';
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMessage = 'Informação de localização indisponível.';
-                            break;
-                        case error.TIMEOUT:
-                            errorMessage = 'Tempo de espera para localização expirado.';
-                            break;
-                    }
-                    
-                    alert(errorMessage);
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
         }
 
         // Função para carregar empresas do Firestore
