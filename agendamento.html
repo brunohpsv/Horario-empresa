@@ -287,6 +287,30 @@
                 grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             }
         }
+
+        /* Estilos para impressão */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .container-agendamento, .container-agendamento * {
+                visibility: visible;
+            }
+            .container-agendamento {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                box-shadow: none;
+            }
+            .steps-container, .btn {
+                display: none !important;
+            }
+            .step-panel:not(.active) {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
