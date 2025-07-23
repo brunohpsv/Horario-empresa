@@ -476,7 +476,603 @@
         </div>
     </div>
 
-    <!-- Inclui o arquivo com a lógica JavaScript -->
-    <script src="agendamento2.html"></script>
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+            authDomain: "banco-de-dados-d253e.firebaseapp.com",
+            projectId: "banco-de-dados-d253e",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
+            messagingSenderId: "1005413315224",
+            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Variáveis globais
+        let empresaSelecionada = null;
+        let servicoSelecionado = null;
+        let dataSelecionada = null;
+        let horarioSelecionado = null;
+        let horariosDisponiveis = [];
+        let horariosConfig = {}; // Configurações de horários da empresa
+        let documentoCliente = null;
+        let agendamentoExistente = null;
+        let agendamentoConfirmado = false;
+
+        // Inicializa o calendário
+        const calendar = flatpickr("#calendar-input", {
+            locale: "pt",
+            minDate: "today",
+            dateFormat: "d/m/Y",
+            disable: [
+                function(date) {
+                    // Desabilita fins de semana (sábado e domingo)
+                    return (date.getDay() === 0 || date.getDay() === 6);
+                }
+            ],
+            onChange: function(selectedDates, dateStr, instance) {
+                dataSelecionada = selectedDates[0];
+                verificarEstadoBotaoAvancar();
+            }
+        });
+
+        // Função para verificar se o botão avançar deve estar habilitado
+        function verificarEstadoBotaoAvancar() {
+            const btnAvancar = document.getElementById('btn-next-1');
+            btnAvancar.disabled = !(dataSelecionada && servicoSelecionado && documentoCliente);
+        }
+
+        // Função para carregar os dados da empresa a partir da URL
+        function carregarDadosEmpresa() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const empresaId = urlParams.get('id');
+
+            if (!empresaId) {
+                mostrarErro("Nenhuma empresa selecionada. Por favor, volte à lista e selecione uma empresa.");
+                return;
+            }
+
+            // Busca os dados da empresa no Firestore
+            db.collection("usuarios").doc(empresaId).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        empresaSelecionada = {
+                            id: doc.id,
+                            ...doc.data()
+                        };
+
+                        // Atualiza o cabeçalho com os dados da empresa
+                        document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || "Empresa não identificada";
+
+                        // Carrega as configurações de horários da empresa
+                        if (empresaSelecionada.horariosConfig) {
+                            horariosConfig = empresaSelecionada.horariosConfig;
+                        } else {
+                            // Configurações padrão caso não estejam definidas
+                            horariosConfig = {
+                                inicioManha: "08:00",
+                                fimManha: "12:00",
+                                inicioTarde: "13:00",
+                                fimTarde: "18:00",
+                                intervalo: 60 // minutos
+                            };
+                        }
+
+                        // Carrega os serviços no select
+                        carregarServicos();
+                    } else {
+                        mostrarErro("Empresa não encontrada. Por favor, volte à lista e selecione uma empresa válida.");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro ao carregar empresa:", error);
+                    mostrarErro("Ocorreu um erro ao carregar os dados da empresa. Por favor, tente novamente.");
+                });
+        }
+
+        // Função para carregar os serviços da empresa
+        function carregarServicos() {
+            const servicoSelect = document.getElementById('servico');
+            servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
+
+            if (!empresaSelecionada || !empresaSelecionada.servicos) {
+                servicoSelect.innerHTML = '<option value="">Nenhum serviço disponível</option>';
+                return;
+            }
+
+            // Processa os serviços que podem estar separados por "/"
+            let servicos = [];
+            if (Array.isArray(empresaSelecionada.servicos)) {
+                // Se for array, processa cada item
+                empresaSelecionada.servicos.forEach(item => {
+                    if (item.includes('/')) {
+                        servicos.push(...item.split('/').map(s => s.trim()));
+                    } else {
+                        servicos.push(item.trim());
+                    }
+                });
+            } else if (typeof empresaSelecionada.servicos === 'string') {
+                // Se for string, separa por "/"
+                servicos = empresaSelecionada.servicos.split('/').map(s => s.trim());
+            }
+
+            // Remove serviços vazios e duplicados
+            servicos = servicos.filter(s => s !== '');
+            servicos = [...new Set(servicos)];
+
+            // Adiciona os serviços ao select
+            servicos.forEach(servico => {
+                const option = document.createElement('option');
+                option.value = servico;
+                option.textContent = servico;
+                servicoSelect.appendChild(option);
+            });
+
+            // Adiciona evento de change para selecionar o serviço
+            servicoSelect.addEventListener('change', function() {
+                servicoSelecionado = this.value;
+                verificarEstadoBotaoAvancar();
+            });
+        }
+
+        // Função para verificar se já existe agendamento para o CPF/CNPJ
+        function verificarAgendamentoExistente(documento) {
+            if (!empresaSelecionada || !documento) return;
+
+            const documentoLimpo = documento.replace(/\D/g, '');
+            
+            // Consulta os agendamentos existentes para este documento
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("agendamentos")
+                .where("clienteDocumento", "==", documentoLimpo)
+                .where("status", "==", "confirmado")
+                .get()
+                .then((querySnapshot) => {
+                    if (!querySnapshot.empty) {
+                        // Pega o primeiro agendamento encontrado (assumindo que só pode ter um agendamento ativo por CPF/CNPJ)
+                        querySnapshot.forEach((doc) => {
+                            agendamentoExistente = {
+                                id: doc.id,
+                                ...doc.data()
+                            };
+                            exibirAgendamentoExistente(agendamentoExistente);
+                        });
+                    } else {
+                        // Não tem agendamento existente, mostra o formulário normal
+                        document.getElementById('info-agendamento-existente').style.display = 'none';
+                        document.getElementById('formulario-agendamento').style.display = 'block';
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro ao verificar agendamento existente:", error);
+                    document.getElementById('info-agendamento-existente').style.display = 'none';
+                    document.getElementById('formulario-agendamento').style.display = 'block';
+                });
+        }
+
+        // Função para exibir informações do agendamento existente
+        function exibirAgendamentoExistente(agendamento) {
+            const infoDiv = document.getElementById('info-agendamento-existente');
+            const resumoDiv = document.getElementById('resumo-agendamento-existente');
+            
+            // Formata a data para exibição
+            const dataAgendamento = new Date(agendamento.data);
+            const dataFormatada = formatarDataExibicao(dataAgendamento);
+            
+            // Preenche o resumo
+            resumoDiv.innerHTML = `
+                <p><strong>Serviço:</strong> ${agendamento.servico}</p>
+                <p><strong>Data:</strong> ${dataFormatada}</p>
+                <p><strong>Horário:</strong> ${agendamento.horario}</p>
+            `;
+            
+            // Mostra a div de informações e esconde o formulário
+            infoDiv.style.display = 'block';
+            document.getElementById('formulario-agendamento').style.display = 'none';
+            
+            // Configura os botões
+            document.getElementById('btn-cancelar-agendamento').onclick = function() {
+                cancelarAgendamentoExistente(agendamento.id);
+            };
+            
+            document.getElementById('btn-novo-agendamento').onclick = function() {
+                infoDiv.style.display = 'none';
+                document.getElementById('formulario-agendamento').style.display = 'block';
+                agendamentoExistente = null;
+            };
+        }
+
+        // Função para cancelar um agendamento existente
+        function cancelarAgendamentoExistente(agendamentoId) {
+            if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+            
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("agendamentos")
+                .doc(agendamentoId)
+                .update({
+                    status: "cancelado"
+                })
+                .then(() => {
+                    alert("Agendamento cancelado com sucesso!");
+                    document.getElementById('info-agendamento-existente').style.display = 'none';
+                    document.getElementById('formulario-agendamento').style.display = 'block';
+                    agendamentoExistente = null;
+                })
+                .catch((error) => {
+                    console.error("Erro ao cancelar agendamento:", error);
+                    mostrarErro("Ocorreu um erro ao cancelar o agendamento. Por favor, tente novamente.");
+                });
+        }
+
+        // Função para gerar horários baseados na configuração
+        function gerarHorariosBase() {
+            if (!horariosConfig) return [];
+
+            const horarios = [];
+            const { inicioManha, fimManha, inicioTarde, fimTarde, intervalo } = horariosConfig;
+
+            // Converte horários para minutos desde meia-noite
+            function toMinutes(timeStr) {
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                return hours * 60 + minutes;
+            }
+
+            // Converte minutos para formato HH:MM
+            function toTimeString(minutes) {
+                const hrs = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+            }
+
+            // Gera horários para um período
+            function gerarPeriodo(inicio, fim) {
+                const start = toMinutes(inicio);
+                const end = toMinutes(fim);
+                const periodHorarios = [];
+
+                for (let time = start; time < end; time += intervalo) {
+                    periodHorarios.push(toTimeString(time));
+                }
+
+                return periodHorarios;
+            }
+
+            // Gera horários para manhã e tarde
+            if (inicioManha && fimManha) {
+                horarios.push(...gerarPeriodo(inicioManha, fimManha));
+            }
+            if (inicioTarde && fimTarde) {
+                horarios.push(...gerarPeriodo(inicioTarde, fimTarde));
+            }
+
+            return horarios;
+        }
+
+        // Função para carregar horários disponíveis
+        function carregarHorariosDisponiveis() {
+            if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado) return;
+
+            const horariosContainer = document.getElementById('horarios-container');
+            horariosContainer.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando horários...</p></div>';
+
+            // Formata a data como YYYY-MM-DD para usar como ID no Firestore
+            const dataFormatada = formatarDataFirestore(dataSelecionada);
+            const hoje = new Date();
+            const hojeFormatado = formatarDataFirestore(hoje);
+
+            // Gera os horários baseados na configuração
+            const horariosBase = gerarHorariosBase();
+
+            // Consulta os agendamentos existentes para esta data e serviço
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("agendamentos")
+                .where("data", "==", dataFormatada)
+                .where("servico", "==", servicoSelecionado)
+                .where("status", "==", "confirmado")
+                .get()
+                .then((querySnapshot) => {
+                    const horariosOcupados = [];
+                    querySnapshot.forEach((doc) => {
+                        horariosOcupados.push(doc.data().horario);
+                    });
+
+                    // Filtra os horários base para mostrar apenas os disponíveis
+                    const horariosDisponiveis = [];
+                    
+                    // Verifica se a data selecionada é hoje
+                    const isHoje = dataFormatada === hojeFormatado;
+                    
+                    // Pega a hora atual para filtrar horários passados se for hoje
+                    const horaAtual = hoje.getHours();
+                    const minutoAtual = hoje.getMinutes();
+
+                    horariosBase.forEach(horario => {
+                        // Verifica se o horário já está agendado
+                        const disponivel = !horariosOcupados.includes(horario);
+                        
+                        // Se for hoje, verifica se o horário já passou
+                        let horarioValido = true;
+                        if (isHoje) {
+                            const [horaStr, minutoStr] = horario.split(':');
+                            const hora = parseInt(horaStr);
+                            const minuto = parseInt(minutoStr || '0');
+                            
+                            if (hora < horaAtual || (hora === horaAtual && minuto < minutoAtual)) {
+                                horarioValido = false;
+                            }
+                        }
+                        
+                        if (horarioValido) {
+                            horariosDisponiveis.push({
+                                horario: horario,
+                                disponivel: disponivel
+                            });
+                        }
+                    });
+
+                    // Exibe os horários na tela
+                    exibirHorariosDisponiveis(horariosDisponiveis);
+                })
+                .catch((error) => {
+                    console.error("Erro ao carregar horários:", error);
+                    horariosContainer.innerHTML = '<div class="error-message">Ocorreu um erro ao carregar os horários disponíveis. Por favor, tente novamente.</div>';
+                });
+        }
+
+        // Função para exibir horários disponíveis
+        function exibirHorariosDisponiveis(horarios) {
+            const horariosContainer = document.getElementById('horarios-container');
+            horariosContainer.innerHTML = '';
+
+            if (horarios.length === 0) {
+                horariosContainer.innerHTML = '<div class="error-message">Nenhum horário disponível para esta data.</div>';
+                return;
+            }
+
+            horarios.forEach((item) => {
+                const horarioBtn = document.createElement('button');
+                horarioBtn.className = `horario-btn ${item.disponivel ? '' : 'disabled'}`;
+                horarioBtn.textContent = item.horario;
+                horarioBtn.disabled = !item.disponivel;
+
+                if (item.disponivel) {
+                    horarioBtn.addEventListener('click', function() {
+                        // Remove a seleção de outros botões
+                        document.querySelectorAll('.horario-btn').forEach(btn => {
+                            btn.classList.remove('selected');
+                        });
+
+                        // Seleciona este horário
+                        this.classList.add('selected');
+                        horarioSelecionado = item.horario;
+                        document.getElementById('btn-next-2').disabled = false;
+                    });
+                }
+
+                horariosContainer.appendChild(horarioBtn);
+            });
+        }
+
+        // Função para formatar data para o Firestore (YYYY-MM-DD)
+        function formatarDataFirestore(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Função para formatar data para exibição (DD/MM/YYYY)
+        function formatarDataExibicao(date) {
+            const d = new Date(date);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        // Função para mostrar mensagem de erro
+        function mostrarErro(mensagem) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = mensagem;
+            errorElement.style.display = 'block';
+        }
+
+        // Função para avançar para o próximo passo
+        function avancarParaProximoPasso(passoAtual) {
+            // Validações antes de avançar
+            if (passoAtual === 1 && (!dataSelecionada || !servicoSelecionado || !documentoCliente)) {
+                mostrarErro("Por favor, preencha todos os campos para continuar.");
+                return;
+            }
+
+            if (passoAtual === 2 && !horarioSelecionado) {
+                mostrarErro("Por favor, selecione um horário para continuar.");
+                return;
+            }
+
+            if (passoAtual === 3) {
+                // Valida o formulário
+                const nome = document.getElementById('nome').value.trim();
+                const telefone = document.getElementById('telefone').value.trim();
+
+                if (!nome || !telefone) {
+                    mostrarErro("Por favor, preencha todos os campos obrigatórios.");
+                    return;
+                }
+
+                // Se tudo estiver válido, confirma o agendamento
+                confirmarAgendamento();
+                return;
+            }
+
+            // Oculta a mensagem de erro se estiver visível
+            document.getElementById('error-message').style.display = 'none';
+
+            // Atualiza os passos
+            document.getElementById(`step-${passoAtual}`).classList.remove('active');
+            document.getElementById(`step-${passoAtual}`).classList.add('completed');
+            document.getElementById(`step-${passoAtual + 1}`).classList.add('active');
+
+            // Atualiza os painéis
+            document.getElementById(`panel-${passoAtual}`).classList.remove('active');
+            document.getElementById(`panel-${passoAtual + 1}`).classList.add('active');
+
+            // Ações específicas para cada passo
+            if (passoAtual === 1) {
+                // Passo 1 → 2: Mostra a data selecionada e carrega os horários
+                document.getElementById('selected-date').textContent = formatarDataExibicao(dataSelecionada);
+                carregarHorariosDisponiveis();
+            } else if (passoAtual === 2) {
+                // Passo 2 → 3: Prepara o formulário
+                document.getElementById('btn-next-2').disabled = true;
+            }
+        }
+
+        // Função para preencher o resumo do agendamento
+        function preencherResumoAgendamento() {
+            const nome = document.getElementById('nome').value.trim();
+            const telefone = document.getElementById('telefone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            // Preenche o resumo do agendamento
+            document.getElementById('resumo-empresa').textContent = empresaSelecionada.nomeFantasia || "Empresa não identificada";
+            document.getElementById('resumo-servico').textContent = servicoSelecionado;
+            document.getElementById('resumo-data').textContent = formatarDataExibicao(dataSelecionada);
+            document.getElementById('resumo-horario').textContent = horarioSelecionado;
+            document.getElementById('resumo-cliente').textContent = nome;
+            document.getElementById('resumo-documento').textContent = documentoCliente;
+            document.getElementById('resumo-contato').textContent = telefone + (email ? ` (${email})` : '');
+            
+            // Oculta a mensagem de erro se estiver visível
+            document.getElementById('error-message').style.display = 'none';
+            
+            // Atualiza os passos
+            document.getElementById('step-3').classList.remove('active');
+            document.getElementById('step-3').classList.add('completed');
+            document.getElementById('step-4').classList.add('active');
+            
+            // Atualiza os painéis
+            document.getElementById('panel-3').classList.remove('active');
+            document.getElementById('panel-4').classList.add('active');
+        }
+
+        // Função para voltar ao passo anterior
+        function voltarParaPassoAnterior(passoAtual) {
+            // Atualiza os passos
+            document.getElementById(`step-${passoAtual}`).classList.remove('active');
+            document.getElementById(`step-${passoAtual - 1}`).classList.add('active');
+            document.getElementById(`step-${passoAtual - 1}`).classList.remove('completed');
+
+            // Atualiza os painéis
+            document.getElementById(`panel-${passoAtual}`).classList.remove('active');
+            document.getElementById(`panel-${passoAtual - 1}`).classList.add('active');
+
+            // Ações específicas para cada passo
+            if (passoAtual === 2) {
+                // Passo 2 → 1: Reativa o botão de avançar
+                document.getElementById('btn-next-1').disabled = !(dataSelecionada && servicoSelecionado && documentoCliente);
+            } else if (passoAtual === 3) {
+                // Passo 3 → 2: Reativa o botão de avançar
+                document.getElementById('btn-next-2').disabled = !horarioSelecionado;
+            }
+        }
+
+        // Função para confirmar o agendamento no Firestore
+        function confirmarAgendamento() {
+            if (agendamentoConfirmado) return;
+
+            const nome = document.getElementById('nome').value.trim();
+            const telefone = document.getElementById('telefone').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            // Formata a data para o Firestore
+            const dataFormatada = formatarDataFirestore(dataSelecionada);
+
+            // Cria o objeto de agendamento
+            const novoAgendamento = {
+                servico: servicoSelecionado,
+                data: dataFormatada,
+                horario: horarioSelecionado,
+                clienteNome: nome,
+                clienteDocumento: documentoCliente.replace(/\D/g, ''),
+                clienteTelefone: telefone,
+                clienteEmail: email || null,
+                dataCriacao: firebase.firestore.FieldValue.serverTimestamp(),
+                status: "confirmado"
+            };
+
+            // Adiciona um novo documento na subcoleção "agendamentos"
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("agendamentos")
+                .add(novoAgendamento)
+                .then((docRef) => {
+                    console.log("Agendamento salvo com ID: ", docRef.id);
+                    agendamentoConfirmado = true;
+                    
+                    // Preenche o resumo do agendamento
+                    preencherResumoAgendamento();
+                })
+                .catch((error) => {
+                    console.error("Erro ao confirmar agendamento:", error);
+                    mostrarErro("Ocorreu um erro ao confirmar seu agendamento. Por favor, tente novamente.");
+                });
+        }
+
+        // Inicializa a página quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', () => {
+            // Carrega os dados da empresa a partir da URL
+            carregarDadosEmpresa();
+
+            // Configura os botões de navegação
+            document.getElementById('btn-next-1').addEventListener('click', () => avancarParaProximoPasso(1));
+            document.getElementById('btn-next-2').addEventListener('click', () => avancarParaProximoPasso(2));
+            document.getElementById('btn-next-3').addEventListener('click', () => avancarParaProximoPasso(3));
+
+            document.getElementById('btn-prev-2').addEventListener('click', () => voltarParaPassoAnterior(2));
+            document.getElementById('btn-prev-3').addEventListener('click', () => voltarParaPassoAnterior(3));
+
+            // Máscara para CPF/CNPJ e verificação de agendamento existente
+            document.getElementById('documento').addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+
+                if (value.length <= 11) { // CPF
+                    if (value.length > 3) value = value.replace(/^(\d{3})/, '$1.');
+                    if (value.length > 6) value = value.replace(/^(\d{3})\.(\d{3})/, '$1.$2.');
+                    if (value.length > 9) value = value.replace(/^(\d{3})\.(\d{3})\.(\d{3})/, '$1.$2.$3-');
+                    e.target.value = value.substring(0, 14);
+                } else { // CNPJ
+                    if (value.length > 2) value = value.replace(/^(\d{2})/, '$1.');
+                    if (value.length > 6) value = value.replace(/^(\d{2})\.(\d{3})/, '$1.$2.');
+                    if (value.length > 10) value = value.replace(/^(\d{2})\.(\d{3})\.(\d{3})/, '$1.$2.$3/');
+                    if (value.length > 15) value = value.replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})/, '$1.$2.$3/$4-');
+                    e.target.value = value.substring(0, 18);
+                }
+
+                // Verifica se o documento está completo (CPF tem 11 dígitos ou CNPJ tem 14)
+                const documentoLimpo = e.target.value.replace(/\D/g, '');
+                if (documentoLimpo.length === 11 || documentoLimpo.length === 14) {
+                    documentoCliente = e.target.value;
+                    verificarAgendamentoExistente(documentoCliente);
+                    verificarEstadoBotaoAvancar();
+                } else {
+                    documentoCliente = null;
+                    verificarEstadoBotaoAvancar();
+                }
+            });
+
+            // Máscara para telefone
+            document.getElementById('telefone').addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 0) value = `(${value.substring(0, 2)}${value.length > 2 ? ')' : ''}${value.substring(2)}`;
+                if (value.length > 3) value = `${value.substring(0, 3)} ${value.substring(3)}`;
+                if (value.length > 9) value = `${value.substring(0, 10)}-${value.substring(10)}`;
+                e.target.value = value.substring(0, 15);
+            });
+        });
+    </script>
 </body>
 </html>
