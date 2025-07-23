@@ -1,3 +1,6 @@
+Vou ajustar o código para utilizar os horários configurados no campo "diasFuncionamento" do documento da empresa no Firestore. Aqui está o código completo com as modificações necessárias:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -553,11 +556,15 @@
                         } else {
                             // Configurações padrão caso não estejam definidas
                             horariosConfig = {
-                                inicioManha: "08:00",
-                                fimManha: "12:00",
-                                inicioTarde: "13:00",
-                                fimTarde: "18:00",
-                                intervalo: 60 // minutos
+                                diasFuncionamento: {
+                                    segunda: { aberto: true, inicio: "08:00", fim: "18:00", intervalo: 60 },
+                                    terca: { aberto: true, inicio: "08:00", fim: "18:00", intervalo: 60 },
+                                    quarta: { aberto: true, inicio: "08:00", fim: "18:00", intervalo: 60 },
+                                    quinta: { aberto: true, inicio: "08:00", fim: "18:00", intervalo: 60 },
+                                    sexta: { aberto: true, inicio: "08:00", fim: "18:00", intervalo: 60 },
+                                    sabado: { aberto: false },
+                                    domingo: { aberto: false }
+                                }
                             };
                         }
 
@@ -689,123 +696,67 @@
         function cancelarAgendamentoExistente(agendamentoId) {
             if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
             
-            // Busca os dados da empresa no Firestore
-db.collection("usuarios").doc(empresaId).get()
-    .then((doc) => {
-        if (doc.exists) {
-            empresaSelecionada = {
-                id: doc.id,
-                ...doc.data()
-            };
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("agendamentos")
+                .doc(agendamentoId)
+                .update({
+                    status: "cancelado"
+                })
+                .then(() => {
+                    alert("Agendamento cancelado com sucesso!");
+                    document.getElementById('info-agendamento-existente').style.display = 'none';
+                    document.getElementById('formulario-agendamento').style.display = 'block';
+                    agendamentoExistente = null;
+                })
+                .catch((error) => {
+                    console.error("Erro ao cancelar agendamento:", error);
+                    mostrarErro("Ocorreu um erro ao cancelar o agendamento. Por favor, tente novamente.");
+                });
+        }
 
-            // Atualiza o cabeçalho com os dados da empresa
-            document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || "Empresa não identificada";
+        // Função para gerar horários baseados na configuração dos dias de funcionamento
+        function gerarHorariosBase(dataSelecionada) {
+            if (!horariosConfig || !horariosConfig.diasFuncionamento) return [];
 
-            // Carrega as configurações de horários da empresa
-            if (empresaSelecionada.horariosConfig) {
-                horariosConfig = empresaSelecionada.horariosConfig;
-                
-                // Se não tiver diasFuncionamento, usa valores padrão
-                if (!horariosConfig.diasFuncionamento) {
-                    horariosConfig.diasFuncionamento = {
-                        duracaoAtendimento: 30,
-                        horarioAbertura: "08:00",
-                        horarioFechamento: "18:00",
-                        intervaloAtendimento: 15
-                    };
-                }
-            } else {
-                // Configurações padrão caso não estejam definidas
-                horariosConfig = {
-                    diasFuncionamento: {
-                        duracaoAtendimento: 30,
-                        horarioAbertura: "08:00",
-                        horarioFechamento: "18:00",
-                        intervaloAtendimento: 15
-                    }
-                };
+            const diaSemana = getDiaSemana(dataSelecionada);
+            const configDia = horariosConfig.diasFuncionamento[diaSemana];
+
+            // Se o dia não estiver configurado ou não estiver aberto, retorna vazio
+            if (!configDia || !configDia.aberto) return [];
+
+            const horarios = [];
+            const { inicio, fim, intervalo } = configDia;
+
+            // Converte horários para minutos desde meia-noite
+            function toMinutes(timeStr) {
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                return hours * 60 + minutes;
             }
 
-            // Carrega os serviços no select
-            carregarServicos();
-        } else {
-            mostrarErro("Empresa não encontrada. Por favor, volte à lista e selecione uma empresa válida.");
-        }
-    })
+            // Converte minutos para formato HH:MM
+            function toTimeString(minutes) {
+                const hrs = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+            }
 
-        // Função para gerar horários baseados na configuração
-function gerarHorariosBase() {
-    if (!horariosConfig || !horariosConfig.diasFuncionamento) return [];
+            // Gera horários para o período
+            const start = toMinutes(inicio);
+            const end = toMinutes(fim);
+            const interval = intervalo || 60; // Default de 60 minutos se não especificado
 
-    const horarios = [];
-    const { 
-        duracaoAtendimento = 30, 
-        horarioAbertura = "08:00", 
-        horarioFechamento = "18:00", 
-        intervaloAtendimento = 15 
-    } = horariosConfig.diasFuncionamento;
+            for (let time = start; time < end; time += interval) {
+                horarios.push(toTimeString(time));
+            }
 
-    // Converte horários para minutos desde meia-noite
-    function toMinutes(timeStr) {
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        return hours * 60 + minutes;
-    }
-
-    // Converte minutos para formato HH:MM
-    function toTimeString(minutes) {
-        const hrs = Math.floor(minutes / 60);
-        const mins = minutes % 60;
-        return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-    }
-
-    const inicio = toMinutes(horarioAbertura);
-    const fim = toMinutes(horarioFechamento);
-    const duracaoSlot = duracaoAtendimento;
-    const intervalo = intervaloAtendimento;
-
-    // Gera os slots de horário
-    for (let time = inicio; time + duracaoSlot <= fim; time += (duracaoSlot + intervalo)) {
-        const slotInicio = toTimeString(time);
-        const slotFim = toTimeString(time + duracaoSlot);
-        horarios.push(`${slotInicio} - ${slotFim}`);
-    }
-
-    return horarios;
-}
-
-// Modificação na função exibirHorariosDisponiveis para mostrar os slots
-function exibirHorariosDisponiveis(horarios) {
-    const horariosContainer = document.getElementById('horarios-container');
-    horariosContainer.innerHTML = '';
-
-    if (horarios.length === 0) {
-        horariosContainer.innerHTML = '<div class="error-message">Nenhum horário disponível para esta data.</div>';
-        return;
-    }
-
-    horarios.forEach((item) => {
-        const horarioBtn = document.createElement('button');
-        horarioBtn.className = `horario-btn ${item.disponivel ? '' : 'disabled'}`;
-        horarioBtn.textContent = item.horario;
-        horarioBtn.disabled = !item.disponivel;
-
-        if (item.disponivel) {
-            horarioBtn.addEventListener('click', function() {
-                // Remove a seleção de outros botões
-                document.querySelectorAll('.horario-btn').forEach(btn => {
-                    btn.classList.remove('selected');
-                });
-
-                // Seleciona este horário
-                this.classList.add('selected');
-                horarioSelecionado = item.horario;
-                document.getElementById('btn-next-2').disabled = false;
-            });
+            return horarios;
         }
 
-        horariosContainer.appendChild(horarioBtn);
-    });
-}
+        // Função para obter o dia da semana em formato compatível com a configuração
+        function getDiaSemana(date) {
+            const dias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+            return dias[date.getDay()];
+        }
 
         // Função para carregar horários disponíveis
         function carregarHorariosDisponiveis() {
@@ -819,8 +770,13 @@ function exibirHorariosDisponiveis(horarios) {
             const hoje = new Date();
             const hojeFormatado = formatarDataFirestore(hoje);
 
-            // Gera os horários baseados na configuração
-            const horariosBase = gerarHorariosBase();
+            // Gera os horários baseados na configuração do dia
+            const horariosBase = gerarHorariosBase(dataSelecionada);
+
+            if (horariosBase.length === 0) {
+                horariosContainer.innerHTML = '<div class="error-message">Não há horários disponíveis para este dia.</div>';
+                return;
+            }
 
             // Consulta os agendamentos existentes para esta data e serviço
             db.collection("usuarios").doc(empresaSelecionada.id)
