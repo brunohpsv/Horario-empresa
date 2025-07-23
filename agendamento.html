@@ -403,7 +403,12 @@
         let dataSelecionada = null;
         let horarioSelecionado = null;
         let horariosDisponiveis = [];
-        let horariosConfig = {}; // Configurações de horários da empresa
+        let horariosConfig = {
+            duracaoAtendimento: 30, // minutos
+            horarioAbertura: "08:00",
+            horarioFechamento: "18:00",
+            intervaloAtendimento: 15 // minutos entre atendimentos
+        };
         let documentoCliente = null;
         let agendamentoExistente = null;
         let agendamentoConfirmado = false;
@@ -425,6 +430,39 @@
                 carregarHorariosDisponiveis();
             }
         });
+
+        // Função para calcular os horários disponíveis
+        function calcularHorariosDisponiveis() {
+            const horarios = [];
+            
+            // Converte horários para minutos desde meia-noite
+            function toMinutes(timeStr) {
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                return hours * 60 + minutes;
+            }
+            
+            // Converte minutos para formato HH:MM
+            function toTimeString(minutes) {
+                const hrs = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+            }
+            
+            const inicio = toMinutes(horariosConfig.horarioAbertura);
+            const fim = toMinutes(horariosConfig.horarioFechamento);
+            const duracao = horariosConfig.duracaoAtendimento;
+            const intervalo = horariosConfig.intervaloAtendimento;
+            
+            // Calcula o tempo total por atendimento (duração + intervalo)
+            const tempoPorAtendimento = duracao + intervalo;
+            
+            // Gera os horários
+            for (let time = inicio; time + duracao <= fim; time += tempoPorAtendimento) {
+                horarios.push(toTimeString(time));
+            }
+            
+            return horarios;
+        }
 
         // Função para carregar os dados da empresa a partir da URL
         function carregarDadosEmpresa() {
@@ -448,17 +486,11 @@
                         // Atualiza o cabeçalho com os dados da empresa
                         document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || "Empresa não identificada";
 
-                        // Carrega as configurações de horários da empresa
+                        // Atualiza as configurações de horário se existirem
                         if (empresaSelecionada.horariosConfig) {
-                            horariosConfig = empresaSelecionada.horariosConfig;
-                        } else {
-                            // Configurações padrão caso não estejam definidas
                             horariosConfig = {
-                                inicioManha: "08:00",
-                                fimManha: "12:00",
-                                inicioTarde: "13:00",
-                                fimTarde: "18:00",
-                                intervalo: 60 // minutos
+                                ...horariosConfig,
+                                ...empresaSelecionada.horariosConfig
                             };
                         }
 
@@ -610,50 +642,6 @@
                 });
         }
 
-        // Função para gerar horários baseados na configuração
-        function gerarHorariosBase() {
-            if (!horariosConfig) return [];
-
-            const horarios = [];
-            const { inicioManha, fimManha, inicioTarde, fimTarde, intervalo } = horariosConfig;
-
-            // Converte horários para minutos desde meia-noite
-            function toMinutes(timeStr) {
-                const [hours, minutes] = timeStr.split(':').map(Number);
-                return hours * 60 + minutes;
-            }
-
-            // Converte minutos para formato HH:MM
-            function toTimeString(minutes) {
-                const hrs = Math.floor(minutes / 60);
-                const mins = minutes % 60;
-                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-            }
-
-            // Gera horários para um período
-            function gerarPeriodo(inicio, fim) {
-                const start = toMinutes(inicio);
-                const end = toMinutes(fim);
-                const periodHorarios = [];
-
-                for (let time = start; time < end; time += intervalo) {
-                    periodHorarios.push(toTimeString(time));
-                }
-
-                return periodHorarios;
-            }
-
-            // Gera horários para manhã e tarde
-            if (inicioManha && fimManha) {
-                horarios.push(...gerarPeriodo(inicioManha, fimManha));
-            }
-            if (inicioTarde && fimTarde) {
-                horarios.push(...gerarPeriodo(inicioTarde, fimTarde));
-            }
-
-            return horarios;
-        }
-
         // Função para carregar horários disponíveis
         function carregarHorariosDisponiveis() {
             if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado) return;
@@ -672,7 +660,7 @@
             const hojeFormatado = formatarDataFirestore(hoje);
 
             // Gera os horários baseados na configuração
-            const horariosBase = gerarHorariosBase();
+            const horariosBase = calcularHorariosDisponiveis();
 
             // Consulta os agendamentos existentes para esta data e serviço
             db.collection("usuarios").doc(empresaSelecionada.id)
