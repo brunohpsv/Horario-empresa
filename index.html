@@ -192,14 +192,6 @@
             text-align: left;
         }
 
-        .servico-tag {
-            font-size: 12px;
-            color: #333; /* Alterado de vermelho (#d32f2f) para preto (#333) */
-            font-weight: bold;
-            text-align: right;
-            min-width: 150px;
-        }
-
         .divider {
             display: none;
         }
@@ -262,12 +254,6 @@
                 padding: 15px;
                 flex-direction: column;
                 align-items: flex-start;
-            }
-            
-            .servico-tag {
-                text-align: left;
-                margin-top: 10px;
-                min-width: auto;
             }
         }
     </style>
@@ -376,21 +362,6 @@
                 empresa.estado ? ' - ' + empresa.estado : ''
             ].join('');
             
-            // Processa os serviços para separar quando houver "/"
-            let servicosExibicao = '';
-            if (Array.isArray(empresa.servicos)) {
-                servicosExibicao = empresa.servicos.join(' • ');
-            } else if (empresa.servicos) {
-                // Se for string, verifica se tem "/" para separar
-                if (empresa.servicos.includes('/')) {
-                    servicosExibicao = empresa.servicos.split('/').map(s => s.trim()).join(' • ');
-                } else {
-                    servicosExibicao = empresa.servicos;
-                }
-            } else {
-                servicosExibicao = 'Serviço não especificado';
-            }
-            
             // Adiciona badge de distância se disponível
             const distanciaBadge = empresa.distancia 
                 ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
@@ -401,7 +372,6 @@
                     <div class="empresa-nome">${empresa.nomeFantasia || 'Nome não informado'}${distanciaBadge}</div>
                     <div class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</div>
                 </div>
-                <div class="servico-tag">${servicosExibicao}</div>
                 <div class="divider"></div>
             `;
             
@@ -486,6 +456,25 @@
             filtrarEmpresas();
         }
 
+        // Função para processar os serviços (separar por / e criar array)
+        function processarServicos(servicos) {
+            if (!servicos) return [];
+            
+            if (Array.isArray(servicos)) {
+                // Se já for array, retorna como está
+                return servicos;
+            } else if (typeof servicos === 'string') {
+                // Se for string, verifica se tem / para separar
+                if (servicos.includes('/')) {
+                    return servicos.split('/').map(s => s.trim()).filter(s => s);
+                } else {
+                    return [servicos.trim()];
+                }
+            }
+            
+            return [];
+        }
+
         // Função para filtrar empresas de forma inteligente
         function filtrarEmpresas() {
             const cidade = document.getElementById('cidade').value.toLowerCase();
@@ -498,13 +487,9 @@
                 const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
                 const estadoEmpresa = (empresa.estado || '');
                 
-                // Verifica serviços (pode ser string ou array)
-                let servicosEmpresa = [];
-                if (Array.isArray(empresa.servicos)) {
-                    servicosEmpresa = empresa.servicos.map(s => s.toLowerCase());
-                } else if (empresa.servicos) {
-                    servicosEmpresa = [empresa.servicos.toLowerCase()];
-                }
+                // Processa os serviços (separando por / se necessário)
+                const servicosEmpresa = processarServicos(empresa.servicos)
+                    .map(s => s.toLowerCase());
                 
                 // Verifica todos os filtros de forma combinada com busca parcial
                 const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
@@ -626,18 +611,13 @@
                     if (empresaData.cidade) cidadesDisponiveis.add(empresaData.cidade);
                     if (empresaData.estado) estadosDisponiveis.add(empresaData.estado);
                     
-                    // Processa os serviços
-                    if (empresaData.servicos) {
-                        if (Array.isArray(empresaData.servicos)) {
-                            empresaData.servicos.forEach(servico => {
-                                if (servico && typeof servico === 'string') {
-                                    servicosDisponiveis.add(servico.trim());
-                                }
-                            });
-                        } else if (typeof empresaData.servicos === 'string') {
-                            servicosDisponiveis.add(empresaData.servicos.trim());
+                    // Processa os serviços (separando por / se necessário)
+                    const servicos = processarServicos(empresaData.servicos);
+                    servicos.forEach(servico => {
+                        if (servico) {
+                            servicosDisponiveis.add(servico.trim());
                         }
-                    }
+                    });
                 });
                 
                 // Atualiza o dropdown de serviços (sem duplicatas)
