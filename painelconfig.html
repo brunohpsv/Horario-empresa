@@ -304,49 +304,31 @@
             margin-top: 20px;
         }
         
-        /* Nova estilização para horário de almoço */
-        .almoco-toggle {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        .almoco-toggle input {
-            margin-right: 10px;
-            cursor: pointer;
-        }
-        
-        .almoco-toggle-label {
-            font-weight: bold;
-            color: #555;
-        }
-        
-        .almoco-container {
-            background-color: #f8f9fa;
+        .almoco-option {
+            margin-top: 15px;
             padding: 15px;
+            background-color: #f8f9fa;
             border-radius: 4px;
-            margin-top: 10px;
-            border-left: 3px solid #4CAF50;
-            transition: all 0.3s ease;
         }
         
-        .almoco-container.hidden {
-            display: none;
-        }
-        
-        .almoco-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
+        .almoco-option label {
             display: flex;
             align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
         }
         
-        .almoco-title i {
-            margin-right: 8px;
-            color: #4CAF50;
+        .almoco-option input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        
+        .almoco-times {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        .almoco-times.active {
+            display: block;
         }
     </style>
 </head>
@@ -400,26 +382,21 @@
                     </div>
                 </div>
                 
-                <!-- Nova seção de horário de almoço melhorada -->
                 <div class="form-group">
-                    <div class="almoco-toggle" id="almocoToggle">
-                        <input type="checkbox" id="temAlmoco">
-                        <span class="almoco-toggle-label">Definir horário de almoço</span>
-                    </div>
-                    
-                    <div class="almoco-container hidden" id="almocoContainer">
-                        <div class="almoco-title">
-                            <i class="fas fa-utensils"></i>
-                            <span>Horário de Almoço</span>
-                        </div>
-                        <div class="horarios-container">
-                            <div class="horario-input">
-                                <label>Início</label>
-                                <input type="time" id="almocoInicio">
-                            </div>
-                            <div class="horario-input">
-                                <label>Término</label>
-                                <input type="time" id="almocoFim">
+                    <div class="almoco-option">
+                        <label>
+                            <input type="checkbox" id="temAlmoco"> Definir horário de almoço
+                        </label>
+                        <div class="almoco-times" id="almocoTimes">
+                            <div class="horarios-container">
+                                <div class="horario-input">
+                                    <label>Início do almoço</label>
+                                    <input type="time" id="almocoInicio">
+                                </div>
+                                <div class="horario-input">
+                                    <label>Fim do almoço</label>
+                                    <input type="time" id="almocoFim">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -598,23 +575,15 @@
                 }
             });
             
-            // Nova lógica para toggle do horário de almoço
-            const almocoToggle = document.getElementById('almocoToggle');
-            const almocoContainer = document.getElementById('almocoContainer');
-            const temAlmocoCheckbox = document.getElementById('temAlmoco');
-            
-            almocoToggle.addEventListener('click', function() {
-                temAlmocoCheckbox.checked = !temAlmocoCheckbox.checked;
-                toggleAlmocoContainer();
-            });
-            
-            function toggleAlmocoContainer() {
-                if (temAlmocoCheckbox.checked) {
-                    almocoContainer.classList.remove('hidden');
+            // Toggle para mostrar/ocultar horário de almoço
+            document.getElementById('temAlmoco').addEventListener('change', function() {
+                const almocoTimes = document.getElementById('almocoTimes');
+                if (this.checked) {
+                    almocoTimes.classList.add('active');
                 } else {
-                    almocoContainer.classList.add('hidden');
+                    almocoTimes.classList.remove('active');
                 }
-            }
+            });
         });
 
         // Carrega os dados do usuário
@@ -663,7 +632,7 @@
             
             if (horariosData.almocoInicio && horariosData.almocoFim) {
                 document.getElementById('temAlmoco').checked = true;
-                document.getElementById('almocoContainer').classList.remove('hidden');
+                document.getElementById('almocoTimes').classList.add('active');
                 document.getElementById('almocoInicio').value = horariosData.almocoInicio;
                 document.getElementById('almocoFim').value = horariosData.almocoFim;
             }
