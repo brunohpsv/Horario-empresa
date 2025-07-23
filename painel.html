@@ -140,19 +140,13 @@
             background-color: #f5f9ff !important;
         }
         
-        /* Ícone de alerta no calendário */
+        /* Dias com agendamentos */
         .fc-day.has-agendamento {
-            position: relative;
+            background-color: #e8f5e9 !important; /* Verde claro para agendamentos futuros */
         }
         
-        .fc-day.has-agendamento .day-alert {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #f44336;
-            font-size: 24px;
-            z-index: 2;
+        .fc-day.past-agendamento {
+            background-color: #ffebee !important; /* Vermelho claro para agendamentos passados */
         }
         
         /* Visualização de dia */
@@ -184,7 +178,9 @@
             background-color: #f9f9f9;
             padding: 15px;
             margin-bottom: 10px;
-            border-left: 4px solid #4CAF50;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
         }
         
         .agendamento-header {
@@ -221,6 +217,8 @@
             padding: 8px 16px;
             cursor: pointer;
             margin-bottom: 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
         }
         
         #voltar-mes:hover {
@@ -233,6 +231,7 @@
             font-size: 12px;
             font-weight: bold;
             text-transform: uppercase;
+            border-radius: 4px;
         }
         
         .status-confirmado {
@@ -248,6 +247,48 @@
         .status-cancelado {
             background-color: #F44336;
             color: white;
+        }
+        
+        .status-concluido {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        /* Botões de ação */
+        .action-buttons {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-concluir {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-concluir:hover {
+            background: #45a049;
+        }
+        
+        .btn-desconcluir {
+            background: #FF9800;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-desconcluir:hover {
+            background: #e68a00;
         }
         
         /* Loader */
@@ -454,18 +495,12 @@
                 
                 agendamentosRef.get().then(querySnapshot => {
                     if (!querySnapshot.empty) {
-                        const alertIcon = document.createElement('div');
-                        alertIcon.className = 'day-alert';
-                        
-                        // Ícone diferente para datas passadas
+                        // Adiciona classe CSS baseada se é data futura ou passada
                         if (isFutureOrToday) {
-                            alertIcon.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #ff0000; font-size: 28px;"></i>';
+                            cell.addClass('has-agendamento');
                         } else {
-                            alertIcon.innerHTML = '<i class="fas fa-times-circle" style="color: #cccccc; font-size: 28px;"></i>';
+                            cell.addClass('past-agendamento');
                         }
-                        
-                        cell[0].appendChild(alertIcon);
-                        cell.css('background-color', isFutureOrToday ? '#fff6f6' : '#f9f9f9');
                     }
                 });
             } catch (error) {
@@ -483,7 +518,7 @@
                 
                 let agendamentosHTML = `
                     <div style="margin: 20px auto; max-width: 800px;">
-                        <button id="voltar-mes" style="background: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; margin-bottom: 15px;">
+                        <button id="voltar-mes" style="background: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; margin-bottom: 15px; border-radius: 4px;">
                             ← Voltar para o Mês
                         </button>
                         <h2 style="text-align: center; margin-bottom: 20px; color: #333;">Agendamentos - ${dateStr}</h2>
@@ -498,38 +533,105 @@
                         agendamentos.push(agendamento);
                     });
                     
+                    // Ordena por horário
                     agendamentos.sort((a, b) => a.horario.localeCompare(b.horario));
                     
-                    agendamentos.forEach(agendamento => {
-                        const statusClass = getStatusClass(agendamento.status);
+                    // Separa concluídos e não concluídos
+                    const concluidos = agendamentos.filter(a => a.status && a.status.toLowerCase() === 'concluído');
+                    const naoConcluidos = agendamentos.filter(a => !a.status || a.status.toLowerCase() !== 'concluído');
+                    
+                    // Mostra primeiro os não concluídos
+                    if (naoConcluidos.length > 0) {
+                        agendamentosHTML += `<h3 style="padding: 15px 15px 5px; color: #333; border-bottom: 1px solid #eee;">Agendamentos</h3>`;
                         
-                        agendamentosHTML += `
-                            <div style="padding: 15px; border-bottom: 1px solid #eee; position: relative;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: bold; color: #333;">${agendamento.horario}</span>
-                                    <span style="font-weight: bold;">${agendamento.servico || 'Serviço não especificado'}</span>
-                                    <span class="status-badge ${statusClass}" style="padding: 3px 8px; border-radius: 4px;">${agendamento.status || 'confirmado'}</span>
+                        naoConcluidos.forEach(agendamento => {
+                            const statusClass = getStatusClass(agendamento.status);
+                            
+                            agendamentosHTML += `
+                                <div style="padding: 15px; border-bottom: 1px solid #eee; position: relative; background: #f9f9f9; border-radius: 4px; margin: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-weight: bold; color: #333;">${agendamento.horario}</span>
+                                        <span style="font-weight: bold;">${agendamento.servico || 'Serviço não especificado'}</span>
+                                        <span class="status-badge ${statusClass}">${agendamento.status || 'confirmado'}</span>
+                                    </div>
+                                    <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                        <div>
+                                            <strong style="display: block; color: #555;">Cliente</strong>
+                                            <div>${agendamento.clienteNome || 'Não informado'}</div>
+                                        </div>
+                                        <div>
+                                            <strong style="display: block; color: #555;">Telefone</strong>
+                                            <div>${agendamento.clienteTelefone || 'Não informado'}</div>
+                                        </div>
+                                        <div>
+                                            <strong style="display: block; color: #555;">E-mail</strong>
+                                            <div>${agendamento.clienteEmail || 'Não informado'}</div>
+                                        </div>
+                                        ${agendamento.observacoes ? `
+                                        <div style="grid-column: span 2;">
+                                            <strong style="display: block; color: #555;">Observações</strong>
+                                            <div>${agendamento.observacoes}</div>
+                                        </div>
+                                        ` : ''}
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="btn-concluir" data-id="${agendamento.id}">
+                                            <i class="fas fa-check"></i> Concluir
+                                        </button>
+                                    </div>
                                 </div>
-                                <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div>
-                                        <strong style="display: block; color: #555;">Cliente</strong>
-                                        <div>${agendamento.clienteNome || 'Não informado'}</div>
+                            `;
+                        });
+                    }
+                    
+                    // Mostra os concluídos depois
+                    if (concluidos.length > 0) {
+                        agendamentosHTML += `<h3 style="padding: 15px 15px 5px; color: #333; border-bottom: 1px solid #eee; margin-top: 20px;">Concluídos</h3>`;
+                        
+                        concluidos.forEach(agendamento => {
+                            const concluidoEm = agendamento.concluidoEm ? 
+                                new Date(agendamento.concluidoEm.seconds * 1000).toLocaleString('pt-BR') : 
+                                'Horário não registrado';
+                            
+                            agendamentosHTML += `
+                                <div style="padding: 15px; border-bottom: 1px solid #eee; position: relative; background: #f0f8ff; border-radius: 4px; margin: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-weight: bold; color: #333;">${agendamento.horario}</span>
+                                        <span style="font-weight: bold;">${agendamento.servico || 'Serviço não especificado'}</span>
+                                        <span class="status-badge status-concluido">concluído</span>
                                     </div>
-                                    <div>
-                                        <strong style="display: block; color: #555;">Telefone</strong>
-                                        <div>${agendamento.clienteTelefone || 'Não informado'}</div>
+                                    <div style="margin-top: 5px; font-size: 12px; color: #666;">
+                                        Concluído em: ${concluidoEm}
                                     </div>
-                                    <div>
-                                        <strong style="display: block; color: #555;">E-mail</strong>
-                                        <div>${agendamento.clienteEmail || 'Não informado'}</div>
+                                    <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                        <div>
+                                            <strong style="display: block; color: #555;">Cliente</strong>
+                                            <div>${agendamento.clienteNome || 'Não informado'}</div>
+                                        </div>
+                                        <div>
+                                            <strong style="display: block; color: #555;">Telefone</strong>
+                                            <div>${agendamento.clienteTelefone || 'Não informado'}</div>
+                                        </div>
+                                        <div>
+                                            <strong style="display: block; color: #555;">E-mail</strong>
+                                            <div>${agendamento.clienteEmail || 'Não informado'}</div>
+                                        </div>
+                                        ${agendamento.observacoes ? `
+                                        <div style="grid-column: span 2;">
+                                            <strong style="display: block; color: #555;">Observações</strong>
+                                            <div>${agendamento.observacoes}</div>
+                                        </div>
+                                        ` : ''}
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="btn-desconcluir" data-id="${agendamento.id}">
+                                            <i class="fas fa-undo"></i> Desconcluir
+                                        </button>
                                     </div>
                                 </div>
-                                <button class="btn-concluir" data-id="${agendamento.id}" style="position: absolute; top: 15px; right: 15px; background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
-                                    Concluir
-                                </button>
-                            </div>
-                        `;
-                    });
+                            `;
+                        });
+                    }
                 } else {
                     agendamentosHTML += `
                         <div style="padding: 20px; text-align: center; color: #666;">
@@ -548,18 +650,48 @@
                 // Adiciona evento para os botões de concluir
                 $('.btn-concluir').click(async function() {
                     const agendamentoId = $(this).data('id');
+                    const button = $(this);
+                    
                     try {
+                        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processando...');
+                        
                         await db.collection('usuarios').doc(userId)
                             .collection('agendamentos').doc(agendamentoId).update({
                                 status: 'concluído',
                                 concluidoEm: new Date()
                             });
                         
-                        // Adiciona marcação de concluído
-                        $(this).replaceWith('<div style="position: absolute; top: 15px; right: 15px; color: #ff0000; font-weight: bold;">X</div>');
+                        // Recarrega a lista de agendamentos
+                        loadAgendamentosForDay(userId, dateKey, dateStr);
                     } catch (error) {
                         console.error('Erro ao marcar como concluído:', error);
                         alert('Erro ao concluir agendamento');
+                        button.prop('disabled', false).html('<i class="fas fa-check"></i> Concluir');
+                    }
+                });
+                
+                // Adiciona evento para os botões de desconcluir
+                $('.btn-desconcluir').click(async function() {
+                    const agendamentoId = $(this).data('id');
+                    const button = $(this);
+                    
+                    if (confirm('Tem certeza que deseja desconcluir este agendamento?')) {
+                        try {
+                            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processando...');
+                            
+                            await db.collection('usuarios').doc(userId)
+                                .collection('agendamentos').doc(agendamentoId).update({
+                                    status: 'confirmado',
+                                    concluidoEm: firebase.firestore.FieldValue.delete()
+                                });
+                            
+                            // Recarrega a lista de agendamentos
+                            loadAgendamentosForDay(userId, dateKey, dateStr);
+                        } catch (error) {
+                            console.error('Erro ao desconcluir agendamento:', error);
+                            alert('Erro ao desconcluir agendamento');
+                            button.prop('disabled', false).html('<i class="fas fa-undo"></i> Desconcluir');
+                        }
                     }
                 });
                 
@@ -597,6 +729,8 @@
                 return 'status-pendente';
             } else if (status.includes('cancelado')) {
                 return 'status-cancelado';
+            } else if (status.includes('concluído') || status.includes('concluido')) {
+                return 'status-concluido';
             }
             
             return 'status-confirmado';
