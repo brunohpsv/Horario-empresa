@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Configurações | HORÁRIO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Reset e estilos gerais */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .logout-btn {
+            background-color: #f44336;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+        
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        /* Container principal */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            flex: 1;
+            width: 100%;
+        }
+        
+        /* Configurações */
+        .configuracoes-form {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        
+        .info-adicionais {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-left: 4px solid #4CAF50;
+            width: 100%;
+        }
+        
+        .info-adicionais h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .info-item {
+            margin-bottom: 15px;
+        }
+        
+        .info-item strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        .info-contato {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Botões */
+        .btn-cancelar {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .btn-cancelar:hover {
+            background-color: #d32f2f;
+        }
+        
+        /* Rodapé */
+        footer {
+            background-color: #000000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+        
+        .contato-rodape {
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .contato-rodape a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Configuração de horários */
+        .horarios-config {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .horarios-config h3 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        .dias-semana {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dia-checkbox {
+            display: flex;
+            align-items: center;
+            background: #f5f5f5;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        .dia-checkbox input {
+            margin-right: 8px;
+        }
+
+        .horarios-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .horario-input {
+            flex: 1;
+        }
+
+        .btn-salvar {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn-salvar:hover {
+            background-color: #45a049;
+        }
+
+        .horarios-exemplo {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .horarios-exemplo h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .horarios-exemplo ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .horarios-exemplo li {
+            margin-bottom: 5px;
+        }
+
+        .success-message {
+            color: #4CAF50;
+            margin-top: 10px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        /* Relatório */
+        .relatorio-section {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .relatorio-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .relatorio-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader inicial -->
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader"></div>
+    </div>
+
+    <header>
+        <div class="logo">PAINEL DE CONTROLE</div>
+        <nav>
+            <ul>
+                <li><a href="painel.html" class="tab-link">CALENDÁRIO</a></li>
+                <li><a href="painelconfig.html" class="tab-link active">CONFIGURAÇÕES</a></li>
+                <li><a href="#" id="logoutBtn" class="logout-btn">SAIR</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Seção de Configuração de Horários -->
+        <div class="horarios-config">
+            <h3>CONFIGURAÇÃO DE HORÁRIOS DE ATENDIMENTO</h3>
+            
+            <form id="horariosForm">
+                <div class="form-group">
+                    <label>Dias de funcionamento:</label>
+                    <div class="dias-semana" id="diasSemana">
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="1"> Segunda</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="2"> Terça</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="3"> Quarta</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="4"> Quinta</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="5"> Sexta</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="6"> Sábado</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="0"> Domingo</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Horário de funcionamento:</label>
+                    <div class="horarios-container">
+                        <div class="horario-input">
+                            <label>Abertura</label>
+                            <input type="time" id="horarioAbertura" required>
+                        </div>
+                        <div class="horario-input">
+                            <label>Fechamento</label>
+                            <input type="time" id="horarioFechamento" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="duracaoAtendimento">Duração de cada atendimento (minutos):</label>
+                    <select id="duracaoAtendimento" required>
+                        <option value="15">15 minutos</option>
+                        <option value="30" selected>30 minutos</option>
+                        <option value="45">45 minutos</option>
+                        <option value="60">60 minutos</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="intervaloAtendimento">Intervalo entre atendimentos (minutos):</label>
+                    <select id="intervaloAtendimento" required>
+                        <option value="0">Sem intervalo</option>
+                        <option value="5">5 minutos</option>
+                        <option value="10">10 minutos</option>
+                        <option value="15" selected>15 minutos</option>
+                        <option value="20">20 minutos</option>
+                        <option value="30">30 minutos</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-salvar">Salvar Configurações</button>
+                <div class="success-message" id="successMessage">Configurações salvas com sucesso!</div>
+            </form>
+
+            <div class="horarios-exemplo">
+                <h4>Como funciona:</h4>
+                <ul>
+                    <li>Selecione os dias da semana em que seu estabelecimento está aberto</li>
+                    <li>Defina o horário de abertura e fechamento</li>
+                    <li>Escolha quanto tempo dura cada atendimento</li>
+                    <li>Defina um intervalo entre os atendimentos (opcional)</li>
+                </ul>
+                <p>O sistema calculará automaticamente os horários disponíveis para agendamento.</p>
+            </div>
+        </div>
+
+        <!-- Seção de Máquinas -->
+        <div class="horarios-config" style="margin-bottom: 30px;">
+            <h3>GERENCIAR MÁQUINAS</h3>
+            
+            <div id="maquinasContainer">
+                <div class="form-group">
+                    <label>Quantidade de Máquinas:</label>
+                    <input type="number" id="quantidadeMaquinas" min="1" max="10" value="1">
+                </div>
+                
+                <button id="btnGerarMaquinas" class="btn-salvar">Gerar Acessos</button>
+                
+                <div id="maquinasResult" style="margin-top: 20px; display: none;">
+                    <h4 style="margin-bottom: 10px;">Credenciais Geradas:</h4>
+                    <div id="maquinasList" style="background: #f8f9fa; padding: 15px; border-radius: 4px;"></div>
+                    <p style="margin-top: 10px; font-size: 14px; color: #666;">
+                        <i class="fas fa-info-circle"></i> As credenciais estarão disponíveis para uso a partir do próximo dia útil.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção de Relatório -->
+        <div class="relatorio-section">
+            <h3>SOLICITAR RELATÓRIO</h3>
+            <p>Solicite um relatório completo dos seus agendamentos.</p>
+            
+            <form id="relatorioForm">
+                <div class="form-group">
+                    <label for="periodoRelatorio">Período do relatório:</label>
+                    <select id="periodoRelatorio" required>
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="15">Últimos 15 dias</option>
+                        <option value="30" selected>Últimos 30 dias</option>
+                        <option value="90">Últimos 3 meses</option>
+                        <option value="180">Últimos 6 meses</option>
+                        <option value="365">Últimos 12 meses</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn-salvar">Solicitar Relatório</button>
+            </form>
+            
+            <div class="relatorio-info">
+                <p><strong>Como funciona:</strong> Ao solicitar o relatório, nossa equipe irá preparar um arquivo com todos os dados dos seus agendamentos no período selecionado.</p>
+                <p>O relatório será enviado para o e-mail cadastrado no prazo máximo de 24 horas.</p>
+                <p>Para dúvidas ou solicitações específicas, entre em contato: <strong>relatorios@horario.site</strong></p>
+            </div>
+        </div>
+
+        <!-- Informações Cadastrais -->
+        <div class="info-adicionais" id="userInfoContainer">
+            <h2>INFORMAÇÕES CADASTRAIS</h2>
+            <div id="userDataLoader" style="text-align: center;">Carregando dados...</div>
+            
+            <div class="info-contato">
+                <p>Para alterar estas informações, entre em contato pelo e-mail: <strong>suporte@horario.site</strong></p>
+                <p>Inclua no assunto: "Alteração de Cadastro - [Seu CNPJ]"</p>
+            </div>
+            
+            <button type="button" class="btn-cancelar">Cancelar Assinatura</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="contato-rodape">
+            <p>Precisa de ajuda? Entre em contato conosco:</p>
+            <p>E-mail: <a href="mailto:suporte@horario.site">suporte@horario.site</a> | Telefone: (11) 1234-5678</p>
+            <p>Horário de atendimento: Segunda a Sexta, das 9h às 18h</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+            authDomain: "banco-de-dados-d253e.firebaseapp.com",
+            projectId: "banco-de-dados-d253e",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
+            messagingSenderId: "1005413315224",
+            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+        };
+
+        // Inicializa o Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Variável global para armazenar dados do usuário
+        let currentUserData = null;
+        
+        // Verificação de autenticação e carregamento de dados
+        document.addEventListener('DOMContentLoaded', function() {
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    // Usuário não autenticado, redireciona para login
+                    window.location.href = 'https://horario.site/login.html';
+                } else {
+                    try {
+                        // Busca os dados do usuário no Firestore
+                        const userDoc = await db.collection('usuarios').where('email', '==', user.email).get();
+                        
+                        if (userDoc.empty) {
+                            throw new Error('Dados do usuário não encontrados');
+                        }
+                        
+                        // Pega o primeiro documento (deveria ter apenas um com o mesmo email)
+                        const doc = userDoc.docs[0];
+                        const userData = doc.data();
+                        
+                        // Adiciona o ID do documento aos dados do usuário
+                        userData.id = doc.id;
+                        currentUserData = userData;
+                        
+                        // Carrega os dados do usuário
+                        loadUserData(userData);
+                        loadHorariosConfig(userData);
+                        document.getElementById('loaderOverlay').style.display = 'none';
+                    } catch (error) {
+                        console.error('Erro ao carregar dados do usuário:', error);
+                        alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
+                        auth.signOut();
+                        window.location.href = 'https://horario.site/login.html';
+                    }
+                }
+            });
+        });
+
+        // Carrega os dados do usuário
+        function loadUserData(userData) {
+            try {
+                displayUserData(userData);
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                alert('Erro ao carregar dados do usuário');
+            }
+        }
+
+        // Carrega as configurações de horários do usuário
+        async function loadHorariosConfig(userData) {
+            try {
+                if (userData.horariosConfig) {
+                    loadHorariosData(userData.horariosConfig);
+                } else {
+                    // Tenta buscar do Firestore
+                    const userDoc = await db.collection('usuarios').doc(userData.id).get();
+                    if (userDoc.exists && userDoc.data().horariosConfig) {
+                        loadHorariosData(userDoc.data().horariosConfig);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações de horários:', error);
+            }
+        }
+
+        // Preenche o formulário com os dados de horários
+        function loadHorariosData(horariosData) {
+            if (horariosData.diasFuncionamento) {
+                horariosData.diasFuncionamento.forEach(dia => {
+                    const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            if (horariosData.horarioAbertura) {
+                document.getElementById('horarioAbertura').value = horariosData.horarioAbertura;
+            }
+            
+            if (horariosData.horarioFechamento) {
+                document.getElementById('horarioFechamento').value = horariosData.horarioFechamento;
+            }
+            
+            if (horariosData.duracaoAtendimento) {
+                document.getElementById('duracaoAtendimento').value = horariosData.duracaoAtendimento;
+            }
+            
+            if (horariosData.intervaloAtendimento) {
+                document.getElementById('intervaloAtendimento').value = horariosData.intervaloAtendimento;
+            }
+        }
+
+        // Salva as configurações de horários no Firebase
+        async function saveHorariosConfig(userData, config) {
+            try {
+                // Caminho específico para salvar as configurações
+                const horariosRef = db.collection('usuarios').doc('WT907JdcaDXCyGd1DvzTOnpEHyA2')
+                                  .collection('horarios').doc('config');
+                
+                // Salva ou atualiza o documento
+                await horariosRef.set(config, { merge: true });
+                
+                // Mostra mensagem de sucesso
+                const successMessage = document.getElementById('successMessage');
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+                
+                return true;
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                alert('Erro ao salvar configurações. Tente novamente.');
+                return false;
+            }
+        }
+
+        // Exibe os dados do usuário na página
+        function displayUserData(userData) {
+            const container = document.getElementById('userInfoContainer');
+            
+            // Remove o loader
+            const loader = document.getElementById('userDataLoader');
+            if (loader) loader.remove();
+            
+            // Preenche os dados do usuário
+            container.innerHTML = `
+                <h2>INFORMAÇÕES CADASTRAIS</h2>
+                
+                <div class="info-item">
+                    <strong>Tipo de Pessoa</strong>
+                    <div>${userData.tipoPessoa === 'pf' ? 'Pessoa Física' : 'Pessoa Jurídica' || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>${userData.tipoPessoa === 'pf' ? 'CPF' : 'CNPJ'}</strong>
+                    <div>${userData.identificacao || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Endereço</strong>
+                    <div>${userData.endereco || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Bairro/Setor</strong>
+                    <div>${userData.bairro || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Cidade</strong>
+                    <div>${userData.cidade || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Estado</strong>
+                    <div>${userData.estado || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>CEP</strong>
+                    <div>${userData.cep || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Telefone/Celular</strong>
+                    <div>${userData.telefone || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>E-mail</strong>
+                    <div>${userData.email || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>${userData.tipoPessoa === 'pf' ? 'Nome Completo' : 'Nome Fantasia'}</strong>
+                    <div>${userData.nomeFantasia || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Número de Máquinas em Uso</strong>
+                    <div>${userData.maquinas || '0'}</div>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Serviços Prestados</strong>
+                    <div>${userData.servicos || 'Não informado'}</div>
+                </div>
+                
+                <div class="info-contato">
+                    <p>Para alterar estas informações, entre em contato pelo e-mail: <strong>suporte@horario.site</strong></p>
+                    <p>Inclua no assunto: "Alteração de Cadastro - ${userData.identificacao || 'Seu CNPJ/CPF'}"</p>
+                </div>
+                
+                <button type="button" class="btn-cancelar">Cancelar Assinatura</button>
+            `;
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            auth.signOut().then(() => {
+                window.location.href = 'https://horario.site/login.html';
+            }).catch(error => {
+                console.error('Erro ao fazer logout:', error);
+            });
+        });
+
+        // Formulário de Configuração de Horários
+        document.getElementById('horariosForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentUserData) return;
+            
+            try {
+                // Coletar dados do formulário
+                const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
+                const horarioAbertura = document.getElementById('horarioAbertura').value;
+                const horarioFechamento = document.getElementById('horarioFechamento').value;
+                const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
+                const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
+                
+                // Validação básica
+                if (diasSelecionados.length === 0) {
+                    alert('Selecione pelo menos um dia de funcionamento');
+                    return;
+                }
+                
+                if (!horarioAbertura || !horarioFechamento) {
+                    alert('Preencha os horários de abertura e fechamento');
+                    return;
+                }
+                
+                // Criar objeto de configuração
+                const config = {
+                    diasFuncionamento: diasSelecionados,
+                    horarioAbertura,
+                    horarioFechamento,
+                    duracaoAtendimento: parseInt(duracaoAtendimento),
+                    intervaloAtendimento: parseInt(intervaloAtendimento),
+                    ultimaAtualizacao: new Date().toISOString()
+                };
+                
+                // Salvar no Firebase
+                await saveHorariosConfig(currentUserData, config);
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                alert('Erro ao salvar configurações. Tente novamente.');
+            }
+        });
+        
+        // Formulário de Solicitação de Relatório
+        document.getElementById('relatorioForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!currentUserData) return;
+            
+            const periodo = document.getElementById('periodoRelatorio').value;
+            
+            // Mostra mensagem de sucesso
+            alert(`Relatório solicitado com sucesso! Você receberá um e-mail com o relatório dos últimos ${periodo} dias em até 24 horas.`);
+            
+            // Aqui você pode adicionar lógica para enviar a solicitação para o backend
+            // Por exemplo, criar um documento em uma coleção de solicitações de relatório
+        });
+
+        // Gerar credenciais para máquinas
+        document.getElementById('btnGerarMaquinas').addEventListener('click', function() {
+            const quantidade = parseInt(document.getElementById('quantidadeMaquinas').value);
+            
+            if (isNaN(quantidade) || quantidade < 1 || quantidade > 10) {
+                alert('Por favor, insira um número válido de máquinas (1-10)');
+                return;
+            }
+            
+            // Simula a geração de credenciais
+            const maquinasList = document.getElementById('maquinasList');
+            maquinasList.innerHTML = '';
+            
+            for (let i = 1; i <= quantidade; i++) {
+                const randomId = Math.random().toString(36).substring(2, 10);
+                const randomPass = Math.random().toString(36).substring(2, 12);
+                
+                maquinasList.innerHTML += `
+                    <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px;">
+                        <strong>Máquina ${i}:</strong><br>
+                        <span>Usuário: maquina_${randomId}</span><br>
+                        <span>Senha: ${randomPass}</span>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('maquinasResult').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
