@@ -290,12 +290,13 @@
         
         .atendente-item {
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 15px;
         }
         
         .atendente-item input {
-            flex: 1;
+            width: 100%;
         }
         
         .duplicado-aviso {
@@ -577,19 +578,25 @@
                     const atendenteDiv = document.createElement('div');
                     atendenteDiv.className = 'atendente-item';
                     
+                    const nomeLabel = document.createElement('label');
+                    nomeLabel.textContent = `Nome do Atendente ${i+1}`;
+                    
                     const nomeInput = document.createElement('input');
                     nomeInput.type = 'text';
-                    nomeInput.placeholder = `Nome do Atendente ${i+1}`;
                     nomeInput.id = `atendente-nome-${i}`;
                     nomeInput.required = true;
                     
+                    const servicosLabel = document.createElement('label');
+                    servicosLabel.textContent = 'Serviços deste atendente (separados por /)';
+                    
                     const servicosInput = document.createElement('input');
                     servicosInput.type = 'text';
-                    servicosInput.placeholder = 'Serviços (separados por /)';
                     servicosInput.id = `atendente-servicos-${i}`;
                     servicosInput.required = true;
                     
+                    atendenteDiv.appendChild(nomeLabel);
                     atendenteDiv.appendChild(nomeInput);
+                    atendenteDiv.appendChild(servicosLabel);
                     atendenteDiv.appendChild(servicosInput);
                     container.appendChild(atendenteDiv);
                 }
@@ -672,6 +679,7 @@
                 // Coletar dados dos atendentes se existirem
                 const qtdAtendentes = parseInt(document.getElementById('atendentes').value);
                 const atendentes = [];
+                const servicosAtendentes = [];
                 
                 if (qtdAtendentes > 0) {
                     for (let i = 0; i < qtdAtendentes; i++) {
@@ -679,9 +687,8 @@
                         const servicos = document.getElementById(`atendente-servicos-${i}`).value.trim();
                         
                         if (nome) {
-                            // Formatar como "Nome - Serviço1/Serviço2"
-                            const atendenteFormatado = servicos ? `${nome} - ${servicos}` : nome;
-                            atendentes.push(atendenteFormatado);
+                            atendentes.push(nome);
+                            servicosAtendentes.push(servicos);
                         }
                     }
                 }
@@ -706,6 +713,7 @@
                     maquinas: document.getElementById('maquinas').value,
                     servicos: qtdAtendentes > 0 ? '' : servicos, // Só preenche serviços se não houver atendentes
                     nomeAtendente: atendentes,
+                    servicoAtendente: servicosAtendentes, // Novo campo separado para serviços dos atendentes
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
                     dataCadastro: new Date().toISOString(),
                     status: 'pendente'
