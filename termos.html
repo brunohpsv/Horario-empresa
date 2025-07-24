@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termos de Uso | HORÁRIO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .login-btn {
+            background-color: #4CAF50;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .termos-content {
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .termos-content p {
+            margin-bottom: 15px;
+        }
+        
+        .admin-section {
+            margin-top: 50px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .admin-form {
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 300px;
+        }
+        
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background-color: #45a049;
+        }
+        
+        .senha-input-container {
+            position: relative;
+        }
+
+        .senha-input-container input {
+            padding-right: 40px;
+        }
+
+        .btn-toggle-senha {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .btn-toggle-senha:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">HORÁRIO</div>
+        <nav>
+            <ul>
+                <li><a href="https://horario.site">Início</a></li>
+                <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Termos de Uso</h1>
+        
+        <div class="termos-content" id="termosText">
+            <!-- O conteúdo dos termos será carregado aqui -->
+            <p>Carregando termos de uso...</p>
+        </div>
+        
+        <div class="admin-section">
+            <button id="btnEditarTermos" class="btn">Editar Termos (Acesso Admin)</button>
+            
+            <div class="admin-form" id="adminForm">
+                <div class="form-group">
+                    <label for="adminSenha">Senha de Administrador</label>
+                    <div class="senha-input-container">
+                        <input type="password" id="adminSenha" placeholder="Digite a senha de administrador">
+                        <button class="btn-toggle-senha" type="button">👁️</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="termosEdit">Editar Termos de Uso</label>
+                    <textarea id="termosEdit"></textarea>
+                </div>
+                
+                <button id="btnSalvarTermos" class="btn">Salvar Alterações</button>
+                <span id="mensagemStatus" style="margin-left: 15px;"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para carregar os termos do localStorage
+        function carregarTermos() {
+            const termosSalvos = localStorage.getItem('termosDeUso');
+            if (termosSalvos) {
+                document.getElementById('termosText').innerHTML = termosSalvos;
+                document.getElementById('termosEdit').value = termosSalvos;
+            } else {
+                // Termos padrão caso não haja nada salvo
+                const termosPadrao = `
+                    <h2>1. Aceitação dos Termos</h2>
+                    <p>Ao utilizar o site HORÁRIO, você concorda com estes Termos de Uso e com nossa Política de Privacidade. Se não concordar com estes termos, por favor, não utilize nosso serviço.</p>
+                    
+                    <h2>2. Uso do Serviço</h2>
+                    <p>O HORÁRIO é uma plataforma para agendamento de serviços. Você concorda em usar o serviço apenas para fins legais e de acordo com estes Termos.</p>
+                    
+                    <h2>3. Cadastro</h2>
+                    <p>Para utilizar todos os recursos, é necessário cadastrar-se fornecendo informações verdadeiras e completas. Você é responsável por manter suas credenciais de acesso em segurança.</p>
+                    
+                    <h2>4. Responsabilidades</h2>
+                    <p>O HORÁRIO não se responsabiliza por agendamentos não realizados ou cancelados diretamente entre prestadores de serviço e clientes.</p>
+                    
+                    <h2>5. Modificações</h2>
+                    <p>Estes Termos podem ser modificados a qualquer momento. Alterações significativas serão comunicadas aos usuários.</p>
+                    
+                    <h2>6. Contato</h2>
+                    <p>Dúvidas sobre estes Termos podem ser enviadas para contato@horario.site</p>
+                `;
+                
+                document.getElementById('termosText').innerHTML = termosPadrao;
+                document.getElementById('termosEdit').value = termosPadrao;
+                localStorage.setItem('termosDeUso', termosPadrao);
+            }
+        }
+        
+        // Toggle para mostrar/ocultar senha
+        document.querySelector('.btn-toggle-senha').addEventListener('click', function() {
+            const senhaInput = document.getElementById('adminSenha');
+            if (senhaInput.type === 'password') {
+                senhaInput.type = 'text';
+                this.textContent = '👁️‍🗨️';
+            } else {
+                senhaInput.type = 'password';
+                this.textContent = '👁️';
+            }
+        });
+        
+        // Mostrar formulário de edição quando clicar no botão
+        document.getElementById('btnEditarTermos').addEventListener('click', function() {
+            document.getElementById('adminForm').style.display = 'block';
+            this.style.display = 'none';
+        });
+        
+        // Verificar senha e salvar termos
+        document.getElementById('btnSalvarTermos').addEventListener('click', function() {
+            const senha = document.getElementById('adminSenha').value;
+            const senhaCorreta = '15475h458ra4765r7965i57o8576#@$';
+            const termosEditados = document.getElementById('termosEdit').value;
+            const mensagemStatus = document.getElementById('mensagemStatus');
+            
+            if (senha === senhaCorreta) {
+                localStorage.setItem('termosDeUso', termosEditados);
+                document.getElementById('termosText').innerHTML = termosEditados;
+                mensagemStatus.textContent = 'Termos atualizados com sucesso!';
+                mensagemStatus.style.color = 'green';
+                
+                // Esconder o formulário após 2 segundos
+                setTimeout(() => {
+                    document.getElementById('adminForm').style.display = 'none';
+                    document.getElementById('btnEditarTermos').style.display = 'inline-block';
+                    mensagemStatus.textContent = '';
+                    document.getElementById('adminSenha').value = '';
+                }, 2000);
+            } else {
+                mensagemStatus.textContent = 'Senha incorreta!';
+                mensagemStatus.style.color = 'red';
+            }
+        });
+        
+        // Carregar os termos quando a página carregar
+        window.addEventListener('DOMContentLoaded', carregarTermos);
+    </script>
+</body>
+</html>
