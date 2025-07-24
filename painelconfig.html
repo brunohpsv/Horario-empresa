@@ -365,6 +365,104 @@
             color: #666;
             margin-top: 10px;
         }
+        
+        /* Seção de Atendentes */
+        .atendentes-section {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .atendentes-list {
+            margin-top: 20px;
+        }
+        
+        .atendente-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .atendente-item h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        /* Seção de Serviços */
+        .servicos-section {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .servicos-list {
+            margin-top: 20px;
+        }
+        
+        .servico-item {
+            display: inline-block;
+            background-color: #f8f9fa;
+            padding: 8px 15px;
+            margin: 0 10px 10px 0;
+            border-radius: 4px;
+        }
+        
+        .btn-editar {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        
+        .btn-editar:hover {
+            background-color: #0b7dda;
+        }
+        
+        .btn-remover {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+        
+        .btn-remover:hover {
+            background-color: #d32f2f;
+        }
+        
+        .btn-adicionar {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .btn-adicionar:hover {
+            background-color: #45a049;
+        }
+        
+        .input-servico {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            width: 300px;
+        }
     </style>
 </head>
 <body>
@@ -503,6 +601,37 @@
             </div>
         </div>
 
+        <!-- Seção de Atendentes -->
+        <div class="atendentes-section" id="atendentesSection" style="display: none;">
+            <h3>GERENCIAR ATENDENTES</h3>
+            
+            <div class="form-group">
+                <label>Quantidade de Atendentes:</label>
+                <input type="number" id="quantidadeAtendentes" min="1" max="20" value="1">
+                <button id="btnAtualizarAtendentes" class="btn-salvar" style="margin-top: 10px;">Atualizar Atendentes</button>
+            </div>
+            
+            <div class="atendentes-list" id="atendentesList">
+                <!-- Lista de atendentes será gerada aqui -->
+            </div>
+        </div>
+
+        <!-- Seção de Serviços -->
+        <div class="servicos-section">
+            <h3>GERENCIAR SERVIÇOS</h3>
+            
+            <p>Lista de serviços oferecidos pelo seu estabelecimento:</p>
+            
+            <div class="servicos-list" id="servicosList">
+                <!-- Serviços serão listados aqui -->
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <input type="text" id="novoServico" class="input-servico" placeholder="Digite um novo serviço">
+                <button id="btnAdicionarServico" class="btn-adicionar">Adicionar Serviço</button>
+            </div>
+        </div>
+
         <!-- Seção de Relatório -->
         <div class="relatorio-section">
             <h3>SOLICITAR RELATÓRIO</h3>
@@ -605,6 +734,8 @@
                         // Carrega os dados do usuário
                         loadUserData(userData);
                         loadHorariosConfig(userData);
+                        loadAtendentesConfig(userData);
+                        loadServicosConfig(userData);
                         document.getElementById('loaderOverlay').style.display = 'none';
                     } catch (error) {
                         console.error('Erro ao carregar dados do usuário:', error);
@@ -652,6 +783,40 @@
                 console.error('Erro ao carregar configurações de horários:', error);
             }
         }
+        
+        // Carrega as configurações de atendentes do usuário
+        async function loadAtendentesConfig(userData) {
+            try {
+                if (userData.nomeAtendente) {
+                    // Mostra a seção de atendentes
+                    document.getElementById('atendentesSection').style.display = 'block';
+                    
+                    // Verifica se é um array ou string única
+                    if (Array.isArray(userData.nomeAtendente)) {
+                        document.getElementById('quantidadeAtendentes').value = userData.nomeAtendente.length;
+                        renderAtendentesList(userData.nomeAtendente);
+                    } else {
+                        document.getElementById('quantidadeAtendentes').value = 1;
+                        renderAtendentesList([userData.nomeAtendente]);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações de atendentes:', error);
+            }
+        }
+        
+        // Carrega as configurações de serviços do usuário
+        async function loadServicosConfig(userData) {
+            try {
+                if (userData.servicos) {
+                    // Divide os serviços pela barra "/"
+                    const servicosArray = userData.servicos.split('/').map(s => s.trim()).filter(s => s !== '');
+                    renderServicosList(servicosArray);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações de serviços:', error);
+            }
+        }
 
         // Preenche o formulário com os dados de horários
         function loadHorariosData(horariosData) {
@@ -685,6 +850,70 @@
                 document.getElementById('intervaloAtendimento').value = horariosData.intervaloAtendimento;
             }
         }
+        
+        // Renderiza a lista de atendentes
+        function renderAtendentesList(atendentes) {
+            const container = document.getElementById('atendentesList');
+            container.innerHTML = '';
+            
+            atendentes.forEach((atendente, index) => {
+                const atendenteDiv = document.createElement('div');
+                atendenteDiv.className = 'atendente-item';
+                atendenteDiv.innerHTML = `
+                    <h4>Atendente ${index + 1}</h4>
+                    <div class="form-group">
+                        <label>Nome do Atendente:</label>
+                        <input type="text" class="nome-atendente" value="${atendente}" data-index="${index}">
+                    </div>
+                    <div class="form-group">
+                        <label>Serviços Prestados:</label>
+                        <input type="text" class="servicos-atendente" value="${currentUserData.servicos || ''}" data-index="${index}">
+                    </div>
+                    <button class="btn-salvar btn-salvar-atendente" data-index="${index}">Salvar Alterações</button>
+                `;
+                container.appendChild(atendenteDiv);
+            });
+            
+            // Adiciona event listeners aos botões de salvar
+            document.querySelectorAll('.btn-salvar-atendente').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    saveAtendenteChanges(index);
+                });
+            });
+        }
+        
+        // Renderiza a lista de serviços
+        function renderServicosList(servicos) {
+            const container = document.getElementById('servicosList');
+            container.innerHTML = '';
+            
+            servicos.forEach((servico, index) => {
+                const servicoSpan = document.createElement('span');
+                servicoSpan.className = 'servico-item';
+                servicoSpan.innerHTML = `
+                    ${servico}
+                    <button class="btn-editar" data-index="${index}"><i class="fas fa-edit"></i></button>
+                    <button class="btn-remover" data-index="${index}"><i class="fas fa-trash"></i></button>
+                `;
+                container.appendChild(servicoSpan);
+            });
+            
+            // Adiciona event listeners aos botões
+            document.querySelectorAll('.btn-editar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    editServico(index);
+                });
+            });
+            
+            document.querySelectorAll('.btn-remover').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    removeServico(index);
+                });
+            });
+        }
 
         // Salva as configurações de horários no Firebase
         async function saveHorariosConfig(userData, config) {
@@ -709,6 +938,115 @@
                 console.error('Erro ao salvar configurações:', error);
                 alert('Erro ao salvar configurações. Tente novamente.');
                 return false;
+            }
+        }
+        
+        // Salva as alterações de um atendente
+        async function saveAtendenteChanges(index) {
+            if (!currentUserData) return;
+            
+            try {
+                const nomeAtendente = document.querySelector(`.nome-atendente[data-index="${index}"]`).value;
+                const servicosAtendente = document.querySelector(`.servicos-atendente[data-index="${index}"]`).value;
+                
+                // Atualiza os dados localmente
+                let atendentesArray = [];
+                if (Array.isArray(currentUserData.nomeAtendente)) {
+                    atendentesArray = [...currentUserData.nomeAtendente];
+                } else if (currentUserData.nomeAtendente) {
+                    atendentesArray = [currentUserData.nomeAtendente];
+                }
+                
+                // Atualiza o nome do atendente
+                if (atendentesArray[index]) {
+                    atendentesArray[index] = nomeAtendente;
+                } else {
+                    atendentesArray.push(nomeAtendente);
+                }
+                
+                // Atualiza no Firestore
+                await db.collection('usuarios').doc(currentUserData.id).set({
+                    nomeAtendente: atendentesArray,
+                    servicos: servicosAtendente
+                }, { merge: true });
+                
+                // Atualiza os dados locais
+                currentUserData.nomeAtendente = atendentesArray;
+                currentUserData.servicos = servicosAtendente;
+                
+                // Atualiza a lista de serviços
+                loadServicosConfig(currentUserData);
+                
+                alert('Alterações salvas com sucesso!');
+            } catch (error) {
+                console.error('Erro ao salvar atendente:', error);
+                alert('Erro ao salvar alterações. Tente novamente.');
+            }
+        }
+        
+        // Edita um serviço
+        function editServico(index) {
+            const servicosArray = currentUserData.servicos.split('/').map(s => s.trim()).filter(s => s !== '');
+            const novoNome = prompt('Editar serviço:', servicosArray[index]);
+            
+            if (novoNome !== null) {
+                servicosArray[index] = novoNome.trim();
+                updateServicos(servicosArray);
+            }
+        }
+        
+        // Remove um serviço
+        function removeServico(index) {
+            if (confirm('Tem certeza que deseja remover este serviço?')) {
+                const servicosArray = currentUserData.servicos.split('/').map(s => s.trim()).filter(s => s !== '');
+                servicosArray.splice(index, 1);
+                updateServicos(servicosArray);
+            }
+        }
+        
+        // Adiciona um novo serviço
+        async function addServico() {
+            const novoServico = document.getElementById('novoServico').value.trim();
+            
+            if (!novoServico) {
+                alert('Por favor, digite um nome para o serviço');
+                return;
+            }
+            
+            let servicosArray = [];
+            if (currentUserData.servicos) {
+                servicosArray = currentUserData.servicos.split('/').map(s => s.trim()).filter(s => s !== '');
+            }
+            
+            if (servicosArray.includes(novoServico)) {
+                alert('Este serviço já está na lista');
+                return;
+            }
+            
+            servicosArray.push(novoServico);
+            await updateServicos(servicosArray);
+            
+            // Limpa o campo de input
+            document.getElementById('novoServico').value = '';
+        }
+        
+        // Atualiza a lista de serviços no Firestore
+        async function updateServicos(servicosArray) {
+            try {
+                const servicosString = servicosArray.join(' / ');
+                
+                await db.collection('usuarios').doc(currentUserData.id).set({
+                    servicos: servicosString
+                }, { merge: true });
+                
+                // Atualiza os dados locais
+                currentUserData.servicos = servicosString;
+                
+                // Atualiza a exibição
+                renderServicosList(servicosArray);
+            } catch (error) {
+                console.error('Erro ao atualizar serviços:', error);
+                alert('Erro ao atualizar serviços. Tente novamente.');
             }
         }
 
@@ -857,6 +1195,48 @@
             } catch (error) {
                 console.error('Erro ao salvar configurações:', error);
                 alert('Erro ao salvar configurações. Tente novamente.');
+            }
+        });
+        
+        // Atualiza a lista de atendentes
+        document.getElementById('btnAtualizarAtendentes').addEventListener('click', function() {
+            const quantidade = parseInt(document.getElementById('quantidadeAtendentes').value);
+            
+            if (isNaN(quantidade) || quantidade < 1 || quantidade > 20) {
+                alert('Por favor, insira um número válido de atendentes (1-20)');
+                return;
+            }
+            
+            // Cria array com atendentes vazios ou mantém os existentes
+            let atendentesArray = [];
+            if (currentUserData.nomeAtendente) {
+                if (Array.isArray(currentUserData.nomeAtendente)) {
+                    atendentesArray = [...currentUserData.nomeAtendente];
+                } else {
+                    atendentesArray = [currentUserData.nomeAtendente];
+                }
+            }
+            
+            // Ajusta o tamanho do array conforme a quantidade
+            if (atendentesArray.length < quantidade) {
+                // Adiciona novos atendentes vazios
+                for (let i = atendentesArray.length; i < quantidade; i++) {
+                    atendentesArray.push(`Atendente ${i + 1}`);
+                }
+            } else if (atendentesArray.length > quantidade) {
+                // Remove atendentes extras
+                atendentesArray = atendentesArray.slice(0, quantidade);
+            }
+            
+            // Atualiza a exibição
+            renderAtendentesList(atendentesArray);
+        });
+        
+        // Adiciona um novo serviço
+        document.getElementById('btnAdicionarServico').addEventListener('click', addServico);
+        document.getElementById('novoServico').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addServico();
             }
         });
         
