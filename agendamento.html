@@ -407,8 +407,6 @@
             duracaoAtendimento: 30, // minutos
             horarioAbertura: "08:00",
             horarioFechamento: "18:00",
-            almocoInicio: "12:00", // horário de início do almoço
-            almocoFim: "13:00",   // horário de fim do almoço
             intervaloAtendimento: 15 // minutos entre atendimentos
         };
         let documentoCliente = null;
@@ -452,18 +450,22 @@
             
             const inicio = toMinutes(horariosConfig.horarioAbertura);
             const fim = toMinutes(horariosConfig.horarioFechamento);
-            const almocoInicio = toMinutes(horariosConfig.almocoInicio);
-            const almocoFim = toMinutes(horariosConfig.almocoFim);
             const duracao = horariosConfig.duracaoAtendimento;
             const intervalo = horariosConfig.intervaloAtendimento;
+            
+            // Verifica se existe horário de almoço configurado
+            const temAlmoco = horariosConfig.almocoInicio && horariosConfig.almocoFim;
+            const almocoInicio = temAlmoco ? toMinutes(horariosConfig.almocoInicio) : 0;
+            const almocoFim = temAlmoco ? toMinutes(horariosConfig.almocoFim) : 0;
             
             // Calcula o tempo total por atendimento (duração + intervalo)
             const tempoPorAtendimento = duracao + intervalo;
             
             // Gera os horários
             for (let time = inicio; time + duracao <= fim; time += tempoPorAtendimento) {
-                // Verifica se o horário está dentro do período de almoço
-                if (!(time >= almocoInicio && time < almocoFim) && 
+                // Verifica se o horário está dentro do período de almoço (se configurado)
+                if (!temAlmoco || 
+                    !(time >= almocoInicio && time < almocoFim) && 
                     !(time + duracao > almocoInicio && time + duracao <= almocoFim)) {
                     horarios.push(toTimeString(time));
                 }
