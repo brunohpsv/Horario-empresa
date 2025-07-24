@@ -283,8 +283,8 @@
         .atendentes-container {
             margin-top: 15px;
             border: 1px solid #ddd;
-            border-radius: 4px;
             padding: 15px;
+            border-radius: 5px;
             background-color: #f9f9f9;
         }
         
@@ -292,16 +292,17 @@
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
-            align-items: center;
         }
         
         .atendente-item input {
             flex: 1;
         }
         
-        .atendente-item label {
-            min-width: 80px;
-            margin-bottom: 0;
+        .duplicado-aviso {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -333,16 +334,19 @@
                 <div class="form-group">
                     <label for="identificacao" id="label-identificacao">CPF/CNPJ</label>
                     <input type="text" id="identificacao" required>
+                    <div class="duplicado-aviso" id="identificacao-duplicado">Este CPF/CNPJ já está cadastrado em nosso sistema</div>
                 </div>
                 
                 <div class="form-group">
                     <label for="nome-fantasia" id="label-nome-fantasia">Nome Fantasia (Empresa) ou Nome Completo (Pessoa Física)</label>
                     <input type="text" id="nome-fantasia" required>
+                    <div class="duplicado-aviso" id="nome-duplicado">Este nome já está cadastrado em nosso sistema</div>
                 </div>
                 
                 <div class="form-group">
                     <label for="endereco">Endereço</label>
                     <input type="text" id="endereco" placeholder="Rua" required>
+                    <div class="duplicado-aviso" id="endereco-duplicado">Este endereço já está cadastrado em nosso sistema</div>
                 </div>
                 
                 <div class="form-group">
@@ -350,10 +354,12 @@
                         <div style="flex: 3;">
                             <label for="bairro">Bairro/Setor</label>
                             <input type="text" id="bairro" required>
+                            <div class="duplicado-aviso" id="bairro-duplicado">Este bairro já está cadastrado em nosso sistema</div>
                         </div>
                         <div style="flex: 1;">
                             <label for="numero">Número</label>
                             <input type="text" id="numero" required>
+                            <div class="duplicado-aviso" id="numero-duplicado">Este número já está cadastrado em nosso sistema</div>
                         </div>
                     </div>
                 </div>
@@ -363,14 +369,17 @@
                         <div style="flex: 2;">
                             <label for="cidade">Cidade</label>
                             <input type="text" id="cidade" required>
+                            <div class="duplicado-aviso" id="cidade-duplicado">Esta cidade já está cadastrada em nosso sistema</div>
                         </div>
                         <div style="flex: 1;">
                             <label for="estado">Estado</label>
                             <input type="text" id="estado" required>
+                            <div class="duplicado-aviso" id="estado-duplicado">Este estado já está cadastrado em nosso sistema</div>
                         </div>
                         <div style="flex: 1;">
                             <label for="cep">CEP</label>
                             <input type="text" id="cep" required>
+                            <div class="duplicado-aviso" id="cep-duplicado">Este CEP já está cadastrado em nosso sistema</div>
                         </div>
                     </div>
                 </div>
@@ -378,11 +387,13 @@
                 <div class="form-group">
                     <label for="telefone">Telefone/Celular do Responsável</label>
                     <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" required>
+                    <div class="duplicado-aviso" id="telefone-duplicado">Este telefone já está cadastrado em nosso sistema</div>
                 </div>
                 
                 <div class="form-group">
                     <label for="email">E-mail</label>
                     <input type="email" id="email" required>
+                    <div class="duplicado-aviso" id="email-duplicado">Este e-mail já está cadastrado em nosso sistema</div>
                 </div>
                 
                 <div class="form-group">
@@ -392,19 +403,14 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="atendentes">Quantos atendentes terão? (Máximo 30)</label>
-                    <input type="number" id="atendentes" min="1" max="30" value="1" required>
-                    <div class="exemplo">Informe quantos profissionais atenderão clientes</div>
-                    
-                    <div id="atendentesContainer" class="atendentes-container" style="display: none;">
-                        <h4>Informações dos Atendentes</h4>
-                        <div id="atendentesFields"></div>
-                    </div>
+                    <label for="atendentes">Quantos atendentes terão?</label>
+                    <input type="number" id="atendentes" min="0" max="30" value="0">
+                    <div id="atendentes-container" class="atendentes-container" style="display: none;"></div>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group" id="servicos-group">
                     <label for="servicos">Quais serviços sua empresa presta?</label>
-                    <textarea id="servicos" rows="3" required></textarea>
+                    <textarea id="servicos" rows="3"></textarea>
                     <div class="exemplo">Exemplo: Clínica médica geral / Odontologia / Dermatologia / Psicologia - Separe os serviços com barras (/)</div>
                 </div>
                 
@@ -484,7 +490,11 @@
         import { 
             getFirestore, 
             doc,
-            setDoc
+            setDoc,
+            collection,
+            query,
+            where,
+            getDocs
         } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
         import {
             getAuth,
@@ -553,77 +563,100 @@
             return horarios;
         }
 
-        // Função para criar campos de atendentes dinamicamente
-        function criarCamposAtendentes(qtd) {
-            const container = document.getElementById('atendentesFields');
+        // Gerar campos de atendentes dinamicamente
+        document.getElementById('atendentes').addEventListener('change', function() {
+            const qtdAtendentes = parseInt(this.value);
+            const container = document.getElementById('atendentes-container');
+            
             container.innerHTML = '';
             
-            for (let i = 1; i <= qtd; i++) {
-                const div = document.createElement('div');
-                div.className = 'atendente-item';
+            if (qtdAtendentes > 0) {
+                container.style.display = 'block';
                 
-                const label = document.createElement('label');
-                label.textContent = `Atendente ${i}:`;
+                for (let i = 0; i < qtdAtendentes; i++) {
+                    const atendenteDiv = document.createElement('div');
+                    atendenteDiv.className = 'atendente-item';
+                    
+                    const nomeInput = document.createElement('input');
+                    nomeInput.type = 'text';
+                    nomeInput.placeholder = `Nome do Atendente ${i+1}`;
+                    nomeInput.id = `atendente-nome-${i}`;
+                    
+                    const servicosInput = document.createElement('input');
+                    servicosInput.type = 'text';
+                    servicosInput.placeholder = 'Serviços (separados por /)';
+                    servicosInput.id = `atendente-servicos-${i}`;
+                    
+                    atendenteDiv.appendChild(nomeInput);
+                    atendenteDiv.appendChild(servicosInput);
+                    container.appendChild(atendenteDiv);
+                }
                 
-                const inputNome = document.createElement('input');
-                inputNome.type = 'text';
-                inputNome.placeholder = 'Nome completo';
-                inputNome.required = true;
-                inputNome.id = `atendente-nome-${i}`;
-                
-                const inputServicos = document.createElement('input');
-                inputServicos.type = 'text';
-                inputServicos.placeholder = 'Serviços (separados por /)';
-                inputServicos.required = true;
-                inputServicos.id = `atendente-servicos-${i}`;
-                
-                div.appendChild(label);
-                div.appendChild(inputNome);
-                div.appendChild(inputServicos);
-                
-                container.appendChild(div);
+                // Tornar campo de serviços não obrigatório
+                document.getElementById('servicos').required = false;
+                document.getElementById('servicos-group').style.opacity = '0.7';
+            } else {
+                container.style.display = 'none';
+                document.getElementById('servicos').required = true;
+                document.getElementById('servicos-group').style.opacity = '1';
             }
-            
-            document.getElementById('atendentesContainer').style.display = qtd > 0 ? 'block' : 'none';
-        }
-
-        // Evento para atualizar campos de atendentes quando o número muda
-        document.getElementById('atendentes').addEventListener('change', function() {
-            criarCamposAtendentes(parseInt(this.value));
         });
 
-        // Inicializar campos de atendentes
-        document.addEventListener('DOMContentLoaded', function() {
-            const qtdAtendentes = parseInt(document.getElementById('atendentes').value);
-            criarCamposAtendentes(qtdAtendentes);
-        });
-
-        // Função para coletar dados dos atendentes
-        function coletarDadosAtendentes() {
-            const qtdAtendentes = parseInt(document.getElementById('atendentes').value);
-            const atendentes = [];
+        // Verificar campos duplicados no Firestore
+        async function verificarCamposDuplicados() {
+            const campos = [
+                { id: 'identificacao', field: 'identificacao', msgId: 'identificacao-duplicado' },
+                { id: 'nome-fantasia', field: 'nomeFantasia', msgId: 'nome-duplicado' },
+                { id: 'endereco', field: 'endereco', msgId: 'endereco-duplicado' },
+                { id: 'bairro', field: 'bairro', msgId: 'bairro-duplicado' },
+                { id: 'numero', field: 'numero', msgId: 'numero-duplicado' },
+                { id: 'cidade', field: 'cidade', msgId: 'cidade-duplicado' },
+                { id: 'estado', field: 'estado', msgId: 'estado-duplicado' },
+                { id: 'cep', field: 'cep', msgId: 'cep-duplicado' },
+                { id: 'telefone', field: 'telefone', msgId: 'telefone-duplicado' },
+                { id: 'email', field: 'email', msgId: 'email-duplicado' }
+            ];
             
-            for (let i = 1; i <= qtdAtendentes; i++) {
-                const nome = document.getElementById(`atendente-nome-${i}`).value;
-                const servicos = document.getElementById(`atendente-servicos-${i}`).value;
-                
-                atendentes.push({
-                    nome: nome,
-                    servicos: servicos.split('/').map(s => s.trim()).filter(s => s !== '')
-                });
+            let temDuplicado = false;
+            
+            for (const campo of campos) {
+                const valor = document.getElementById(campo.id).value.trim();
+                if (valor) {
+                    const q = query(collection(db, "usuarios"), where(campo.field, "==", valor));
+                    const querySnapshot = await getDocs(q);
+                    
+                    if (!querySnapshot.empty) {
+                        document.getElementById(campo.msgId).style.display = 'block';
+                        temDuplicado = true;
+                    } else {
+                        document.getElementById(campo.msgId).style.display = 'none';
+                    }
+                }
             }
             
-            return atendentes;
+            return temDuplicado;
         }
 
-        // Envio do formulário para o Firebase
+        // Adicionar verificação de duplicados ao enviar formulário
         document.getElementById('formCadastro').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const btn = e.target.querySelector('button[type="submit"]');
             const btnOriginalText = btn.textContent;
-            btn.textContent = 'Enviando...';
+            btn.textContent = 'Verificando...';
             btn.disabled = true;
+            
+            // Verificar campos duplicados
+            const temDuplicado = await verificarCamposDuplicados();
+            
+            if (temDuplicado) {
+                alert('Por favor, corrija os campos marcados em vermelho antes de enviar.');
+                btn.textContent = btnOriginalText;
+                btn.disabled = false;
+                return;
+            }
+            
+            btn.textContent = 'Enviando...';
             
             try {
                 // Coletar dados do formulário
@@ -634,8 +667,30 @@
                 const senha = gerarSenha();
                 const login = gerarCodigoLogin(nomeFantasia);
                 
-                // Coletar dados dos atendentes
-                const atendentes = coletarDadosAtendentes();
+                // Coletar dados dos atendentes se existirem
+                const qtdAtendentes = parseInt(document.getElementById('atendentes').value);
+                const atendentes = [];
+                const servicosAtendentes = [];
+                
+                if (qtdAtendentes > 0) {
+                    for (let i = 0; i < qtdAtendentes; i++) {
+                        const nome = document.getElementById(`atendente-nome-${i}`).value.trim();
+                        const servicos = document.getElementById(`atendente-servicos-${i}`).value.trim();
+                        
+                        if (nome) {
+                            atendentes.push(nome);
+                            if (servicos) {
+                                servicosAtendentes.push(...servicos.split('/').map(s => s.trim()));
+                            }
+                        }
+                    }
+                }
+                
+                // Coletar serviços gerais se não houver atendentes
+                const servicos = document.getElementById('servicos').value.trim();
+                const todosServicos = servicosAtendentes.length > 0 ? 
+                    servicosAtendentes.join(' / ') : 
+                    servicos;
                 
                 const formData = {
                     tipoPessoa: document.getElementById('tipo-pessoa').value,
@@ -652,8 +707,8 @@
                     login: login,
                     senha: senha, // Armazenando a senha no Firestore também
                     maquinas: document.getElementById('maquinas').value,
-                    atendentes: atendentes,
-                    servicos: document.getElementById('servicos').value,
+                    servicos: todosServicos,
+                    nomeAtendente: atendentes,
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
                     dataCadastro: new Date().toISOString(),
                     status: 'pendente'
@@ -693,6 +748,8 @@
                 
                 // 5. Limpar formulário
                 document.getElementById('formCadastro').reset();
+                document.getElementById('atendentes-container').style.display = 'none';
+                document.getElementById('servicos-group').style.opacity = '1';
                 window.scrollTo(0, document.body.scrollHeight);
                 
             } catch (error) {
@@ -722,6 +779,18 @@
                 value = `${value.substring(0,5)}-${value.substring(5,8)}`;
             }
             e.target.value = value;
+        });
+
+        // Verificar duplicados ao sair dos campos
+        const camposParaVerificar = [
+            'identificacao', 'nome-fantasia', 'endereco', 'bairro', 'numero',
+            'cidade', 'estado', 'cep', 'telefone', 'email'
+        ];
+        
+        camposParaVerificar.forEach(id => {
+            document.getElementById(id).addEventListener('blur', async function() {
+                await verificarCamposDuplicados();
+            });
         });
     </script>
 </body>
