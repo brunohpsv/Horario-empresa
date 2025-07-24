@@ -653,7 +653,7 @@
             </div>
         </div>
 
-        <!-- Seção de Atendentes -->
+        <!-- Seção de Atendentes - Corrigida -->
         <div class="atendentes-section" id="atendentesSection">
             <h3>GERENCIAR ATENDENTES</h3>
             
@@ -666,6 +666,8 @@
             <div class="atendentes-list" id="atendentesList">
                 <!-- Lista de atendentes será gerada aqui -->
             </div>
+            
+            <button id="btnSalvarTodosAtendentes" class="btn-salvar" style="margin-top: 20px;">Salvar Todos Atendentes</button>
         </div>
 
         <!-- Seção de Serviços -->
@@ -760,6 +762,7 @@
         // Variável global para armazenar dados do usuário
         let currentUserData = null;
         let servicosDisponiveis = [];
+        let atendentesData = [];
         
         // Verificação de autenticação e carregamento de dados
         document.addEventListener('DOMContentLoaded', function() {
@@ -841,26 +844,35 @@
         async function loadAtendentesConfig(userData) {
             try {
                 if (userData.atendentes) {
-                    // Mostra a seção de atendentes
-                    document.getElementById('atendentesSection').style.display = 'block';
-                    
                     // Verifica se é um array ou string única
                     if (Array.isArray(userData.atendentes)) {
-                        document.getElementById('quantidadeAtendentes').value = userData.atendentes.length;
-                        renderAtendentesList(userData.atendentes);
+                        atendentesData = [...userData.atendentes];
+                        document.getElementById('quantidadeAtendentes').value = atendentesData.length;
                     } else {
+                        // Converte para array se for string única
+                        atendentesData = [{
+                            nome: userData.atendentes,
+                            servicos: userData.servicos ? userData.servicos.split('/').map(s => s.trim()).filter(s => s !== '') : []
+                        }];
                         document.getElementById('quantidadeAtendentes').value = 1;
-                        renderAtendentesList([userData.atendentes]);
                     }
                 } else if (userData.nomeAtendente) {
                     // Mantém compatibilidade com versão antiga
-                    document.getElementById('quantidadeAtendentes').value = 1;
-                    const atendente = {
+                    atendentesData = [{
                         nome: userData.nomeAtendente,
                         servicos: userData.servicos ? userData.servicos.split('/').map(s => s.trim()).filter(s => s !== '') : []
-                    };
-                    renderAtendentesList([atendente]);
+                    }];
+                    document.getElementById('quantidadeAtendentes').value = 1;
+                } else {
+                    // Caso não tenha atendentes cadastrados, cria um padrão
+                    atendentesData = [{
+                        nome: "Atendente 1",
+                        servicos: []
+                    }];
+                    document.getElementById('quantidadeAtendentes').value = 1;
                 }
+                
+                renderAtendentesList(atendentesData);
             } catch (error) {
                 console.error('Erro ao carregar configurações de atendentes:', error);
             }
@@ -873,6 +885,8 @@
                     // Divide os serviços pela barra "/"
                     servicosDisponiveis = userData.servicos.split('/').map(s => s.trim()).filter(s => s !== '');
                     renderServicosList(servicosDisponiveis);
+                } else {
+                    servicosDisponiveis = [];
                 }
             } catch (error) {
                 console.error('Erro ao carregar configurações de serviços:', error);
@@ -921,55 +935,50 @@
                 const atendenteDiv = document.createElement('div');
                 atendenteDiv.className = 'atendente-item';
                 
-                // Verifica se é a estrutura antiga (apenas nome) ou nova (objeto com nome e serviços)
-                const nomeAtendente = atendente.nome || atendente;
-                const servicosAtendente = atendente.servicos || (typeof atendente === 'string' ? [] : []);
-                
                 atendenteDiv.innerHTML = `
                     <h4>Atendente ${index + 1}</h4>
                     <div class="form-group">
                         <label>Nome do Atendente:</label>
-                        <input type="text" class="nome-atendente" value="${nomeAtendente}" data-index="${index}">
+                        <input type="text" class="nome-atendente" value="${atendente.nome || `Atendente ${index + 1}`}" data-index="${index}">
                     </div>
                     <div class="servicos-atendente-container">
                         <label>Serviços Prestados:</label>
                         <div class="servicos-atendente-list" data-index="${index}">
-                            ${renderServicosAtendente(servicosAtendente, index)}
+                            ${renderServicosAtendente(atendente.servicos || [], index)}
                         </div>
                         <div class="add-servico-atendente">
                             <select class="select-servico-atendente" data-index="${index}">
                                 <option value="">Selecione um serviço</option>
                                 ${servicosDisponiveis.map(servico => 
-                                    `<option value="${servico}" ${servicosAtendente.includes(servico) ? 'disabled' : ''}>${servico}</option>`
+                                    `<option value="${servico}" ${(atendente.servicos || []).includes(servico) ? 'disabled' : ''}>${servico}</option>`
                                 ).join('')}
                             </select>
                             <button class="btn-adicionar btn-adicionar-servico" data-index="${index}">Adicionar</button>
                         </div>
                     </div>
-                    <button class="btn-salvar btn-salvar-atendente" data-index="${index}">Salvar Alterações</button>
                 `;
                 container.appendChild(atendenteDiv);
-            });
-            
-            // Adiciona event listeners aos botões de salvar
-            document.querySelectorAll('.btn-salvar-atendente').forEach(btn => {
-                btn.addEventListener('click', function() {
+                
+                // Adiciona event listeners aos elementos recém-criados
+                const addButton = atendenteDiv.querySelector('.btn-adicionar-servico');
+                addButton.addEventListener('click', function() {
                     const index = this.getAttribute('data-index');
-                    saveAtendenteChanges(index);
-                });
-            });
-            
-            // Adiciona event listeners aos botões de adicionar serviço
-            document.querySelectorAll('.btn-adicionar-servico').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    const select = document.querySelector(`.select-servico-atendente[data-index="${index}"]`);
+                    const select = atendenteDiv.querySelector(`.select-servico-atendente[data-index="${index}"]`);
                     const servico = select.value;
                     
                     if (servico) {
                         addServicoToAtendente(index, servico);
                         select.value = '';
                     }
+                });
+                
+                // Adiciona event listeners aos botões de remover serviço
+                atendenteDiv.querySelectorAll('.btn-remover-servico').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = this.getAttribute('data-index');
+                        const servico = this.getAttribute('data-servico');
+                        removeServicoFromAtendente(index, servico);
+                    });
                 });
             });
         }
@@ -988,47 +997,60 @@
         
         // Adiciona um serviço a um atendente
         function addServicoToAtendente(index, servico) {
-            const servicosList = document.querySelector(`.servicos-atendente-list[data-index="${index}"]`);
+            // Atualiza os dados locais
+            if (!atendentesData[index]) {
+                atendentesData[index] = { nome: `Atendente ${index + 1}`, servicos: [] };
+            }
             
-            // Cria o novo item de serviço
-            const servicoItem = document.createElement('div');
-            servicoItem.className = 'servico-atendente-item';
-            servicoItem.innerHTML = `
-                ${servico}
-                <button class="btn-remover-servico" data-index="${index}" data-servico="${servico}">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            
-            // Adiciona o evento de remoção
-            servicoItem.querySelector('.btn-remover-servico').addEventListener('click', function() {
-                removeServicoFromAtendente(index, servico);
-            });
-            
-            servicosList.appendChild(servicoItem);
-            
-            // Atualiza o select para desabilitar o serviço adicionado
-            const select = document.querySelector(`.select-servico-atendente[data-index="${index}"] option[value="${servico}"]`);
-            if (select) {
-                select.disabled = true;
+            if (!atendentesData[index].servicos.includes(servico)) {
+                atendentesData[index].servicos.push(servico);
+                
+                // Atualiza a exibição
+                const servicosList = document.querySelector(`.servicos-atendente-list[data-index="${index}"]`);
+                const servicoItem = document.createElement('div');
+                servicoItem.className = 'servico-atendente-item';
+                servicoItem.innerHTML = `
+                    ${servico}
+                    <button class="btn-remover-servico" data-index="${index}" data-servico="${servico}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                servicoItem.querySelector('.btn-remover-servico').addEventListener('click', function() {
+                    removeServicoFromAtendente(index, servico);
+                });
+                
+                servicosList.appendChild(servicoItem);
+                
+                // Atualiza o select para desabilitar o serviço adicionado
+                const select = document.querySelector(`.select-servico-atendente[data-index="${index}"] option[value="${servico}"]`);
+                if (select) {
+                    select.disabled = true;
+                }
             }
         }
         
         // Remove um serviço de um atendente
         function removeServicoFromAtendente(index, servico) {
-            const servicosList = document.querySelector(`.servicos-atendente-list[data-index="${index}"]`);
-            const items = servicosList.querySelectorAll('.servico-atendente-item');
-            
-            items.forEach(item => {
-                if (item.textContent.trim().includes(servico)) {
-                    item.remove();
+            // Atualiza os dados locais
+            if (atendentesData[index] && atendentesData[index].servicos) {
+                atendentesData[index].servicos = atendentesData[index].servicos.filter(s => s !== servico);
+                
+                // Atualiza a exibição
+                const servicosList = document.querySelector(`.servicos-atendente-list[data-index="${index}"]`);
+                const items = servicosList.querySelectorAll('.servico-atendente-item');
+                
+                items.forEach(item => {
+                    if (item.textContent.trim().includes(servico)) {
+                        item.remove();
+                    }
+                });
+                
+                // Atualiza o select para habilitar o serviço removido
+                const select = document.querySelector(`.select-servico-atendente[data-index="${index}"] option[value="${servico}"]`);
+                if (select) {
+                    select.disabled = false;
                 }
-            });
-            
-            // Atualiza o select para habilitar o serviço removido
-            const select = document.querySelector(`.select-servico-atendente[data-index="${index}"] option[value="${servico}"]`);
-            if (select) {
-                select.disabled = false;
             }
         }
         
@@ -1090,57 +1112,31 @@
             }
         }
         
-        // Salva as alterações de um atendente
-        async function saveAtendenteChanges(index) {
+        // Salva todos os atendentes no Firebase
+        async function saveAllAtendentes() {
             if (!currentUserData) return;
             
             try {
-                const nomeAtendente = document.querySelector(`.nome-atendente[data-index="${index}"]`).value;
-                const servicosItems = document.querySelectorAll(`.servicos-atendente-list[data-index="${index}"] .servico-atendente-item`);
+                // Atualiza os nomes dos atendentes
+                document.querySelectorAll('.nome-atendente').forEach(input => {
+                    const index = input.getAttribute('data-index');
+                    if (atendentesData[index]) {
+                        atendentesData[index].nome = input.value;
+                    }
+                });
                 
-                const servicosAtendente = Array.from(servicosItems).map(item => 
-                    item.textContent.replace(/×/g, '').trim()
-                );
-                
-                // Atualiza os dados localmente
-                let atendentesArray = [];
-                if (Array.isArray(currentUserData.atendentes)) {
-                    atendentesArray = [...currentUserData.atendentes];
-                } else if (currentUserData.atendentes) {
-                    atendentesArray = [currentUserData.atendentes];
-                } else if (currentUserData.nomeAtendente) {
-                    // Mantém compatibilidade com versão antiga
-                    atendentesArray = [{
-                        nome: currentUserData.nomeAtendente,
-                        servicos: currentUserData.servicos ? currentUserData.servicos.split('/').map(s => s.trim()).filter(s => s !== '') : []
-                    }];
-                }
-                
-                // Atualiza o atendente
-                if (atendentesArray[index]) {
-                    atendentesArray[index] = {
-                        nome: nomeAtendente,
-                        servicos: servicosAtendente
-                    };
-                } else {
-                    atendentesArray.push({
-                        nome: nomeAtendente,
-                        servicos: servicosAtendente
-                    });
-                }
-                
-                // Atualiza no Firestore
+                // Salva no Firestore
                 await db.collection('usuarios').doc(currentUserData.id).set({
-                    atendentes: atendentesArray
+                    atendentes: atendentesData
                 }, { merge: true });
                 
                 // Atualiza os dados locais
-                currentUserData.atendentes = atendentesArray;
+                currentUserData.atendentes = atendentesData;
                 
-                alert('Alterações salvas com sucesso!');
+                alert('Atendentes atualizados com sucesso!');
             } catch (error) {
-                console.error('Erro ao salvar atendente:', error);
-                alert('Erro ao salvar alterações. Tente novamente.');
+                console.error('Erro ao salvar atendentes:', error);
+                alert('Erro ao salvar atendentes. Tente novamente.');
             }
         }
         
@@ -1208,9 +1204,7 @@
                 renderServicosList(servicosArray);
                 
                 // Atualiza os selects de serviços nos atendentes
-                if (currentUserData.atendentes) {
-                    renderAtendentesList(currentUserData.atendentes);
-                }
+                renderAtendentesList(atendentesData);
             } catch (error) {
                 console.error('Erro ao atualizar serviços:', error);
                 alert('Erro ao atualizar serviços. Tente novamente.');
@@ -1374,39 +1368,26 @@
                 return;
             }
             
-            // Cria array com atendentes vazios ou mantém os existentes
-            let atendentesArray = [];
-            if (currentUserData.atendentes) {
-                if (Array.isArray(currentUserData.atendentes)) {
-                    atendentesArray = [...currentUserData.atendentes];
-                } else {
-                    atendentesArray = [currentUserData.atendentes];
-                }
-            } else if (currentUserData.nomeAtendente) {
-                // Mantém compatibilidade com versão antiga
-                atendentesArray = [{
-                    nome: currentUserData.nomeAtendente,
-                    servicos: currentUserData.servicos ? currentUserData.servicos.split('/').map(s => s.trim()).filter(s => s !== '') : []
-                }];
-            }
-            
             // Ajusta o tamanho do array conforme a quantidade
-            if (atendentesArray.length < quantidade) {
+            if (atendentesData.length < quantidade) {
                 // Adiciona novos atendentes vazios
-                for (let i = atendentesArray.length; i < quantidade; i++) {
-                    atendentesArray.push({
+                for (let i = atendentesData.length; i < quantidade; i++) {
+                    atendentesData.push({
                         nome: `Atendente ${i + 1}`,
                         servicos: []
                     });
                 }
-            } else if (atendentesArray.length > quantidade) {
+            } else if (atendentesData.length > quantidade) {
                 // Remove atendentes extras
-                atendentesArray = atendentesArray.slice(0, quantidade);
+                atendentesData = atendentesData.slice(0, quantidade);
             }
             
             // Atualiza a exibição
-            renderAtendentesList(atendentesArray);
+            renderAtendentesList(atendentesData);
         });
+        
+        // Salva todos os atendentes
+        document.getElementById('btnSalvarTodosAtendentes').addEventListener('click', saveAllAtendentes);
         
         // Adiciona um novo serviço
         document.getElementById('btnAdicionarServico').addEventListener('click', addServico);
