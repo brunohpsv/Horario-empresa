@@ -581,11 +581,13 @@
                     nomeInput.type = 'text';
                     nomeInput.placeholder = `Nome do Atendente ${i+1}`;
                     nomeInput.id = `atendente-nome-${i}`;
+                    nomeInput.required = true;
                     
                     const servicosInput = document.createElement('input');
                     servicosInput.type = 'text';
                     servicosInput.placeholder = 'Serviços (separados por /)';
                     servicosInput.id = `atendente-servicos-${i}`;
+                    servicosInput.required = true;
                     
                     atendenteDiv.appendChild(nomeInput);
                     atendenteDiv.appendChild(servicosInput);
@@ -670,7 +672,6 @@
                 // Coletar dados dos atendentes se existirem
                 const qtdAtendentes = parseInt(document.getElementById('atendentes').value);
                 const atendentes = [];
-                const servicosAtendentes = [];
                 
                 if (qtdAtendentes > 0) {
                     for (let i = 0; i < qtdAtendentes; i++) {
@@ -678,19 +679,15 @@
                         const servicos = document.getElementById(`atendente-servicos-${i}`).value.trim();
                         
                         if (nome) {
-                            atendentes.push(nome);
-                            if (servicos) {
-                                servicosAtendentes.push(...servicos.split('/').map(s => s.trim()));
-                            }
+                            // Formatar como "Nome - Serviço1/Serviço2"
+                            const atendenteFormatado = servicos ? `${nome} - ${servicos}` : nome;
+                            atendentes.push(atendenteFormatado);
                         }
                     }
                 }
                 
                 // Coletar serviços gerais se não houver atendentes
                 const servicos = document.getElementById('servicos').value.trim();
-                const todosServicos = servicosAtendentes.length > 0 ? 
-                    servicosAtendentes.join(' / ') : 
-                    servicos;
                 
                 const formData = {
                     tipoPessoa: document.getElementById('tipo-pessoa').value,
@@ -707,7 +704,7 @@
                     login: login,
                     senha: senha, // Armazenando a senha no Firestore também
                     maquinas: document.getElementById('maquinas').value,
-                    servicos: todosServicos,
+                    servicos: qtdAtendentes > 0 ? '' : servicos, // Só preenche serviços se não houver atendentes
                     nomeAtendente: atendentes,
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
                     dataCadastro: new Date().toISOString(),
