@@ -279,6 +279,30 @@
             margin-right: 10px;
             color: #2196F3;
         }
+        
+        .atendentes-container {
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        
+        .atendente-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .atendente-item input {
+            flex: 1;
+        }
+        
+        .atendente-item label {
+            min-width: 80px;
+            margin-bottom: 0;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
@@ -365,6 +389,17 @@
                     <label for="maquinas">Quantas máquinas irão usar? (Máximo 30)</label>
                     <input type="number" id="maquinas" min="1" max="30" value="1" required>
                     <div class="exemplo">Para mais de 30 máquinas, entre em contato para negociar o valor</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="atendentes">Quantos atendentes terão? (Máximo 30)</label>
+                    <input type="number" id="atendentes" min="1" max="30" value="1" required>
+                    <div class="exemplo">Informe quantos profissionais atenderão clientes</div>
+                    
+                    <div id="atendentesContainer" class="atendentes-container" style="display: none;">
+                        <h4>Informações dos Atendentes</h4>
+                        <div id="atendentesFields"></div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -518,6 +553,69 @@
             return horarios;
         }
 
+        // Função para criar campos de atendentes dinamicamente
+        function criarCamposAtendentes(qtd) {
+            const container = document.getElementById('atendentesFields');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= qtd; i++) {
+                const div = document.createElement('div');
+                div.className = 'atendente-item';
+                
+                const label = document.createElement('label');
+                label.textContent = `Atendente ${i}:`;
+                
+                const inputNome = document.createElement('input');
+                inputNome.type = 'text';
+                inputNome.placeholder = 'Nome completo';
+                inputNome.required = true;
+                inputNome.id = `atendente-nome-${i}`;
+                
+                const inputServicos = document.createElement('input');
+                inputServicos.type = 'text';
+                inputServicos.placeholder = 'Serviços (separados por /)';
+                inputServicos.required = true;
+                inputServicos.id = `atendente-servicos-${i}`;
+                
+                div.appendChild(label);
+                div.appendChild(inputNome);
+                div.appendChild(inputServicos);
+                
+                container.appendChild(div);
+            }
+            
+            document.getElementById('atendentesContainer').style.display = qtd > 0 ? 'block' : 'none';
+        }
+
+        // Evento para atualizar campos de atendentes quando o número muda
+        document.getElementById('atendentes').addEventListener('change', function() {
+            criarCamposAtendentes(parseInt(this.value));
+        });
+
+        // Inicializar campos de atendentes
+        document.addEventListener('DOMContentLoaded', function() {
+            const qtdAtendentes = parseInt(document.getElementById('atendentes').value);
+            criarCamposAtendentes(qtdAtendentes);
+        });
+
+        // Função para coletar dados dos atendentes
+        function coletarDadosAtendentes() {
+            const qtdAtendentes = parseInt(document.getElementById('atendentes').value);
+            const atendentes = [];
+            
+            for (let i = 1; i <= qtdAtendentes; i++) {
+                const nome = document.getElementById(`atendente-nome-${i}`).value;
+                const servicos = document.getElementById(`atendente-servicos-${i}`).value;
+                
+                atendentes.push({
+                    nome: nome,
+                    servicos: servicos.split('/').map(s => s.trim()).filter(s => s !== '')
+                });
+            }
+            
+            return atendentes;
+        }
+
         // Envio do formulário para o Firebase
         document.getElementById('formCadastro').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -536,6 +634,9 @@
                 const senha = gerarSenha();
                 const login = gerarCodigoLogin(nomeFantasia);
                 
+                // Coletar dados dos atendentes
+                const atendentes = coletarDadosAtendentes();
+                
                 const formData = {
                     tipoPessoa: document.getElementById('tipo-pessoa').value,
                     identificacao: document.getElementById('identificacao').value,
@@ -551,6 +652,7 @@
                     login: login,
                     senha: senha, // Armazenando a senha no Firestore também
                     maquinas: document.getElementById('maquinas').value,
+                    atendentes: atendentes,
                     servicos: document.getElementById('servicos').value,
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
                     dataCadastro: new Date().toISOString(),
