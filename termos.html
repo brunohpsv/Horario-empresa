@@ -52,10 +52,24 @@
             color: #cccccc;
         }
         
-        .login-btn {
+        .back-btn {
             background-color: #4CAF50;
             padding: 8px 16px;
             border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        .back-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .back-btn::before {
+            content: "←";
+            margin-right: 5px;
         }
         
         .container {
@@ -65,7 +79,6 @@
             background: white;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            position: relative;
         }
         
         h1 {
@@ -154,30 +167,6 @@
         .btn-toggle-senha:hover {
             color: #333;
         }
-
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background-color: #f5f5f5;
-            color: #333;
-            border: 1px solid #ddd;
-            padding: 8px 12px;
-            border-radius: 4px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s;
-        }
-
-        .back-button:hover {
-            background-color: #e0e0e0;
-        }
-
-        .back-button::before {
-            content: "←";
-            margin-right: 5px;
-        }
     </style>
 </head>
 <body>
@@ -186,14 +175,12 @@
         <nav>
             <ul>
                 <li><a href="https://horario.site">Início</a></li>
-                <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
+                <li><a href="cadastro.html" class="back-btn">Voltar para Cadastro</a></li>
             </ul>
         </nav>
     </header>
 
     <div class="container">
-        <a href="cadastro.html" class="back-button">Voltar para Cadastro</a>
-        
         <h1>Termos de Uso</h1>
         
         <div class="termos-content" id="termosText">
