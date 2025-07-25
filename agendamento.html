@@ -123,6 +123,15 @@
             border-radius: 4px;
         }
 
+        .servico-prestador-container {
+            display: flex;
+            gap: 15px;
+        }
+
+        .servico-prestador-container .form-group {
+            flex: 1;
+        }
+
         .calendar-container {
             margin: 20px 0;
         }
@@ -236,6 +245,11 @@
                 padding: 20px;
             }
 
+            .servico-prestador-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+
             .horarios-container {
                 grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             }
@@ -295,11 +309,19 @@
                     <input type="text" id="documento" placeholder="Digite seu CPF ou CNPJ" required>
                 </div>
                 
-                <div class="form-group">
-                    <label for="servico">Serviço</label>
-                    <select id="servico" class="form-control">
-                        <option value="">Carregando serviços...</option>
-                    </select>
+                <div class="servico-prestador-container" id="servico-prestador-container">
+                    <div class="form-group">
+                        <label for="servico">Serviço</label>
+                        <select id="servico" class="form-control">
+                            <option value="">Carregando serviços...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="prestador-group" style="display: none;">
+                        <label for="prestador">Prestador</label>
+                        <select id="prestador" class="form-control">
+                            <option value="">Selecione um prestador</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -349,6 +371,10 @@
                 <div class="resumo-item">
                     <span class="resumo-label">Serviço:</span>
                     <span id="resumo-servico"></span>
+                </div>
+                <div class="resumo-item">
+                    <span class="resumo-label">Prestador:</span>
+                    <span id="resumo-prestador"></span>
                 </div>
                 <div class="resumo-item">
                     <span class="resumo-label">Data:</span>
@@ -401,6 +427,7 @@
         // Variáveis globais
         let empresaSelecionada = null;
         let servicoSelecionado = null;
+        let prestadorSelecionado = null;
         let dataSelecionada = null;
         let horarioSelecionado = null;
         let horariosDisponiveis = [];
@@ -413,6 +440,7 @@
         let documentoCliente = null;
         let agendamentoExistente = null;
         let agendamentoConfirmado = false;
+        let atendentes = [];
 
         // Inicializa o calendário
         const calendar = flatpickr("#calendar-input", {
@@ -505,6 +533,24 @@
                             };
                         }
 
+                        // Verifica se a empresa tem atendentes cadastrados
+                        if (empresaSelecionada.nomeAtendente && empresaSelecionada.servicoAtendente) {
+                            // Processa os atendentes
+                            const nomes = Array.isArray(empresaSelecionada.nomeAtendente) ? 
+                                empresaSelecionada.nomeAtendente : 
+                                [empresaSelecionada.nomeAtendente];
+                            
+                            const servicos = Array.isArray(empresaSelecionada.servicoAtendente) ? 
+                                empresaSelecionada.servicoAtendente : 
+                                [empresaSelecionada.servicoAtendente];
+                            
+                            // Cria array de atendentes
+                            atendentes = nomes.map((nome, index) => ({
+                                nome: nome,
+                                servico: servicos[index] || "Serviço não especificado"
+                            }));
+                        }
+
                         // Carrega os serviços no select
                         carregarServicos();
                     } else {
@@ -558,6 +604,40 @@
             // Adiciona evento de change para selecionar o serviço
             servicoSelect.addEventListener('change', function() {
                 servicoSelecionado = this.value;
+                
+                // Mostra/oculta o campo de prestador conforme necessário
+                const prestadorGroup = document.getElementById('prestador-group');
+                const prestadorSelect = document.getElementById('prestador');
+                
+                // Filtra atendentes para o serviço selecionado
+                const atendentesDoServico = atendentes.filter(a => a.servico === servicoSelecionado);
+                
+                if (atendentesDoServico.length > 0) {
+                    // Preenche o select de prestadores
+                    prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
+                    atendentesDoServico.forEach(atendente => {
+                        const option = document.createElement('option');
+                        option.value = atendente.nome;
+                        option.textContent = atendente.nome;
+                        prestadorSelect.appendChild(option);
+                    });
+                    
+                    // Mostra o campo de prestador
+                    prestadorGroup.style.display = 'block';
+                } else {
+                    // Oculta o campo de prestador
+                    prestadorGroup.style.display = 'none';
+                    prestadorSelecionado = null;
+                }
+                
+                if (servicoSelecionado && dataSelecionada) {
+                    carregarHorariosDisponiveis();
+                }
+            });
+
+            // Adiciona evento de change para selecionar o prestador
+            document.getElementById('prestador').addEventListener('change', function() {
+                prestadorSelecionado = this.value;
                 if (servicoSelecionado && dataSelecionada) {
                     carregarHorariosDisponiveis();
                 }
@@ -611,6 +691,7 @@
             // Preenche o resumo
             resumoDiv.innerHTML = `
                 <p><strong>Serviço:</strong> ${agendamento.servico}</p>
+                ${agendamento.prestador ? `<p><strong>Prestador:</strong> ${agendamento.prestador}</p>` : ''}
                 <p><strong>Data:</strong> ${dataFormatada}</p>
                 <p><strong>Horário:</strong> ${agendamento.horario}</p>
             `;
@@ -674,12 +755,18 @@
             const horariosBase = calcularHorariosDisponiveis();
 
             // Consulta os agendamentos existentes para esta data e serviço
-            db.collection("usuarios").doc(empresaSelecionada.id)
+            let query = db.collection("usuarios").doc(empresaSelecionada.id)
                 .collection("agendamentos")
                 .where("data", "==", dataFormatada)
                 .where("servico", "==", servicoSelecionado)
-                .where("status", "==", "confirmado")
-                .get()
+                .where("status", "==", "confirmado");
+
+            // Se houver prestador selecionado, filtra por prestador também
+            if (prestadorSelecionado) {
+                query = query.where("prestador", "==", prestadorSelecionado);
+            }
+
+            query.get()
                 .then((querySnapshot) => {
                     const horariosOcupados = [];
                     querySnapshot.forEach((doc) => {
@@ -800,6 +887,7 @@
             // Preenche o resumo do agendamento
             document.getElementById('resumo-empresa').textContent = empresaSelecionada.nomeFantasia || "Empresa não identificada";
             document.getElementById('resumo-servico').textContent = servicoSelecionado;
+            document.getElementById('resumo-prestador').textContent = prestadorSelecionado || "Não especificado";
             document.getElementById('resumo-data').textContent = formatarDataExibicao(dataSelecionada);
             document.getElementById('resumo-horario').textContent = horarioSelecionado;
             document.getElementById('resumo-cliente').textContent = nome;
@@ -834,12 +922,9 @@
                 data: dataFormatada,
                 horario: horarioSelecionado,
                 clienteNome: nome,
-                clienteDocumento: documentoCliente.replace(/\D/g, ''),
-                clienteTelefone: telefone,
-                clienteEmail: email || null,
-                dataCriacao: firebase.firestore.FieldValue.serverTimestamp(),
-                status: "confirmado"
-            };
+                clienteDocument) {
+                novoAgendamento.prestador = prestadorSelecionado;
+            }
 
             // Adiciona um novo documento na subcoleção "agendamentos"
             db.collection("usuarios").doc(empresaSelecionada.id)
