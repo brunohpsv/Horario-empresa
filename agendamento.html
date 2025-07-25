@@ -441,8 +441,12 @@
                 });
             }
             
-            // Ordenar serviços e adicionar ao select
-            Array.from(servicosUnicos).sort().forEach(servico => {
+            // Converter para array, remover duplicatas e ordenar
+            const servicosArray = Array.from(servicosUnicos).filter(servico => servico);
+            servicosArray.sort((a, b) => a.localeCompare(b));
+            
+            // Adicionar ao select
+            servicosArray.forEach(servico => {
                 const option = document.createElement('option');
                 option.value = servico;
                 option.textContent = servico;
@@ -472,17 +476,18 @@
             }
             
             // Filtrar atendentes pelo serviço selecionado e obter nomes únicos
-            const prestadoresUnicos = new Set();
+            const prestadoresParaServico = new Set();
+            
             atendentes.forEach(atendente => {
                 if (atendente.servico === servicoSelecionado) {
-                    prestadoresUnicos.add(atendente.nome);
+                    prestadoresParaServico.add(atendente.nome);
                 }
             });
             
-            const prestadores = Array.from(prestadoresUnicos);
+            const prestadoresArray = Array.from(prestadoresParaServico);
             
-            if (prestadores.length > 0) {
-                prestadores.sort().forEach(nome => {
+            if (prestadoresArray.length > 0) {
+                prestadoresArray.sort((a, b) => a.localeCompare(b)).forEach(nome => {
                     const option = document.createElement('option');
                     option.value = nome;
                     option.textContent = nome;
@@ -491,9 +496,9 @@
                 
                 document.getElementById('prestador-group').style.display = 'block';
                 
-                if (prestadores.length === 1) {
-                    prestadorSelect.value = prestadores[0];
-                    prestadorSelecionado = prestadores[0];
+                if (prestadoresArray.length === 1) {
+                    prestadorSelect.value = prestadoresArray[0];
+                    prestadorSelecionado = prestadoresArray[0];
                 }
             } else {
                 document.getElementById('prestador-group').style.display = 'none';
