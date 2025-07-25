@@ -678,18 +678,23 @@
                 
                 // Coletar dados dos atendentes se existirem
                 const qtdAtendentes = parseInt(document.getElementById('atendentes').value);
-                const nomeservicoAtendente = [];
+                let listaAtendentes = '';
                 
                 if (qtdAtendentes > 0) {
+                    const atendentes = [];
+                    
                     for (let i = 0; i < qtdAtendentes; i++) {
                         const nome = document.getElementById(`atendente-nome-${i}`).value.trim();
                         const servicos = document.getElementById(`atendente-servicos-${i}`).value.trim();
                         
                         if (nome && servicos) {
                             // Formatar como "Nome - Serviço1 / Serviço2"
-                            nomeservicoAtendente.push(`${nome} - ${servicos}`);
+                            atendentes.push(`${nome} - ${servicos}`);
                         }
                     }
+                    
+                    // Juntar todos os atendentes em uma string separada por ponto e vírgula
+                    listaAtendentes = atendentes.join('; ');
                 }
                 
                 // Coletar serviços gerais se não houver atendentes
@@ -711,7 +716,7 @@
                     senha: senha, // Armazenando a senha no Firestore também
                     maquinas: document.getElementById('maquinas').value,
                     servicos: qtdAtendentes > 0 ? '' : servicos, // Só preenche serviços se não houver atendentes
-                    nomeservicoAtendente: nomeservicoAtendente, // Novo campo combinando nome e serviços
+                    atendentes: listaAtendentes, // Lista formatada de atendentes e seus serviços
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
                     dataCadastro: new Date().toISOString(),
                     status: 'pendente'
