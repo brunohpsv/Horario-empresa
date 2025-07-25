@@ -452,15 +452,18 @@
                 return;
             }
             
-            // Filtrar atendentes pelo serviço selecionado
-            const prestadores = [...new Set(
-                atendentes
-                    .filter(a => a.servico === servicoSelecionado)
-                    .map(a => a.nome)
-            )];
+            // Filtrar atendentes pelo serviço selecionado e remover duplicatas
+            const prestadoresUnicos = new Set();
+            atendentes.forEach(atendente => {
+                if (atendente.servico === servicoSelecionado) {
+                    prestadoresUnicos.add(atendente.nome);
+                }
+            });
+            
+            const prestadores = Array.from(prestadoresUnicos);
             
             if (prestadores.length > 0) {
-                prestadores.forEach(nome => {
+                prestadores.sort().forEach(nome => {
                     const option = document.createElement('option');
                     option.value = nome;
                     option.textContent = nome;
