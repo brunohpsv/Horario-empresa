@@ -42,6 +42,17 @@
             color: white;
             padding: 1rem;
             text-align: center;
+            position: relative;
+        }
+        
+        .header-home {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
         }
         
         .card {
@@ -134,11 +145,19 @@
                 margin: 1rem;
                 border-radius: 0;
             }
+            
+            .header-home {
+                position: static;
+                transform: none;
+                display: inline-block;
+                margin-bottom: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <header>
+        <a href="index.html" class="header-home">Início</a>
         <h1>HORÁRIO</h1>
     </header>
 
@@ -372,25 +391,30 @@
         function processarAtendentes() {
             atendentes = [];
             
-            if (empresaSelecionada.nomeAtendente && empresaSelecionada.servicoAtendente) {
-                const nomes = Array.isArray(empresaSelecionada.nomeAtendente) ? 
-                    empresaSelecionada.nomeAtendente : 
-                    [empresaSelecionada.nomeAtendente];
+            if (empresaSelecionada.nomeservicoAtendente) {
+                // Verifica se é um array ou uma string única
+                const registrosAtendentes = Array.isArray(empresaSelecionada.nomeservicoAtendente) ? 
+                    empresaSelecionada.nomeservicoAtendente : 
+                    [empresaSelecionada.nomeservicoAtendente];
                 
-                const servicos = Array.isArray(empresaSelecionada.servicoAtendente) ? 
-                    empresaSelecionada.servicoAtendente : 
-                    [empresaSelecionada.servicoAtendente];
-                
-                for (let i = 0; i < Math.min(nomes.length, servicos.length); i++) {
-                    const nome = nomes[i];
-                    const servico = servicos[i];
+                registrosAtendentes.forEach(registro => {
+                    if (!registro) return;
                     
-                    if (nome && servico) {
-                        servico.split('/').map(s => s.trim()).filter(s => s).forEach(s => {
-                            atendentes.push({ nome, servico: s });
+                    // Divide o nome do prestador e os serviços
+                    const partes = registro.split('-').map(p => p.trim());
+                    if (partes.length < 2) return;
+                    
+                    const nomePrestador = partes[0].trim();
+                    const servicos = partes[1].split('/').map(s => s.trim()).filter(s => s);
+                    
+                    // Para cada serviço, cria uma entrada no array de atendentes
+                    servicos.forEach(servico => {
+                        atendentes.push({
+                            nome: nomePrestador,
+                            servico: servico
                         });
-                    }
-                }
+                    });
+                });
             }
         }
         
@@ -398,32 +422,27 @@
             const servicoSelect = document.getElementById('servico');
             servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
             
-            // Criar um mapa de serviços para prestadores
-            const servicoPrestadorMap = new Map();
+            // Criar um conjunto de serviços únicos
+            const servicosUnicos = new Set();
             
-            // Processar atendentes para agrupar por serviço
+            // Processar atendentes para obter todos os serviços
             atendentes.forEach(atendente => {
-                if (!servicoPrestadorMap.has(atendente.servico)) {
-                    servicoPrestadorMap.set(atendente.servico, new Set());
-                }
-                servicoPrestadorMap.get(atendente.servico).add(atendente.nome);
+                servicosUnicos.add(atendente.servico);
             });
             
-            // Processar serviços da empresa (adicionar serviços que não têm prestadores)
+            // Adicionar também os serviços da empresa (se houver)
             if (empresaSelecionada.servicos) {
-                const servicos = Array.isArray(empresaSelecionada.servicos) ? 
+                const servicosEmpresa = Array.isArray(empresaSelecionada.servicos) ? 
                     empresaSelecionada.servicos : 
                     empresaSelecionada.servicos.split(/[,/]/).map(s => s.trim());
                 
-                servicos.forEach(servico => {
-                    if (servico && !servicoPrestadorMap.has(servico)) {
-                        servicoPrestadorMap.set(servico, new Set());
-                    }
+                servicosEmpresa.forEach(servico => {
+                    if (servico) servicosUnicos.add(servico);
                 });
             }
             
             // Ordenar serviços e adicionar ao select
-            Array.from(servicoPrestadorMap.keys()).sort().forEach(servico => {
+            Array.from(servicosUnicos).sort().forEach(servico => {
                 const option = document.createElement('option');
                 option.value = servico;
                 option.textContent = servico;
@@ -452,7 +471,7 @@
                 return;
             }
             
-            // Filtrar atendentes pelo serviço selecionado e remover duplicatas
+            // Filtrar atendentes pelo serviço selecionado e obter nomes únicos
             const prestadoresUnicos = new Set();
             atendentes.forEach(atendente => {
                 if (atendente.servico === servicoSelecionado) {
