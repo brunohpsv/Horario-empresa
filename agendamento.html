@@ -408,17 +408,26 @@
         function processarAtendentesString(atendenteStr) {
             if (!atendenteStr) return;
             
-            // Formato esperado: "Nome do Profissional - Serviço1/Serviço2/Serviço3"
-            const partes = atendenteStr.split('-').map(p => p.trim());
-            if (partes.length < 2) return;
+            // Primeiro dividimos por ";" para separar os diferentes prestadores
+            const prestadores = atendenteStr.split(';').map(p => p.trim()).filter(p => p);
             
-            const nomePrestador = partes[0];
-            const servicos = partes[1].split('/').map(s => s.trim()).filter(s => s);
-            
-            servicos.forEach(servico => {
-                atendentes.push({
-                    nome: nomePrestador,
-                    servico: servico
+            prestadores.forEach(prestadorStr => {
+                // Formato esperado: "Nome do Profissional - Serviço1/Serviço2/Serviço3"
+                const partes = prestadorStr.split('-').map(p => p.trim());
+                if (partes.length < 2) return;
+                
+                const nomePrestador = partes[0];
+                const servicosStr = partes[1];
+                
+                // Dividimos os serviços por "/"
+                const servicos = servicosStr.split('/').map(s => s.trim()).filter(s => s);
+                
+                // Para cada serviço, adicionamos um registro de atendente
+                servicos.forEach(servico => {
+                    atendentes.push({
+                        nome: nomePrestador,
+                        servico: servico
+                    });
                 });
             });
         }
