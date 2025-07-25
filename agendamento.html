@@ -480,23 +480,20 @@
             }
             
             // Filtra atendentes pelo serviço selecionado
-            const prestadoresParaServico = new Map();
+            const prestadoresParaServico = [];
             
             atendentes.forEach(atendente => {
-                if (atendente.servico === servicoSelecionado) {
-                    if (!prestadoresParaServico.has(atendente.nome)) {
-                        prestadoresParaServico.set(atendente.nome, true);
-                    }
+                if (atendente.servico === servicoSelecionado && 
+                    !prestadoresParaServico.includes(atendente.nome)) {
+                    prestadoresParaServico.push(atendente.nome);
                 }
             });
             
-            const prestadoresArray = Array.from(prestadoresParaServico.keys());
-            
-            if (prestadoresArray.length > 0) {
+            if (prestadoresParaServico.length > 0) {
                 // Ordena os prestadores alfabeticamente
-                prestadoresArray.sort((a, b) => a.localeCompare(b));
+                prestadoresParaServico.sort((a, b) => a.localeCompare(b));
                 
-                prestadoresArray.forEach(nome => {
+                prestadoresParaServico.forEach(nome => {
                     const option = document.createElement('option');
                     option.value = nome;
                     option.textContent = nome;
@@ -506,9 +503,9 @@
                 document.getElementById('prestador-group').style.display = 'block';
                 
                 // Se houver apenas um prestador, seleciona automaticamente
-                if (prestadoresArray.length === 1) {
-                    prestadorSelect.value = prestadoresArray[0];
-                    prestadorSelecionado = prestadoresArray[0];
+                if (prestadoresParaServico.length === 1) {
+                    prestadorSelect.value = prestadoresParaServico[0];
+                    prestadorSelecionado = prestadoresParaServico[0];
                 }
             } else {
                 document.getElementById('prestador-group').style.display = 'none';
