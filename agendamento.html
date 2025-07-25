@@ -386,22 +386,79 @@
         function carregarServicosEAtendentes() {
             if (!empresaSelecionada) return;
             
-            // Primeiro verifica se existe o campo 'atendentes'
-            if (empresaSelecionada.atendentes) {
+            // Primeiro verifica se existe o campo 'servicoAtendente'
+            if (empresaSelecionada.servicoAtendente) {
+                processarServicosAtendentes(empresaSelecionada.servicoAtendente);
+            } 
+            // Depois verifica se existe o campo 'atendentes' (para compatibilidade com versões antigas)
+            else if (empresaSelecionada.atendentes) {
                 processarAtendentes(empresaSelecionada.atendentes);
             } 
-            // Se não tiver atendentes, verifica se tem o campo 'servico'
+            // Se não tiver nenhum dos dois, verifica se tem o campo 'servico'
             else if (empresaSelecionada.servico) {
                 processarServicos(empresaSelecionada.servico);
             } 
-            // Se não tiver nenhum dos dois
+            // Se não tiver nenhum dos campos
             else {
-                mostrarErro("Nenhum serviço disponível para esta empresa.");
+                mostrarErro("Esta empresa ainda não configurou seus serviços. Entre em contato com a empresa para mais informações.");
+                document.getElementById('servico').innerHTML = '<option value="">Nenhum serviço disponível</option>';
                 return;
             }
             
             // Depois de processar, carrega os serviços no select
             carregarSelectServicos();
+        }
+        
+        function processarServicosAtendentes(dadosServicosAtendentes) {
+            // Se for uma string, tentamos processar como texto formatado
+            if (typeof dadosServicosAtendentes === 'string') {
+                // Dividir por linhas
+                const linhas = dadosServicosAtendentes.split('\n').filter(linha => linha.trim() !== '');
+                
+                linhas.forEach(linha => {
+                    // Formato esperado: "Serviço - Atendente1, Atendente2, Atendente3"
+                    const partes = linha.split('-').map(p => p.trim());
+                    if (partes.length === 2) {
+                        const servico = partes[0];
+                        const nomesAtendentes = partes[1].split(',').map(n => n.trim());
+                        
+                        // Adiciona o serviço à lista de serviços disponíveis
+                        if (!servicosDisponiveis.includes(servico)) {
+                            servicosDisponiveis.push(servico);
+                        }
+                        
+                        // Adiciona os atendentes para este serviço
+                        nomesAtendentes.forEach(nome => {
+                            atendentes.push({
+                                nome: nome,
+                                servico: servico
+                            });
+                        });
+                    }
+                });
+            } 
+            // Se for um array, processamos cada item
+            else if (Array.isArray(dadosServicosAtendentes)) {
+                dadosServicosAtendentes.forEach(item => {
+                    if (item.servico && item.atendentes) {
+                        // Adiciona o serviço à lista de serviços disponíveis
+                        if (!servicosDisponiveis.includes(item.servico)) {
+                            servicosDisponiveis.push(item.servico);
+                        }
+                        
+                        // Adiciona os atendentes para este serviço
+                        item.atendentes.forEach(nome => {
+                            atendentes.push({
+                                nome: nome,
+                                servico: item.servico
+                            });
+                        });
+                    }
+                });
+            }
+            
+            // Ordena os serviços
+            servicosDisponiveis.sort((a, b) => a.localeCompare(b));
         }
         
         function processarAtendentes(dadosAtendentes) {
