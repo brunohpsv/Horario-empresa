@@ -138,26 +138,35 @@
             background-color: #d32f2f;
         }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .list-container {
             margin-top: 15px;
         }
         
-        th, td {
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 12px 15px;
-            text-align: left;
             border-bottom: 1px solid #ddd;
         }
         
-        th {
-            background-color: #f8f8f8;
-            font-weight: bold;
-            color: #555;
+        .list-item:last-child {
+            border-bottom: none;
         }
         
-        tr:hover {
+        .list-item:hover {
             background-color: #f5f5f5;
+        }
+        
+        .list-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 20px;
+            color: #777;
         }
         
         .form-group {
@@ -282,18 +291,8 @@
                 <button id="addServicoBtn" class="btn btn-primary">Adicionar Serviço</button>
             </div>
             
-            <div id="servicosTableContainer">
-                <table id="servicosTable">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="servicosList">
-                        <!-- Os serviços serão carregados aqui -->
-                    </tbody>
-                </table>
+            <div id="servicosListContainer" class="list-container">
+                <!-- Os serviços serão carregados aqui -->
             </div>
         </div>
         
@@ -304,19 +303,8 @@
                 <button id="addAtendenteBtn" class="btn btn-primary">Adicionar Atendente</button>
             </div>
             
-            <div id="atendentesTableContainer">
-                <table id="atendentesTable">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Telefone</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="atendentesList">
-                        <!-- Os atendentes serão carregados aqui -->
-                    </tbody>
-                </table>
+            <div id="atendentesListContainer" class="list-container">
+                <!-- Os atendentes serão carregados aqui -->
             </div>
         </div>
     </div>
@@ -348,10 +336,6 @@
                 <div class="form-group">
                     <label for="atendenteNome">Nome do Atendente</label>
                     <input type="text" id="atendenteNome" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="atendenteTelefone">Telefone</label>
-                    <input type="text" id="atendenteTelefone" class="form-control" required>
                 </div>
                 <div class="modal-footer">
                     <button type="button" id="cancelAtendenteBtn" class="btn btn-danger">Cancelar</button>
@@ -429,11 +413,11 @@
                 const servicosRef = db.collection('usuarios').doc(userId).collection('servicos');
                 const querySnapshot = await servicosRef.get();
                 
-                const servicosList = document.getElementById('servicosList');
-                servicosList.innerHTML = '';
+                const servicosListContainer = document.getElementById('servicosListContainer');
+                servicosListContainer.innerHTML = '';
                 
                 if (querySnapshot.empty) {
-                    servicosList.innerHTML = '<tr><td colspan="2" style="text-align: center;">Nenhum serviço cadastrado</td></tr>';
+                    servicosListContainer.innerHTML = '<div class="empty-message">Nenhum serviço cadastrado</div>';
                     return;
                 }
                 
@@ -441,20 +425,21 @@
                     const servico = doc.data();
                     servico.id = doc.id;
                     
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${servico.nome || 'Não informado'}</td>
-                        <td>
+                    const item = document.createElement('div');
+                    item.className = 'list-item';
+                    item.innerHTML = `
+                        <span>${servico.nome || 'Não informado'}</span>
+                        <div class="list-item-actions">
                             <button class="btn btn-primary edit-servico" data-id="${servico.id}">
                                 <i class="fas fa-edit"></i> Editar
                             </button>
                             <button class="btn btn-danger delete-servico" data-id="${servico.id}">
                                 <i class="fas fa-trash"></i> Excluir
                             </button>
-                        </td>
+                        </div>
                     `;
                     
-                    servicosList.appendChild(row);
+                    servicosListContainer.appendChild(item);
                 });
                 
                 document.querySelectorAll('.edit-servico').forEach(btn => {
@@ -466,7 +451,7 @@
                 });
             } catch (error) {
                 console.error('Erro ao carregar serviços:', error);
-                document.getElementById('servicosList').innerHTML = '<tr><td colspan="2" style="text-align: center; color: red;">Erro ao carregar serviços</td></tr>';
+                document.getElementById('servicosListContainer').innerHTML = '<div class="empty-message" style="color: red;">Erro ao carregar serviços</div>';
             }
         }
 
@@ -475,11 +460,11 @@
                 const atendentesRef = db.collection('usuarios').doc(userId).collection('servicoAtendente');
                 const querySnapshot = await atendentesRef.get();
                 
-                const atendentesList = document.getElementById('atendentesList');
-                atendentesList.innerHTML = '';
+                const atendentesListContainer = document.getElementById('atendentesListContainer');
+                atendentesListContainer.innerHTML = '';
                 
                 if (querySnapshot.empty) {
-                    atendentesList.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhum atendente cadastrado</td></tr>';
+                    atendentesListContainer.innerHTML = '<div class="empty-message">Nenhum atendente cadastrado</div>';
                     return;
                 }
                 
@@ -487,21 +472,21 @@
                     const atendente = doc.data();
                     atendente.id = doc.id;
                     
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${atendente.nome || 'Não informado'}</td>
-                        <td>${atendente.telefone || 'Não informado'}</td>
-                        <td>
+                    const item = document.createElement('div');
+                    item.className = 'list-item';
+                    item.innerHTML = `
+                        <span>${atendente.nome || 'Não informado'}</span>
+                        <div class="list-item-actions">
                             <button class="btn btn-primary edit-atendente" data-id="${atendente.id}">
                                 <i class="fas fa-edit"></i> Editar
                             </button>
                             <button class="btn btn-danger delete-atendente" data-id="${atendente.id}">
                                 <i class="fas fa-trash"></i> Excluir
                             </button>
-                        </td>
+                        </div>
                     `;
                     
-                    atendentesList.appendChild(row);
+                    atendentesListContainer.appendChild(item);
                 });
                 
                 document.querySelectorAll('.edit-atendente').forEach(btn => {
@@ -513,7 +498,7 @@
                 });
             } catch (error) {
                 console.error('Erro ao carregar atendentes:', error);
-                document.getElementById('atendentesList').innerHTML = '<tr><td colspan="3" style="text-align: center; color: red;">Erro ao carregar atendentes</td></tr>';
+                document.getElementById('atendentesListContainer').innerHTML = '<div class="empty-message" style="color: red;">Erro ao carregar atendentes</div>';
             }
         }
 
@@ -640,7 +625,6 @@
                 document.getElementById('atendenteModalTitle').textContent = 'Editar Atendente';
                 document.getElementById('atendenteId').value = atendenteId;
                 document.getElementById('atendenteNome').value = atendente.nome || '';
-                document.getElementById('atendenteTelefone').value = atendente.telefone || '';
                 document.getElementById('atendenteModal').style.display = 'flex';
             } catch (error) {
                 console.error('Erro ao editar atendente:', error);
@@ -651,12 +635,10 @@
         async function saveAtendente(userId) {
             const atendenteId = document.getElementById('atendenteId').value;
             const nome = document.getElementById('atendenteNome').value;
-            const telefone = document.getElementById('atendenteTelefone').value;
             
             try {
                 const atendenteData = {
                     nome,
-                    telefone,
                     updatedAt: new Date()
                 };
                 
