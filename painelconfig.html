@@ -624,44 +624,39 @@
             </div>
         </div>
 
-        <!-- Seção de Máquinas -->
-        <div class="horarios-config" style="margin-bottom: 30px;">
-            <h3>GERENCIAR MÁQUINAS</h3>
-            
-            <div id="maquinasContainer">
-                <div class="form-group">
-                    <label>Quantidade de Máquinas:</label>
-                    <input type="number" id="quantidadeMaquinas" min="1" max="10" value="1">
-                </div>
-                
-                <button id="btnGerarMaquinas" class="btn-salvar">Gerar Acessos</button>
-                
-                <div id="maquinasResult" style="margin-top: 20px; display: none;">
-                    <h4 style="margin-bottom: 10px;">Credenciais Geradas:</h4>
-                    <div id="maquinasList" style="background: #f8f9fa; padding: 15px; border-radius: 4px;"></div>
-                    <p style="margin-top: 10px; font-size: 14px; color: #666;">
-                        <i class="fas fa-info-circle"></i> As credenciais estarão disponíveis para uso a partir do próximo dia útil.
-                    </p>
-                </div>
-            </div>
-        </div>
+        <!-- Seção de Observação sobre Máquinas -->
+<div class="horarios-config" style="margin-bottom: 30px;">
+    <h3>INFORMAÇÕES SOBRE MÁQUINAS</h3>
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 4px;">
+        <p><strong>Observação:</strong> As máquinas adicionais que foram pedidas no cadastro terão seus LOGIN e SENHA criados e enviados para o e-mail cadastrado.</p>
+    </div>
+</div>
 
         <!-- Seção de Atendentes Simplificada -->
-        <div class="atendentes-section">
-            <h3>GERENCIAR ATENDENTES E SERVIÇOS</h3>
-            
-            <div id="atendentesContainer">
-                <!-- Os atendentes serão adicionados aqui dinamicamente -->
-            </div>
-            
-            <button id="btnAdicionarAtendente" class="btn-adicionar" style="margin-top: 15px;">
-                <i class="fas fa-plus"></i> Adicionar Atendente
-            </button>
-            
-            <button id="btnSalvarAtendentes" class="btn-salvar" style="margin-top: 20px;">
-                Salvar Atendentes e Serviços
+<div class="atendentes-section">
+    <h3>GERENCIAR ATENDENTES E SERVIÇOS</h3>
+    
+    <div id="atendentesContainer">
+        <!-- Os atendentes e serviços serão carregados aqui -->
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <h4>Adicionar Novo Atendente</h4>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="novoAtendente" class="input-servico" placeholder="Nome do atendente">
+            <select id="servicosAtendente" class="input-servico" multiple>
+                <!-- Os serviços serão carregados aqui -->
+            </select>
+            <button id="btnAdicionarAtendente" class="btn-adicionar">
+                <i class="fas fa-plus"></i> Adicionar
             </button>
         </div>
+    </div>
+    
+    <button id="btnSalvarAtendentes" class="btn-salvar" style="margin-top: 20px;">
+        Salvar Configurações
+    </button>
+</div>
 
         <!-- Seção de Serviços Disponíveis -->
         <div class="servicos-section">
@@ -708,18 +703,17 @@
         </div>
 
         <!-- Informações Cadastrais -->
-        <div class="info-adicionais" id="userInfoContainer">
-            <h2>INFORMAÇÕES CADASTRAIS</h2>
-            <div id="userDataLoader" style="text-align: center;">Carregando dados...</div>
-            
-            <div class="info-contato">
-                <p>Para alterar estas informações, entre em contato pelo e-mail: <strong>suportehorario@gmail.com</strong></p>
-                <p>Inclua no assunto: "Alteração de Cadastro - [Seu CNPJ]"</p>
-            </div>
-            
-            <button type="button" class="btn-cancelar">Cancelar Assinatura</button>
-        </div>
+<div class="info-adicionais" id="userInfoContainer">
+    <h2>INFORMAÇÕES CADASTRAIS</h2>
+    <div id="userDataLoader" style="text-align: center;">Carregando dados...</div>
+    
+    <div class="info-contato">
+        <p>Para alterar estas informações, entre em contato pelo e-mail: <strong>suportehorario@gmail.com</strong></p>
+        <p>Inclua no assunto: "Alteração de Cadastro - [Seu CNPJ]"</p>
     </div>
+    
+    <button type="button" class="btn-cancelar">Cancelar Assinatura</button>
+</div>
 
     <footer>
         <div class="contato-rodape">
@@ -834,46 +828,170 @@
         }
         
         // Carrega as configurações de atendentes do usuário
-        async function loadAtendentesConfig(userData) {
-            try {
-                atendentesData = [];
-                
-                // Verifica se existe nomeAtendente e servicoAtendente no documento
-                if (userData.nomeAtendente && userData.servicoAtendente) {
-                    // Converte para array se for string única
-                    if (typeof userData.nomeAtendente === 'string') {
-                        atendentesData.push({
-                            nome: userData.nomeAtendente,
-                            servicos: userData.servicoAtendente.split('/').map(s => s.trim()).filter(s => s !== '')
-                        });
-                    } else if (Array.isArray(userData.nomeAtendente)) {
-                        // Processa arrays de atendentes e serviços
-                        for (let i = 0; i < userData.nomeAtendente.length; i++) {
-                            const servicos = Array.isArray(userData.servicoAtendente) ? 
-                                (userData.servicoAtendente[i] || '').split('/').map(s => s.trim()).filter(s => s !== '') : 
-                                (userData.servicoAtendente || '').split('/').map(s => s.trim()).filter(s => s !== '');
-                            
-                            atendentesData.push({
-                                nome: userData.nomeAtendente[i],
-                                servicos: servicos
-                            });
-                        }
-                    }
-                }
-                
-                // Se não encontrou atendentes, cria um padrão
-                if (atendentesData.length === 0) {
+async function loadAtendentesConfig(userData) {
+    try {
+        // Carrega os serviços primeiro
+        if (userData.servicos) {
+            servicosDisponiveis = userData.servicos.split('/').map(s => s.trim()).filter(s => s !== '');
+            renderServicosSelect();
+        }
+
+        // Carrega os atendentes
+        atendentesData = [];
+        
+        if (userData.nomeAtendente && userData.servicoAtendente) {
+            // Converte para array se for string única
+            if (typeof userData.nomeAtendente === 'string') {
+                atendentesData.push({
+                    nome: userData.nomeAtendente,
+                    servicos: userData.servicoAtendente.split('/').map(s => s.trim()).filter(s => s !== '')
+                });
+            } else if (Array.isArray(userData.nomeAtendente)) {
+                // Processa arrays de atendentes e serviços
+                for (let i = 0; i < userData.nomeAtendente.length; i++) {
+                    const servicos = Array.isArray(userData.servicoAtendente) ? 
+                        (userData.servicoAtendente[i] || '').split('/').map(s => s.trim()).filter(s => s !== '') : 
+                        (userData.servicoAtendente || '').split('/').map(s => s.trim()).filter(s => s !== '');
+                    
                     atendentesData.push({
-                        nome: "Atendente 1",
-                        servicos: []
+                        nome: userData.nomeAtendente[i],
+                        servicos: servicos
                     });
                 }
-                
-                renderAtendentesList(atendentesData);
-            } catch (error) {
-                console.error('Erro ao carregar configurações de atendentes:', error);
             }
         }
+        
+        // Se não encontrou atendentes, cria um padrão
+        if (atendentesData.length === 0) {
+            atendentesData.push({
+                nome: "Atendente 1",
+                servicos: []
+            });
+        }
+        
+        renderAtendentesList(atendentesData);
+    } catch (error) {
+        console.error('Erro ao carregar configurações de atendentes:', error);
+    }
+}
+
+// Renderiza o select de serviços
+function renderServicosSelect() {
+    const select = document.getElementById('servicosAtendente');
+    select.innerHTML = '';
+    
+    servicosDisponiveis.forEach(servico => {
+        const option = document.createElement('option');
+        option.value = servico;
+        option.textContent = servico;
+        select.appendChild(option);
+    });
+}
+
+// Renderiza a lista de atendentes e serviços
+function renderAtendentesList(atendentes) {
+    const container = document.getElementById('atendentesContainer');
+    container.innerHTML = '<h4>Atendentes Cadastrados</h4>';
+    
+    if (atendentes.length === 0) {
+        container.innerHTML += '<p>Nenhum atendente cadastrado</p>';
+        return;
+    }
+    
+    atendentes.forEach((atendente, index) => {
+        const atendenteDiv = document.createElement('div');
+        atendenteDiv.className = 'atendente-item';
+        
+        atendenteDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>${atendente.nome}</strong>
+                    <p style="margin-top: 5px; color: #666;">
+                        Serviços: ${atendente.servicos.join(', ')}
+                    </p>
+                </div>
+                <div>
+                    <button class="btn-editar" data-index="${index}">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <button class="btn-remover" data-index="${index}">
+                        <i class="fas fa-trash"></i> Remover
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(atendenteDiv);
+        
+        // Adiciona event listeners
+        atendenteDiv.querySelector('.btn-editar').addEventListener('click', () => editAtendente(index));
+        atendenteDiv.querySelector('.btn-remover').addEventListener('click', () => removeAtendente(index));
+    });
+}
+
+// Adiciona um novo atendente
+async function addAtendente() {
+    const nome = document.getElementById('novoAtendente').value.trim();
+    const select = document.getElementById('servicosAtendente');
+    const servicosSelecionados = Array.from(select.selectedOptions).map(opt => opt.value);
+    
+    if (!nome) {
+        alert('Por favor, insira o nome do atendente');
+        return;
+    }
+    
+    if (servicosSelecionados.length === 0) {
+        alert('Selecione pelo menos um serviço para o atendente');
+        return;
+    }
+    
+    atendentesData.push({
+        nome: nome,
+        servicos: servicosSelecionados
+    });
+    
+    // Limpa os campos
+    document.getElementById('novoAtendente').value = '';
+    Array.from(select.options).forEach(opt => opt.selected = false);
+    
+    // Atualiza a lista
+    renderAtendentesList(atendentesData);
+}
+
+// Edita um atendente existente
+function editAtendente(index) {
+    const atendente = atendentesData[index];
+    const novoNome = prompt('Editar nome do atendente:', atendente.nome);
+    
+    if (novoNome === null) return;
+    
+    const nome = novoNome.trim();
+    if (!nome) {
+        alert('O nome não pode estar vazio');
+        return;
+    }
+    
+    // Mostra diálogo para editar serviços
+    let servicosMsg = 'Serviços atuais:\n' + atendente.servicos.join('\n');
+    servicosMsg += '\n\nDigite os novos serviços (separados por vírgula):';
+    
+    const novosServicos = prompt(servicosMsg, atendente.servicos.join(', '));
+    if (novosServicos === null) return;
+    
+    const servicosArray = novosServicos.split(',').map(s => s.trim()).filter(s => s !== '');
+    if (servicosArray.length === 0) {
+        alert('O atendente deve ter pelo menos um serviço');
+        return;
+    }
+    
+    // Atualiza os dados
+    atendentesData[index] = {
+        nome: nome,
+        servicos: servicosArray
+    };
+    
+    renderAtendentesList(atendentesData);
+}
         
         // Carrega as configurações de serviços do usuário
         async function loadServicosConfig(userData) {
