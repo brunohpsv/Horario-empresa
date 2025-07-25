@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco de Dados - Gerenciamento de Serviços</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .section {
+            flex: 1;
+            min-width: 300px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        input, textarea, select, button {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+        }
+        button:hover {
+            background-color: #3367d6;
+        }
+        .data-display {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gerenciamento de Serviços e Atendentes</h1>
+    
+    <div class="container">
+        <!-- Seção para servicoAtendente -->
+        <div class="section">
+            <h2>Gerenciar Serviço Atendente</h2>
+            
+            <h3>Adicionar/Atualizar Serviço Atendente</h3>
+            <input type="text" id="atendenteId" placeholder="ID do Documento (deixe vazio para novo)">
+            <input type="text" id="atendenteNome" placeholder="Nome do Atendente" required>
+            <input type="text" id="atendenteEspecialidade" placeholder="Especialidade">
+            <input type="text" id="atendenteDisponibilidade" placeholder="Disponibilidade">
+            <button id="salvarAtendente">Salvar Atendente</button>
+            
+            <h3>Buscar Serviço Atendente</h3>
+            <input type="text" id="buscarAtendenteId" placeholder="ID do Documento">
+            <button id="buscarAtendente">Buscar Atendente</button>
+            <button id="listarAtendentes">Listar Todos</button>
+            
+            <h3>Resultados</h3>
+            <div id="atendenteResult" class="data-display"></div>
+        </div>
+        
+        <!-- Seção para servicos -->
+        <div class="section">
+            <h2>Gerenciar Serviços</h2>
+            
+            <h3>Adicionar/Atualizar Serviço</h3>
+            <input type="text" id="servicoId" placeholder="ID do Documento (deixe vazio para novo)">
+            <input type="text" id="servicoNome" placeholder="Nome do Serviço" required>
+            <input type="text" id="servicoDescricao" placeholder="Descrição">
+            <input type="number" id="servicoPreco" placeholder="Preço">
+            <input type="number" id="servicoDuracao" placeholder="Duração (minutos)">
+            <button id="salvarServico">Salvar Serviço</button>
+            
+            <h3>Buscar Serviço</h3>
+            <input type="text" id="buscarServicoId" placeholder="ID do Documento">
+            <button id="buscarServico">Buscar Serviço</button>
+            <button id="listarServicos">Listar Todos</button>
+            
+            <h3>Resultados</h3>
+            <div id="servicoResult" class="data-display"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+            authDomain: "banco-de-dados-d253e.firebaseapp.com",
+            projectId: "banco-de-dados-d253e",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
+            messagingSenderId: "1005413315224",
+            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Referências aos elementos do DOM
+        // Atendentes
+        const atendenteIdInput = document.getElementById('atendenteId');
+        const atendenteNomeInput = document.getElementById('atendenteNome');
+        const atendenteEspecialidadeInput = document.getElementById('atendenteEspecialidade');
+        const atendenteDisponibilidadeInput = document.getElementById('atendenteDisponibilidade');
+        const salvarAtendenteBtn = document.getElementById('salvarAtendente');
+        const buscarAtendenteIdInput = document.getElementById('buscarAtendenteId');
+        const buscarAtendenteBtn = document.getElementById('buscarAtendente');
+        const listarAtendentesBtn = document.getElementById('listarAtendentes');
+        const atendenteResultDiv = document.getElementById('atendenteResult');
+
+        // Serviços
+        const servicoIdInput = document.getElementById('servicoId');
+        const servicoNomeInput = document.getElementById('servicoNome');
+        const servicoDescricaoInput = document.getElementById('servicoDescricao');
+        const servicoPrecoInput = document.getElementById('servicoPreco');
+        const servicoDuracaoInput = document.getElementById('servicoDuracao');
+        const salvarServicoBtn = document.getElementById('salvarServico');
+        const buscarServicoIdInput = document.getElementById('buscarServicoId');
+        const buscarServicoBtn = document.getElementById('buscarServico');
+        const listarServicosBtn = document.getElementById('listarServicos');
+        const servicoResultDiv = document.getElementById('servicoResult');
+
+        // Funções para ServicoAtendente
+        async function salvarAtendente() {
+            const id = atendenteIdInput.value;
+            const data = {
+                nome: atendenteNomeInput.value,
+                especialidade: atendenteEspecialidadeInput.value,
+                disponibilidade: atendenteDisponibilidadeInput.value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                if (id) {
+                    await db.collection('servicoAtendente').doc(id).update(data);
+                    alert('Atendente atualizado com sucesso!');
+                } else {
+                    const docRef = await db.collection('servicoAtendente').add(data);
+                    alert(`Atendente criado com ID: ${docRef.id}`);
+                    atendenteIdInput.value = docRef.id;
+                }
+            } catch (error) {
+                console.error('Erro ao salvar atendente: ', error);
+                alert('Erro ao salvar atendente: ' + error.message);
+            }
+        }
+
+        async function buscarAtendente() {
+            const id = buscarAtendenteIdInput.value;
+            if (!id) {
+                alert('Por favor, insira um ID');
+                return;
+            }
+
+            try {
+                const doc = await db.collection('servicoAtendente').doc(id).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    atendenteIdInput.value = doc.id;
+                    atendenteNomeInput.value = data.nome || '';
+                    atendenteEspecialidadeInput.value = data.especialidade || '';
+                    atendenteDisponibilidadeInput.value = data.disponibilidade || '';
+                    
+                    // Mostrar os dados no resultado
+                    atendenteResultDiv.innerHTML = `
+                        <div class="item">
+                            <h4>${data.nome}</h4>
+                            <p><strong>ID:</strong> ${doc.id}</p>
+                            <p><strong>Especialidade:</strong> ${data.especialidade}</p>
+                            <p><strong>Disponibilidade:</strong> ${data.disponibilidade}</p>
+                            <button onclick="deletarAtendente('${doc.id}')">Deletar</button>
+                        </div>
+                    `;
+                } else {
+                    alert('Nenhum atendente encontrado com este ID');
+                }
+            } catch (error) {
+                console.error('Erro ao buscar atendente: ', error);
+                alert('Erro ao buscar atendente: ' + error.message);
+            }
+        }
+
+        async function listarAtendentes() {
+            try {
+                const querySnapshot = await db.collection('servicoAtendente').orderBy('timestamp', 'desc').get();
+                atendenteResultDiv.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    atendenteResultDiv.innerHTML = '<p>Nenhum atendente encontrado</p>';
+                    return;
+                }
+                
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    atendenteResultDiv.innerHTML += `
+                        <div class="item">
+                            <h4>${data.nome}</h4>
+                            <p><strong>ID:</strong> ${doc.id}</p>
+                            <p><strong>Especialidade:</strong> ${data.especialidade}</p>
+                            <p><strong>Disponibilidade:</strong> ${data.disponibilidade}</p>
+                            <button onclick="carregarAtendenteParaEdicao('${doc.id}')">Editar</button>
+                            <button onclick="deletarAtendente('${doc.id}')">Deletar</button>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Erro ao listar atendentes: ', error);
+                alert('Erro ao listar atendentes: ' + error.message);
+            }
+        }
+
+        async function deletarAtendente(id) {
+            if (confirm('Tem certeza que deseja deletar este atendente?')) {
+                try {
+                    await db.collection('servicoAtendente').doc(id).delete();
+                    alert('Atendente deletado com sucesso!');
+                    listarAtendentes();
+                } catch (error) {
+                    console.error('Erro ao deletar atendente: ', error);
+                    alert('Erro ao deletar atendente: ' + error.message);
+                }
+            }
+        }
+
+        function carregarAtendenteParaEdicao(id) {
+            buscarAtendenteIdInput.value = id;
+            buscarAtendente();
+        }
+
+        // Funções para Servicos
+        async function salvarServico() {
+            const id = servicoIdInput.value;
+            const data = {
+                nome: servicoNomeInput.value,
+                descricao: servicoDescricaoInput.value,
+                preco: parseFloat(servicoPrecoInput.value) || 0,
+                duracao: parseInt(servicoDuracaoInput.value) || 0,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                if (id) {
+                    await db.collection('servicos').doc(id).update(data);
+                    alert('Serviço atualizado com sucesso!');
+                } else {
+                    const docRef = await db.collection('servicos').add(data);
+                    alert(`Serviço criado com ID: ${docRef.id}`);
+                    servicoIdInput.value = docRef.id;
+                }
+            } catch (error) {
+                console.error('Erro ao salvar serviço: ', error);
+                alert('Erro ao salvar serviço: ' + error.message);
+            }
+        }
+
+        async function buscarServico() {
+            const id = buscarServicoIdInput.value;
+            if (!id) {
+                alert('Por favor, insira um ID');
+                return;
+            }
+
+            try {
+                const doc = await db.collection('servicos').doc(id).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    servicoIdInput.value = doc.id;
+                    servicoNomeInput.value = data.nome || '';
+                    servicoDescricaoInput.value = data.descricao || '';
+                    servicoPrecoInput.value = data.preco || '';
+                    servicoDuracaoInput.value = data.duracao || '';
+                    
+                    // Mostrar os dados no resultado
+                    servicoResultDiv.innerHTML = `
+                        <div class="item">
+                            <h4>${data.nome}</h4>
+                            <p><strong>ID:</strong> ${doc.id}</p>
+                            <p><strong>Descrição:</strong> ${data.descricao}</p>
+                            <p><strong>Preço:</strong> R$ ${data.preco.toFixed(2)}</p>
+                            <p><strong>Duração:</strong> ${data.duracao} minutos</p>
+                            <button onclick="deletarServico('${doc.id}')">Deletar</button>
+                        </div>
+                    `;
+                } else {
+                    alert('Nenhum serviço encontrado com este ID');
+                }
+            } catch (error) {
+                console.error('Erro ao buscar serviço: ', error);
+                alert('Erro ao buscar serviço: ' + error.message);
+            }
+        }
+
+        async function listarServicos() {
+            try {
+                const querySnapshot = await db.collection('servicos').orderBy('timestamp', 'desc').get();
+                servicoResultDiv.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    servicoResultDiv.innerHTML = '<p>Nenhum serviço encontrado</p>';
+                    return;
+                }
+                
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    servicoResultDiv.innerHTML += `
+                        <div class="item">
+                            <h4>${data.nome}</h4>
+                            <p><strong>ID:</strong> ${doc.id}</p>
+                            <p><strong>Descrição:</strong> ${data.descricao}</p>
+                            <p><strong>Preço:</strong> R$ ${data.preco.toFixed(2)}</p>
+                            <p><strong>Duração:</strong> ${data.duracao} minutos</p>
+                            <button onclick="carregarServicoParaEdicao('${doc.id}')">Editar</button>
+                            <button onclick="deletarServico('${doc.id}')">Deletar</button>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Erro ao listar serviços: ', error);
+                alert('Erro ao listar serviços: ' + error.message);
+            }
+        }
+
+        async function deletarServico(id) {
+            if (confirm('Tem certeza que deseja deletar este serviço?')) {
+                try {
+                    await db.collection('servicos').doc(id).delete();
+                    alert('Serviço deletado com sucesso!');
+                    listarServicos();
+                } catch (error) {
+                    console.error('Erro ao deletar serviço: ', error);
+                    alert('Erro ao deletar serviço: ' + error.message);
+                }
+            }
+        }
+
+        function carregarServicoParaEdicao(id) {
+            buscarServicoIdInput.value = id;
+            buscarServico();
+        }
+
+        // Event Listeners
+        salvarAtendenteBtn.addEventListener('click', salvarAtendente);
+        buscarAtendenteBtn.addEventListener('click', buscarAtendente);
+        listarAtendentesBtn.addEventListener('click', listarAtendentes);
+        
+        salvarServicoBtn.addEventListener('click', salvarServico);
+        buscarServicoBtn.addEventListener('click', buscarServico);
+        listarServicosBtn.addEventListener('click', listarServicos);
+
+        // Adicionar funções ao escopo global para os botões nos resultados
+        window.deletarAtendente = deletarAtendente;
+        window.carregarAtendenteParaEdicao = carregarAtendenteParaEdicao;
+        window.deletarServico = deletarServico;
+        window.carregarServicoParaEdicao = carregarServicoParaEdicao;
+    </script>
+</body>
+</html>
