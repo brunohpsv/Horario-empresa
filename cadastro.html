@@ -288,15 +288,44 @@
             background-color: #f9f9f9;
         }
         
-        .atendente-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+        .servico-container {
             margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #fff;
         }
         
-        .atendente-item input {
+        .servico-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .servico-title {
+            font-weight: bold;
+        }
+        
+        .servico-nomes {
             width: 100%;
+        }
+        
+        .servico-nomes input {
+            margin-bottom: 5px;
+        }
+        
+        .add-nome-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .add-nome-btn:hover {
+            background-color: #45a049;
         }
         
         .duplicado-aviso {
@@ -404,7 +433,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="atendentes">Quantos atendentes terão?</label>
+                    <label for="atendentes">Quantos serviços diferentes serão oferecidos?</label>
                     <input type="number" id="atendentes" min="0" max="30" value="0">
                     <div id="atendentes-container" class="atendentes-container" style="display: none;"></div>
                 </div>
@@ -566,39 +595,60 @@
 
         // Gerar campos de atendentes dinamicamente
         document.getElementById('atendentes').addEventListener('change', function() {
-            const qtdAtendentes = parseInt(this.value);
+            const qtdServicos = parseInt(this.value);
             const container = document.getElementById('atendentes-container');
             
             container.innerHTML = '';
             
-            if (qtdAtendentes > 0) {
+            if (qtdServicos > 0) {
                 container.style.display = 'block';
                 
-                for (let i = 0; i < qtdAtendentes; i++) {
-                    const atendenteDiv = document.createElement('div');
-                    atendenteDiv.className = 'atendente-item';
+                for (let i = 0; i < qtdServicos; i++) {
+                    const servicoDiv = document.createElement('div');
+                    servicoDiv.className = 'servico-container';
                     
-                    const nomeLabel = document.createElement('label');
-                    nomeLabel.textContent = `Nome do Atendente ${i+1}`;
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'servico-header';
                     
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = 'servico-title';
+                    titleSpan.textContent = `Serviço ${i+1}`;
+                    
+                    const addBtn = document.createElement('button');
+                    addBtn.className = 'add-nome-btn';
+                    addBtn.innerHTML = '<i class="fas fa-plus"></i> Adicionar Nome';
+                    addBtn.onclick = function() { adicionarCampoNome(i); };
+                    
+                    headerDiv.appendChild(titleSpan);
+                    headerDiv.appendChild(addBtn);
+                    
+                    const servicoLabel = document.createElement('label');
+                    servicoLabel.textContent = 'Nome do Serviço';
+                    
+                    const servicoInput = document.createElement('input');
+                    servicoInput.type = 'text';
+                    servicoInput.id = `servico-${i}`;
+                    servicoInput.required = true;
+                    servicoInput.placeholder = 'Ex: Oftalmologista';
+                    
+                    const nomesDiv = document.createElement('div');
+                    nomesDiv.className = 'servico-nomes';
+                    nomesDiv.id = `nomes-container-${i}`;
+                    
+                    // Adiciona um campo de nome inicial para cada serviço
                     const nomeInput = document.createElement('input');
                     nomeInput.type = 'text';
-                    nomeInput.id = `atendente-nome-${i}`;
+                    nomeInput.id = `nome-${i}-0`;
                     nomeInput.required = true;
+                    nomeInput.placeholder = 'Nome do profissional';
                     
-                    const servicosLabel = document.createElement('label');
-                    servicosLabel.textContent = 'Serviços deste atendente (separados por /)';
+                    nomesDiv.appendChild(nomeInput);
                     
-                    const servicosInput = document.createElement('input');
-                    servicosInput.type = 'text';
-                    servicosInput.id = `atendente-servicos-${i}`;
-                    servicosInput.required = true;
-                    
-                    atendenteDiv.appendChild(nomeLabel);
-                    atendenteDiv.appendChild(nomeInput);
-                    atendenteDiv.appendChild(servicosLabel);
-                    atendenteDiv.appendChild(servicosInput);
-                    container.appendChild(atendenteDiv);
+                    servicoDiv.appendChild(headerDiv);
+                    servicoDiv.appendChild(servicoLabel);
+                    servicoDiv.appendChild(servicoInput);
+                    servicoDiv.appendChild(nomesDiv);
+                    container.appendChild(servicoDiv);
                 }
                 
                 // Tornar campo de serviços não obrigatório
@@ -610,6 +660,19 @@
                 document.getElementById('servicos-group').style.opacity = '1';
             }
         });
+
+        // Função para adicionar campo de nome para um serviço
+        function adicionarCampoNome(servicoIndex) {
+            const nomesContainer = document.getElementById(`nomes-container-${servicoIndex}`);
+            const nomeCount = nomesContainer.querySelectorAll('input').length;
+            
+            const nomeInput = document.createElement('input');
+            nomeInput.type = 'text';
+            nomeInput.id = `nome-${servicoIndex}-${nomeCount}`;
+            nomeInput.placeholder = 'Nome do profissional';
+            
+            nomesContainer.appendChild(nomeInput);
+        }
 
         // Verificar campos duplicados no Firestore
         async function verificarCamposDuplicados() {
@@ -646,12 +709,24 @@
             return temDuplicado;
         }
 
-        // Função para formatar os serviços de um atendente
-        function formatarServicosAtendente(servicosStr) {
-            // Remove espaços extras e divide por /
-            const servicos = servicosStr.split('/').map(s => s.trim()).filter(s => s);
-            // Formata cada serviço com [ ]
-            return servicos.map(servico => `[${servico}]`).join('');
+        // Função para formatar os serviços e nomes dos atendentes
+        function formatarServicosAtendentes(qtdServicos) {
+            const servicosFormatados = [];
+            
+            for (let i = 0; i < qtdServicos; i++) {
+                const servico = document.getElementById(`servico-${i}`).value.trim();
+                const nomesInputs = document.querySelectorAll(`#nomes-container-${i} input`);
+                
+                const nomes = Array.from(nomesInputs)
+                    .map(input => input.value.trim())
+                    .filter(nome => nome);
+                
+                if (servico && nomes.length > 0) {
+                    servicosFormatados.push(`${i} - "${servico}" : "${nomes.join(' / ')}"`);
+                }
+            }
+            
+            return servicosFormatados.join(' | ');
         }
 
         // Adicionar verificação de duplicados ao enviar formulário
@@ -679,31 +754,17 @@
                 // Coletar dados do formulário
                 const email = document.getElementById('email').value;
                 const nomeFantasia = document.getElementById('nome-fantasia').value;
+                const qtdServicos = parseInt(document.getElementById('atendentes').value);
                 
                 // Gerar senha e login automaticamente
                 const senha = gerarSenha();
                 const login = gerarCodigoLogin(nomeFantasia);
                 
-                // Coletar dados dos atendentes se existirem
-                const qtdAtendentes = parseInt(document.getElementById('atendentes').value);
+                // Coletar dados dos serviços e atendentes se existirem
                 let listaAtendentes = '';
                 
-                if (qtdAtendentes > 0) {
-                    const atendentes = [];
-                    
-                    for (let i = 0; i < qtdAtendentes; i++) {
-                        const nome = document.getElementById(`atendente-nome-${i}`).value.trim();
-                        const servicos = document.getElementById(`atendente-servicos-${i}`).value.trim();
-                        
-                        if (nome && servicos) {
-                            // Formatar como "(Nome) - [Serviço1][Serviço2]"
-                            const servicosFormatados = formatarServicosAtendente(servicos);
-                            atendentes.push(`(${nome}) - ${servicosFormatados}`);
-                        }
-                    }
-                    
-                    // Juntar todos os atendentes em uma string separada por ponto e vírgula
-                    listaAtendentes = atendentes.join('; ');
+                if (qtdServicos > 0) {
+                    listaAtendentes = formatarServicosAtendentes(qtdServicos);
                 }
                 
                 // Coletar serviços gerais se não houver atendentes
@@ -724,8 +785,8 @@
                     login: login,
                     senha: senha, // Armazenando a senha no Firestore também
                     maquinas: document.getElementById('maquinas').value,
-                    servicos: qtdAtendentes > 0 ? '' : servicos, // Só preenche serviços se não houver atendentes
-                    atendentes: listaAtendentes, // Lista formatada de atendentes e seus serviços
+                    servicos: qtdServicos > 0 ? '' : servicos, // Só preenche serviços se não houver atendentes
+                    atendentes: listaAtendentes, // Lista formatada de serviços e seus atendentes
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
                     dataCadastro: new Date().toISOString(),
                     status: 'pendente'
