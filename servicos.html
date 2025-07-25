@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
-        /* Reset e estilos gerais */
         * {
             margin: 0;
             padding: 0;
@@ -22,7 +21,6 @@
             min-height: 100vh;
         }
         
-        /* Header */
         header {
             background-color: #000000;
             color: white;
@@ -80,7 +78,6 @@
             background-color: #d32f2f;
         }
         
-        /* Container principal */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -89,7 +86,6 @@
             width: 100%;
         }
         
-        /* Título da página */
         .page-title {
             font-size: 24px;
             margin-bottom: 20px;
@@ -98,7 +94,6 @@
             padding-bottom: 10px;
         }
         
-        /* Seções */
         .section {
             background-color: white;
             border-radius: 8px;
@@ -116,7 +111,6 @@
             align-items: center;
         }
         
-        /* Botões */
         .btn {
             padding: 8px 16px;
             border-radius: 4px;
@@ -144,7 +138,6 @@
             background-color: #d32f2f;
         }
         
-        /* Tabelas */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -167,7 +160,6 @@
             background-color: #f5f5f5;
         }
         
-        /* Formulários */
         .form-group {
             margin-bottom: 15px;
         }
@@ -187,7 +179,6 @@
             font-size: 14px;
         }
         
-        /* Loader */
         .loader-overlay {
             position: fixed;
             top: 0;
@@ -215,7 +206,6 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Rodapé */
         footer {
             background-color: #000000;
             color: white;
@@ -236,66 +226,7 @@
             text-decoration: none;
         }
 
-        /* Novos estilos para a relação serviço-atendente */
-        .servico-atendentes {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-        }
-
-        .servico-atendentes h4 {
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #555;
-        }
-
-        .atendente-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .atendente-tag {
-            background-color: #e0e0e0;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .atendente-tag button {
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            font-size: 10px;
-            padding: 0;
-        }
-
-        .atendente-tag button:hover {
-            color: #f44336;
-        }
-
-        .add-atendente-btn {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-
-        .add-atendente-btn:hover {
-            background-color: #45a049;
-        }
-
-        /* Modal para adicionar atendente ao serviço */
-        .atendente-select-modal {
+        .modal {
             display: none;
             position: fixed;
             top: 0;
@@ -308,7 +239,7 @@
             align-items: center;
         }
 
-        .atendente-select-content {
+        .modal-content {
             background-color: white;
             padding: 20px;
             border-radius: 8px;
@@ -316,26 +247,15 @@
             max-width: 90%;
         }
 
-        .atendente-select-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin: 15px 0;
-        }
-
-        .atendente-select-item {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
+        .modal-footer {
             display: flex;
-            align-items: center;
-        }
-
-        .atendente-select-item input {
-            margin-right: 10px;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Loader inicial -->
     <div class="loader-overlay" id="loaderOverlay">
         <div class="loader"></div>
     </div>
@@ -367,8 +287,6 @@
                     <thead>
                         <tr>
                             <th>Nome</th>
-                            <th>Duração (min)</th>
-                            <th>Preço (R$)</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -391,7 +309,6 @@
                     <thead>
                         <tr>
                             <th>Nome</th>
-                            <th>Especialidades</th>
                             <th>Telefone</th>
                             <th>Ações</th>
                         </tr>
@@ -404,29 +321,17 @@
         </div>
     </div>
 
-    <!-- Modal para adicionar/editar serviço -->
-    <div id="servicoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background-color: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%;">
-            <h2 id="servicoModalTitle" style="margin-bottom: 20px;">Adicionar Serviço</h2>
+    <!-- Modal para serviço -->
+    <div id="servicoModal" class="modal">
+        <div class="modal-content">
+            <h2 id="servicoModalTitle">Adicionar Serviço</h2>
             <form id="servicoForm">
                 <input type="hidden" id="servicoId">
                 <div class="form-group">
                     <label for="servicoNome">Nome do Serviço</label>
                     <input type="text" id="servicoNome" class="form-control" required>
                 </div>
-                <div class="form-group">
-                    <label for="servicoDuracao">Duração (minutos)</label>
-                    <input type="number" id="servicoDuracao" class="form-control" required min="1">
-                </div>
-                <div class="form-group">
-                    <label for="servicoPreco">Preço (R$)</label>
-                    <input type="number" step="0.01" id="servicoPreco" class="form-control" required min="0">
-                </div>
-                <div class="form-group">
-                    <label for="servicoDescricao">Descrição (opcional)</label>
-                    <textarea id="servicoDescricao" class="form-control" rows="3"></textarea>
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <div class="modal-footer">
                     <button type="button" id="cancelServicoBtn" class="btn btn-danger">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
@@ -434,10 +339,10 @@
         </div>
     </div>
     
-    <!-- Modal para adicionar/editar atendente -->
-    <div id="atendenteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background-color: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%;">
-            <h2 id="atendenteModalTitle" style="margin-bottom: 20px;">Adicionar Atendente</h2>
+    <!-- Modal para atendente -->
+    <div id="atendenteModal" class="modal">
+        <div class="modal-content">
+            <h2 id="atendenteModalTitle">Adicionar Atendente</h2>
             <form id="atendenteForm">
                 <input type="hidden" id="atendenteId">
                 <div class="form-group">
@@ -448,29 +353,11 @@
                     <label for="atendenteTelefone">Telefone</label>
                     <input type="text" id="atendenteTelefone" class="form-control" required>
                 </div>
-                <div class="form-group">
-                    <label for="atendenteEspecialidades">Especialidades (separadas por vírgula)</label>
-                    <input type="text" id="atendenteEspecialidades" class="form-control" required>
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <div class="modal-footer">
                     <button type="button" id="cancelAtendenteBtn" class="btn btn-danger">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Modal para selecionar atendentes para o serviço -->
-    <div id="atendenteSelectModal" class="atendente-select-modal">
-        <div class="atendente-select-content">
-            <h2 id="atendenteSelectModalTitle">Selecionar Atendentes</h2>
-            <div class="atendente-select-list" id="atendenteSelectList">
-                <!-- Lista de atendentes será carregada aqui -->
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" id="cancelAtendenteSelectBtn" class="btn btn-danger">Cancelar</button>
-                <button type="button" id="saveAtendenteSelectBtn" class="btn btn-primary">Salvar</button>
-            </div>
         </div>
     </div>
 
@@ -489,7 +376,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <script>
-        // Configuração do Firebase (mesma do arquivo principal)
         const firebaseConfig = {
             apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
             authDomain: "banco-de-dados-d253e.firebaseapp.com",
@@ -499,47 +385,34 @@
             appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
         };
 
-        // Inicializa o Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         
-        // Variáveis globais
         let currentUserData = null;
-        let currentServicoId = null;
-        let allAtendentes = [];
         
-        // Verificação de autenticação e carregamento de dados
         document.addEventListener('DOMContentLoaded', function() {
             auth.onAuthStateChanged(async (user) => {
                 if (!user) {
-                    // Usuário não autenticado, redireciona para login
                     window.location.href = 'https://horario.site/login.html';
                 } else {
                     try {
-                        // Busca os dados do usuário no Firestore
                         const userDoc = await db.collection('usuarios').where('email', '==', user.email).get();
                         
                         if (userDoc.empty) {
                             throw new Error('Dados do usuário não encontrados');
                         }
                         
-                        // Pega o primeiro documento (deveria ter apenas um com o mesmo email)
                         const doc = userDoc.docs[0];
                         const userData = doc.data();
-                        
-                        // Adiciona o ID do documento aos dados do usuário
                         userData.id = doc.id;
                         currentUserData = userData;
                         
-                        // Esconde o loader
                         document.getElementById('loaderOverlay').style.display = 'none';
                         
-                        // Carrega os serviços e atendentes
-                        await loadAtendentes(userData.id);
                         await loadServicos(userData.id);
+                        await loadAtendentes(userData.id);
                         
-                        // Configura os eventos dos botões
                         setupEventListeners(userData.id);
                     } catch (error) {
                         console.error('Erro ao carregar dados do usuário:', error);
@@ -551,7 +424,6 @@
             });
         });
 
-        // Função para carregar os serviços do usuário
         async function loadServicos(userId) {
             try {
                 const servicosRef = db.collection('usuarios').doc(userId).collection('servicos');
@@ -561,22 +433,9 @@
                 servicosList.innerHTML = '';
                 
                 if (querySnapshot.empty) {
-                    servicosList.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum serviço cadastrado</td></tr>';
+                    servicosList.innerHTML = '<tr><td colspan="2" style="text-align: center;">Nenhum serviço cadastrado</td></tr>';
                     return;
                 }
-                
-                // Carrega as relações de serviço-atendente
-                const servicoAtendenteRef = db.collection('usuarios').doc(userId).collection('servicoAtendenteRelacao');
-                const servicoAtendenteSnapshot = await servicoAtendenteRef.get();
-                const relacoes = {};
-                
-                servicoAtendenteSnapshot.forEach(doc => {
-                    const relacao = doc.data();
-                    if (!relacoes[relacao.servicoId]) {
-                        relacoes[relacao.servicoId] = [];
-                    }
-                    relacoes[relacao.servicoId].push(relacao.atendenteId);
-                });
                 
                 querySnapshot.forEach(doc => {
                     const servico = doc.data();
@@ -585,8 +444,6 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${servico.nome || 'Não informado'}</td>
-                        <td>${servico.duracao || '0'} min</td>
-                        <td>R$ ${servico.preco ? servico.preco.toFixed(2) : '0,00'}</td>
                         <td>
                             <button class="btn btn-primary edit-servico" data-id="${servico.id}">
                                 <i class="fas fa-edit"></i> Editar
@@ -598,52 +455,8 @@
                     `;
                     
                     servicosList.appendChild(row);
-                    
-                    // Adiciona seção de atendentes para este serviço
-                    const atendentesRow = document.createElement('tr');
-                    atendentesRow.innerHTML = `<td colspan="4"></td>`;
-                    const atendentesCell = atendentesRow.querySelector('td');
-                    
-                    const atendentesContainer = document.createElement('div');
-                    atendentesContainer.className = 'servico-atendentes';
-                    
-                    const atendentesTitle = document.createElement('h4');
-                    atendentesTitle.textContent = 'Atendentes para este serviço:';
-                    atendentesContainer.appendChild(atendentesTitle);
-                    
-                    const atendentesList = document.createElement('div');
-                    atendentesList.className = 'atendente-list';
-                    atendentesContainer.appendChild(atendentesList);
-                    
-                    // Adiciona os atendentes que podem realizar este serviço
-                    const servicoAtendentes = relacoes[servico.id] || [];
-                    servicoAtendentes.forEach(atendenteId => {
-                        const atendente = allAtendentes.find(a => a.id === atendenteId);
-                        if (atendente) {
-                            const atendenteTag = document.createElement('div');
-                            atendenteTag.className = 'atendente-tag';
-                            atendenteTag.innerHTML = `
-                                ${atendente.nome}
-                                <button class="remove-atendente" data-servico-id="${servico.id}" data-atendente-id="${atendenteId}">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            `;
-                            atendentesList.appendChild(atendenteTag);
-                        }
-                    });
-                    
-                    // Botão para adicionar mais atendentes
-                    const addAtendenteBtn = document.createElement('button');
-                    addAtendenteBtn.className = 'add-atendente-btn';
-                    addAtendenteBtn.innerHTML = '<i class="fas fa-plus"></i> Adicionar Atendente';
-                    addAtendenteBtn.dataset.servicoId = servico.id;
-                    atendentesContainer.appendChild(addAtendenteBtn);
-                    
-                    atendentesCell.appendChild(atendentesContainer);
-                    servicosList.appendChild(atendentesRow);
                 });
                 
-                // Adiciona eventos aos botões de editar/excluir serviço
                 document.querySelectorAll('.edit-servico').forEach(btn => {
                     btn.addEventListener('click', () => editServico(btn.dataset.id, userId));
                 });
@@ -651,33 +464,12 @@
                 document.querySelectorAll('.delete-servico').forEach(btn => {
                     btn.addEventListener('click', () => deleteServico(btn.dataset.id, userId));
                 });
-                
-                // Adiciona eventos aos botões de adicionar/remover atendentes
-                document.querySelectorAll('.add-atendente-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        currentServicoId = btn.dataset.servicoId;
-                        showAtendenteSelectModal(userId);
-                    });
-                });
-                
-                document.querySelectorAll('.remove-atendente').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        if (confirm('Remover este atendente do serviço?')) {
-                            removeAtendenteFromServico(
-                                btn.dataset.servicoId, 
-                                btn.dataset.atendenteId, 
-                                userId
-                            );
-                        }
-                    });
-                });
             } catch (error) {
                 console.error('Erro ao carregar serviços:', error);
-                document.getElementById('servicosList').innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">Erro ao carregar serviços</td></tr>';
+                document.getElementById('servicosList').innerHTML = '<tr><td colspan="2" style="text-align: center; color: red;">Erro ao carregar serviços</td></tr>';
             }
         }
 
-        // Função para carregar os atendentes do usuário
         async function loadAtendentes(userId) {
             try {
                 const atendentesRef = db.collection('usuarios').doc(userId).collection('servicoAtendente');
@@ -685,27 +477,19 @@
                 
                 const atendentesList = document.getElementById('atendentesList');
                 atendentesList.innerHTML = '';
-                allAtendentes = [];
                 
                 if (querySnapshot.empty) {
-                    atendentesList.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum atendente cadastrado</td></tr>';
+                    atendentesList.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhum atendente cadastrado</td></tr>';
                     return;
                 }
                 
                 querySnapshot.forEach(doc => {
                     const atendente = doc.data();
                     atendente.id = doc.id;
-                    allAtendentes.push(atendente);
-                    
-                    // Converte array de especialidades para string
-                    const especialidades = Array.isArray(atendente.especialidades) ? 
-                        atendente.especialidades.join(', ') : 
-                        (atendente.especialidades || 'Não informado');
                     
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${atendente.nome || 'Não informado'}</td>
-                        <td>${especialidades}</td>
                         <td>${atendente.telefone || 'Não informado'}</td>
                         <td>
                             <button class="btn btn-primary edit-atendente" data-id="${atendente.id}">
@@ -720,7 +504,6 @@
                     atendentesList.appendChild(row);
                 });
                 
-                // Adiciona eventos aos botões de editar/excluir
                 document.querySelectorAll('.edit-atendente').forEach(btn => {
                     btn.addEventListener('click', () => editAtendente(btn.dataset.id, userId));
                 });
@@ -730,130 +513,11 @@
                 });
             } catch (error) {
                 console.error('Erro ao carregar atendentes:', error);
-                document.getElementById('atendentesList').innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">Erro ao carregar atendentes</td></tr>';
+                document.getElementById('atendentesList').innerHTML = '<tr><td colspan="3" style="text-align: center; color: red;">Erro ao carregar atendentes</td></tr>';
             }
         }
 
-        // Mostra o modal para selecionar atendentes para um serviço
-        async function showAtendenteSelectModal(userId) {
-            try {
-                // Carrega as relações existentes para este serviço
-                const relacoesRef = db.collection('usuarios').doc(userId)
-                    .collection('servicoAtendenteRelacao')
-                    .where('servicoId', '==', currentServicoId);
-                
-                const relacoesSnapshot = await relacoesRef.get();
-                const atendentesAssociados = [];
-                
-                relacoesSnapshot.forEach(doc => {
-                    atendentesAssociados.push(doc.data().atendenteId);
-                });
-                
-                // Prepara a lista de seleção
-                const selectList = document.getElementById('atendenteSelectList');
-                selectList.innerHTML = '';
-                
-                allAtendentes.forEach(atendente => {
-                    const isChecked = atendentesAssociados.includes(atendente.id);
-                    
-                    const item = document.createElement('div');
-                    item.className = 'atendente-select-item';
-                    item.innerHTML = `
-                        <input type="checkbox" id="atendente-${atendente.id}" 
-                            value="${atendente.id}" ${isChecked ? 'checked' : ''}>
-                        <label for="atendente-${atendente.id}">${atendente.nome}</label>
-                    `;
-                    
-                    selectList.appendChild(item);
-                });
-                
-                // Mostra o modal
-                document.getElementById('atendenteSelectModal').style.display = 'flex';
-            } catch (error) {
-                console.error('Erro ao carregar atendentes para seleção:', error);
-                alert('Erro ao carregar lista de atendentes');
-            }
-        }
-
-        // Salva a seleção de atendentes para um serviço
-        async function saveAtendenteSelection(userId) {
-            try {
-                const checkboxes = document.querySelectorAll('#atendenteSelectList input[type="checkbox"]:checked');
-                const selectedAtendentes = Array.from(checkboxes).map(cb => cb.value);
-                
-                // Primeiro, remove todas as relações existentes para este serviço
-                const relacoesRef = db.collection('usuarios').doc(userId)
-                    .collection('servicoAtendenteRelacao')
-                    .where('servicoId', '==', currentServicoId);
-                
-                const relacoesSnapshot = await relacoesRef.get();
-                
-                const batch = db.batch();
-                relacoesSnapshot.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
-                
-                await batch.commit();
-                
-                // Agora adiciona as novas relações
-                const newBatch = db.batch();
-                const relacaoCollection = db.collection('usuarios').doc(userId).collection('servicoAtendenteRelacao');
-                
-                selectedAtendentes.forEach(atendenteId => {
-                    const newDocRef = relacaoCollection.doc();
-                    newBatch.set(newDocRef, {
-                        servicoId: currentServicoId,
-                        atendenteId: atendenteId,
-                        createdAt: new Date()
-                    });
-                });
-                
-                await newBatch.commit();
-                
-                // Recarrega os serviços para mostrar as alterações
-                await loadServicos(userId);
-                
-                // Fecha o modal
-                document.getElementById('atendenteSelectModal').style.display = 'none';
-            } catch (error) {
-                console.error('Erro ao salvar seleção de atendentes:', error);
-                alert('Erro ao salvar atendentes para este serviço');
-            }
-        }
-
-        // Remove um atendente de um serviço
-        async function removeAtendenteFromServico(servicoId, atendenteId, userId) {
-            try {
-                // Encontra e remove a relação
-                const relacaoRef = db.collection('usuarios').doc(userId)
-                    .collection('servicoAtendenteRelacao')
-                    .where('servicoId', '==', servicoId)
-                    .where('atendenteId', '==', atendenteId);
-                
-                const relacaoSnapshot = await relacaoRef.get();
-                
-                if (relacaoSnapshot.empty) {
-                    throw new Error('Relação não encontrada');
-                }
-                
-                const batch = db.batch();
-                relacaoSnapshot.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
-                
-                await batch.commit();
-                
-                // Recarrega os serviços para mostrar as alterações
-                await loadServicos(userId);
-            } catch (error) {
-                console.error('Erro ao remover atendente do serviço:', error);
-                alert('Erro ao remover atendente deste serviço');
-            }
-        }
-
-        // Função para configurar os eventos dos botões
         function setupEventListeners(userId) {
-            // Botão para adicionar serviço
             document.getElementById('addServicoBtn').addEventListener('click', () => {
                 document.getElementById('servicoModalTitle').textContent = 'Adicionar Serviço';
                 document.getElementById('servicoId').value = '';
@@ -861,7 +525,6 @@
                 document.getElementById('servicoModal').style.display = 'flex';
             });
             
-            // Botão para adicionar atendente
             document.getElementById('addAtendenteBtn').addEventListener('click', () => {
                 document.getElementById('atendenteModalTitle').textContent = 'Adicionar Atendente';
                 document.getElementById('atendenteId').value = '';
@@ -869,39 +532,24 @@
                 document.getElementById('atendenteModal').style.display = 'flex';
             });
             
-            // Cancelar modal de serviço
             document.getElementById('cancelServicoBtn').addEventListener('click', () => {
                 document.getElementById('servicoModal').style.display = 'none';
             });
             
-            // Cancelar modal de atendente
             document.getElementById('cancelAtendenteBtn').addEventListener('click', () => {
                 document.getElementById('atendenteModal').style.display = 'none';
             });
             
-            // Cancelar modal de seleção de atendentes
-            document.getElementById('cancelAtendenteSelectBtn').addEventListener('click', () => {
-                document.getElementById('atendenteSelectModal').style.display = 'none';
-            });
-            
-            // Salvar seleção de atendentes
-            document.getElementById('saveAtendenteSelectBtn').addEventListener('click', () => {
-                saveAtendenteSelection(userId);
-            });
-            
-            // Formulário de serviço
             document.getElementById('servicoForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 await saveServico(userId);
             });
             
-            // Formulário de atendente
             document.getElementById('atendenteForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 await saveAtendente(userId);
             });
             
-            // Botão de logout
             document.getElementById('logoutBtn').addEventListener('click', function(e) {
                 e.preventDefault();
                 auth.signOut().then(() => {
@@ -912,7 +560,6 @@
             });
         }
 
-        // Função para editar um serviço
         async function editServico(servicoId, userId) {
             try {
                 const servicoDoc = await db.collection('usuarios').doc(userId)
@@ -928,10 +575,6 @@
                 document.getElementById('servicoModalTitle').textContent = 'Editar Serviço';
                 document.getElementById('servicoId').value = servicoId;
                 document.getElementById('servicoNome').value = servico.nome || '';
-                document.getElementById('servicoDuracao').value = servico.duracao || '';
-                document.getElementById('servicoPreco').value = servico.preco || '';
-                document.getElementById('servicoDescricao').value = servico.descricao || '';
-                
                 document.getElementById('servicoModal').style.display = 'flex';
             } catch (error) {
                 console.error('Erro ao editar serviço:', error);
@@ -939,38 +582,26 @@
             }
         }
 
-        // Função para salvar um serviço (criar ou atualizar)
         async function saveServico(userId) {
             const servicoId = document.getElementById('servicoId').value;
             const nome = document.getElementById('servicoNome').value;
-            const duracao = parseInt(document.getElementById('servicoDuracao').value);
-            const preco = parseFloat(document.getElementById('servicoPreco').value);
-            const descricao = document.getElementById('servicoDescricao').value;
             
             try {
                 const servicoData = {
                     nome,
-                    duracao,
-                    preco,
-                    descricao,
                     updatedAt: new Date()
                 };
                 
                 if (servicoId) {
-                    // Atualizar serviço existente
                     await db.collection('usuarios').doc(userId)
                         .collection('servicos').doc(servicoId).update(servicoData);
                 } else {
-                    // Criar novo serviço
                     servicoData.createdAt = new Date();
                     await db.collection('usuarios').doc(userId)
                         .collection('servicos').add(servicoData);
                 }
                 
-                // Recarrega a lista de serviços
                 await loadServicos(userId);
-                
-                // Fecha o modal
                 document.getElementById('servicoModal').style.display = 'none';
             } catch (error) {
                 console.error('Erro ao salvar serviço:', error);
@@ -978,32 +609,15 @@
             }
         }
 
-        // Função para excluir um serviço
         async function deleteServico(servicoId, userId) {
-            if (!confirm('Tem certeza que deseja excluir este serviço? Esta ação também removerá todas as relações com atendentes.')) {
+            if (!confirm('Tem certeza que deseja excluir este serviço?')) {
                 return;
             }
             
             try {
-                // Primeiro, remove todas as relações deste serviço com atendentes
-                const relacoesRef = db.collection('usuarios').doc(userId)
-                    .collection('servicoAtendenteRelacao')
-                    .where('servicoId', '==', servicoId);
-                
-                const relacoesSnapshot = await relacoesRef.get();
-                
-                const batch = db.batch();
-                relacoesSnapshot.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
-                
-                await batch.commit();
-                
-                // Agora remove o serviço
                 await db.collection('usuarios').doc(userId)
                     .collection('servicos').doc(servicoId).delete();
                 
-                // Recarrega a lista de serviços
                 await loadServicos(userId);
             } catch (error) {
                 console.error('Erro ao excluir serviço:', error);
@@ -1011,7 +625,6 @@
             }
         }
 
-        // Função para editar um atendente
         async function editAtendente(atendenteId, userId) {
             try {
                 const atendenteDoc = await db.collection('usuarios').doc(userId)
@@ -1028,14 +641,6 @@
                 document.getElementById('atendenteId').value = atendenteId;
                 document.getElementById('atendenteNome').value = atendente.nome || '';
                 document.getElementById('atendenteTelefone').value = atendente.telefone || '';
-                
-                // Converte array de especialidades para string
-                const especialidades = Array.isArray(atendente.especialidades) ? 
-                    atendente.especialidades.join(', ') : 
-                    (atendente.especialidades || '');
-                
-                document.getElementById('atendenteEspecialidades').value = especialidades;
-                
                 document.getElementById('atendenteModal').style.display = 'flex';
             } catch (error) {
                 console.error('Erro ao editar atendente:', error);
@@ -1043,39 +648,28 @@
             }
         }
 
-        // Função para salvar um atendente (criar ou atualizar)
         async function saveAtendente(userId) {
             const atendenteId = document.getElementById('atendenteId').value;
             const nome = document.getElementById('atendenteNome').value;
             const telefone = document.getElementById('atendenteTelefone').value;
-            const especialidades = document.getElementById('atendenteEspecialidades').value
-                .split(',')
-                .map(item => item.trim())
-                .filter(item => item !== '');
             
             try {
                 const atendenteData = {
                     nome,
                     telefone,
-                    especialidades,
                     updatedAt: new Date()
                 };
                 
                 if (atendenteId) {
-                    // Atualizar atendente existente
                     await db.collection('usuarios').doc(userId)
                         .collection('servicoAtendente').doc(atendenteId).update(atendenteData);
                 } else {
-                    // Criar novo atendente
                     atendenteData.createdAt = new Date();
                     await db.collection('usuarios').doc(userId)
                         .collection('servicoAtendente').add(atendenteData);
                 }
                 
-                // Recarrega a lista de atendentes
                 await loadAtendentes(userId);
-                
-                // Fecha o modal
                 document.getElementById('atendenteModal').style.display = 'none';
             } catch (error) {
                 console.error('Erro ao salvar atendente:', error);
@@ -1083,34 +677,16 @@
             }
         }
 
-        // Função para excluir um atendente
         async function deleteAtendente(atendenteId, userId) {
-            if (!confirm('Tem certeza que deseja excluir este atendente? Esta ação também removerá todas as relações com serviços.')) {
+            if (!confirm('Tem certeza que deseja excluir este atendente?')) {
                 return;
             }
             
             try {
-                // Primeiro, remove todas as relações deste atendente com serviços
-                const relacoesRef = db.collection('usuarios').doc(userId)
-                    .collection('servicoAtendenteRelacao')
-                    .where('atendenteId', '==', atendenteId);
-                
-                const relacoesSnapshot = await relacoesRef.get();
-                
-                const batch = db.batch();
-                relacoesSnapshot.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
-                
-                await batch.commit();
-                
-                // Agora remove o atendente
                 await db.collection('usuarios').doc(userId)
                     .collection('servicoAtendente').doc(atendenteId).delete();
                 
-                // Recarrega a lista de atendentes e serviços
                 await loadAtendentes(userId);
-                await loadServicos(userId);
             } catch (error) {
                 console.error('Erro ao excluir atendente:', error);
                 alert('Erro ao excluir atendente');
