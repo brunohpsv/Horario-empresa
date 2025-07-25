@@ -398,25 +398,32 @@
             const servicoSelect = document.getElementById('servico');
             servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
             
-            // Coletar serviços únicos
-            const servicosUnicos = new Set();
+            // Criar um mapa de serviços para prestadores
+            const servicoPrestadorMap = new Map();
             
+            // Processar atendentes para agrupar por serviço
+            atendentes.forEach(atendente => {
+                if (!servicoPrestadorMap.has(atendente.servico)) {
+                    servicoPrestadorMap.set(atendente.servico, new Set());
+                }
+                servicoPrestadorMap.get(atendente.servico).add(atendente.nome);
+            });
+            
+            // Processar serviços da empresa
             if (empresaSelecionada.servicos) {
                 const servicos = Array.isArray(empresaSelecionada.servicos) ? 
                     empresaSelecionada.servicos : 
                     empresaSelecionada.servicos.split(/[,/]/).map(s => s.trim());
                 
-                servicos.filter(s => s).forEach(s => servicosUnicos.add(s));
+                servicos.forEach(servico => {
+                    if (servico && !servicoPrestadorMap.has(servico)) {
+                        servicoPrestadorMap.set(servico, new Set());
+                    }
+                });
             }
             
-            atendentes.forEach(a => a.servico && servicosUnicos.add(a.servico.trim()));
-            
-            if (servicosUnicos.size === 0) {
-                servicoSelect.innerHTML = '<option value="">Nenhum serviço disponível</option>';
-                return;
-            }
-            
-            Array.from(servicosUnicos).sort().forEach(servico => {
+            // Ordenar serviços e adicionar ao select
+            Array.from(servicoPrestadorMap.keys()).sort().forEach(servico => {
                 const option = document.createElement('option');
                 option.value = servico;
                 option.textContent = servico;
@@ -445,6 +452,7 @@
                 return;
             }
             
+            // Filtrar atendentes pelo serviço selecionado
             const prestadores = [...new Set(
                 atendentes
                     .filter(a => a.servico === servicoSelecionado)
