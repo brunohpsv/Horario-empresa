@@ -709,9 +709,9 @@
             return temDuplicado;
         }
 
-        // Função para formatar os serviços e nomes dos atendentes
+        // Função para formatar os serviços e nomes dos atendentes como array de objetos
         function formatarServicosAtendentes(qtdServicos) {
-            const servicosFormatados = [];
+            const servicosAtendentes = [];
             
             for (let i = 0; i < qtdServicos; i++) {
                 const servico = document.getElementById(`servico-${i}`).value.trim();
@@ -722,11 +722,14 @@
                     .filter(nome => nome);
                 
                 if (servico && nomes.length > 0) {
-                    servicosFormatados.push(`${i} - "${servico}" : "${nomes.join(' / ')}"`);
+                    servicosAtendentes.push({
+                        servico: servico,
+                        atendentes: nomes
+                    });
                 }
             }
             
-            return servicosFormatados.join(' | ');
+            return servicosAtendentes;
         }
 
         // Adicionar verificação de duplicados ao enviar formulário
@@ -761,10 +764,10 @@
                 const login = gerarCodigoLogin(nomeFantasia);
                 
                 // Coletar dados dos serviços e atendentes se existirem
-                let listaAtendentes = '';
+                let servicoAtendente = [];
                 
                 if (qtdServicos > 0) {
-                    listaAtendentes = formatarServicosAtendentes(qtdServicos);
+                    servicoAtendente = formatarServicosAtendentes(qtdServicos);
                 }
                 
                 // Coletar serviços gerais se não houver atendentes
@@ -786,7 +789,7 @@
                     senha: senha, // Armazenando a senha no Firestore também
                     maquinas: document.getElementById('maquinas').value,
                     servicos: qtdServicos > 0 ? '' : servicos, // Só preenche serviços se não houver atendentes
-                    atendentes: listaAtendentes, // Lista formatada de serviços e seus atendentes
+                    servicoAtendente: servicoAtendente, // Array de objetos com serviços e seus atendentes
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
                     dataCadastro: new Date().toISOString(),
                     status: 'pendente'
