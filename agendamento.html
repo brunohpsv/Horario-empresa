@@ -101,6 +101,7 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
+            margin-bottom: 0.5rem;
         }
         
         .time-slot:hover, .time-slot.selected {
@@ -313,6 +314,7 @@
         let agendamentoExistente = null;
         let agendamentoConfirmado = false;
         let atendentes = [];
+        let servicosDisponiveis = [];
         
         // Configurações padrão de horários
         const horariosConfig = {
@@ -368,8 +370,8 @@
                     empresaSelecionada = { id: doc.id, ...doc.data() };
                     document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || "Empresa";
                     
-                    // Carrega os atendentes do campo 'atendentes' do Firestore
-                    carregarAtendentes();
+                    // Carrega os serviços e atendentes
+                    carregarServicosEAtendentes();
                     
                     if (empresaSelecionada.horariosConfig) {
                         Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
@@ -381,15 +383,28 @@
                 });
         }
         
-        function carregarAtendentes() {
-            if (!empresaSelecionada || !empresaSelecionada.atendentes) {
-                mostrarErro("Nenhum atendente cadastrado para esta empresa.");
+        function carregarServicosEAtendentes() {
+            if (!empresaSelecionada) return;
+            
+            // Primeiro verifica se existe o campo 'atendentes'
+            if (empresaSelecionada.atendentes) {
+                processarAtendentes(empresaSelecionada.atendentes);
+            } 
+            // Se não tiver atendentes, verifica se tem o campo 'servico'
+            else if (empresaSelecionada.servico) {
+                processarServicos(empresaSelecionada.servico);
+            } 
+            // Se não tiver nenhum dos dois
+            else {
+                mostrarErro("Nenhum serviço disponível para esta empresa.");
                 return;
             }
             
-            // Processa os atendentes do campo 'atendentes' do Firestore
-            const dadosAtendentes = empresaSelecionada.atendentes;
-            
+            // Depois de processar, carrega os serviços no select
+            carregarSelectServicos();
+        }
+        
+        function processarAtendentes(dadosAtendentes) {
             // Expressão regular para extrair nomes entre parênteses e serviços entre colchetes
             const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
             let match;
@@ -409,32 +424,41 @@
                         nome: nomePrestador,
                         servico: servico
                     });
+                    
+                    // Adiciona o serviço à lista de serviços disponíveis
+                    if (!servicosDisponiveis.includes(servico)) {
+                        servicosDisponiveis.push(servico);
+                    }
                 });
             }
-            
-            // Depois de processar os atendentes, carrega os serviços
-            carregarServicos();
         }
         
-        function carregarServicos() {
+        function processarServicos(dadosServicos) {
+            // Se for uma string, separa por vírgula ou quebra de linha
+            if (typeof dadosServicos === 'string') {
+                servicosDisponiveis = dadosServicos.split(/[\n,]/)
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0);
+            } 
+            // Se for um array, usa diretamente
+            else if (Array.isArray(dadosServicos)) {
+                servicosDisponiveis = [...dadosServicos];
+            }
+            
+            // Ordena os serviços
+            servicosDisponiveis.sort((a, b) => a.localeCompare(b));
+        }
+        
+        function carregarSelectServicos() {
             const servicoSelect = document.getElementById('servico');
             servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
             
-            // Cria um mapa de serviços únicos
-            const servicosUnicos = new Map();
+            if (servicosDisponiveis.length === 0) {
+                servicoSelect.innerHTML = '<option value="">Nenhum serviço disponível</option>';
+                return;
+            }
             
-            // Processa todos os atendentes para extrair serviços únicos
-            atendentes.forEach(atendente => {
-                if (!servicosUnicos.has(atendente.servico)) {
-                    servicosUnicos.set(atendente.servico, true);
-                }
-            });
-            
-            // Ordena os serviços alfabeticamente
-            const servicosOrdenados = Array.from(servicosUnicos.keys()).sort((a, b) => a.localeCompare(b));
-            
-            // Adiciona ao select
-            servicosOrdenados.forEach(servico => {
+            servicosDisponiveis.forEach(servico => {
                 const option = document.createElement('option');
                 option.value = servico;
                 option.textContent = servico;
@@ -458,7 +482,7 @@
             prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
             prestadorSelecionado = null;
             
-            if (!servicoSelecionado) {
+            if (!servicoSelecionado || atendentes.length === 0) {
                 document.getElementById('prestador-group').style.display = 'none';
                 return;
             }
