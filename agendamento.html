@@ -409,7 +409,7 @@
                 servicoPrestadorMap.get(atendente.servico).add(atendente.nome);
             });
             
-            // Processar serviços da empresa
+            // Processar serviços da empresa (adicionar serviços que não têm prestadores)
             if (empresaSelecionada.servicos) {
                 const servicos = Array.isArray(empresaSelecionada.servicos) ? 
                     empresaSelecionada.servicos : 
@@ -447,7 +447,7 @@
             prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
             prestadorSelecionado = null;
             
-            if (!servicoSelecionado || atendentes.length === 0) {
+            if (!servicoSelecionado) {
                 document.getElementById('prestador-group').style.display = 'none';
                 return;
             }
