@@ -580,6 +580,10 @@
                                             <strong style="display: block; color: #555;">E-mail</strong>
                                             <div>${agendamento.clienteEmail || 'Não informado'}</div>
                                         </div>
+                                        <div>
+                                            <strong style="display: block; color: #555;">Atendente</strong>
+                                            <div>${agendamento.atendenteNome || 'Não especificado'}</div>
+                                        </div>
                                         ${agendamento.observacoes ? `
                                         <div style="grid-column: span 2;">
                                             <strong style="display: block; color: #555;">Observações</strong>
@@ -628,6 +632,10 @@
                                         <div>
                                             <strong style="display: block; color: #555;">E-mail</strong>
                                             <div>${agendamento.clienteEmail || 'Não informado'}</div>
+                                        </div>
+                                        <div>
+                                            <strong style="display: block; color: #555;">Atendente</strong>
+                                            <div>${agendamento.atendenteNome || 'Não especificado'}</div>
                                         </div>
                                         ${agendamento.observacoes ? `
                                         <div style="grid-column: span 2;">
