@@ -556,11 +556,26 @@
                                     [empresaSelecionada.servicoAtendente]) : 
                                 Array(nomes.length).fill("Serviço não especificado");
                             
-                            // Cria array de atendentes
-                            atendentes = nomes.map((nome, index) => ({
-                                nome: nome,
-                                servico: servicos[index]
-                            }));
+                            // Cria array de atendentes com serviços expandidos
+                            atendentes = [];
+                            nomes.forEach((nome, index) => {
+                                const servicosAtendente = servicos[index];
+                                if (servicosAtendente.includes('/')) {
+                                    // Se o serviço contém "/", divide em múltiplos serviços
+                                    const servicosDivididos = servicosAtendente.split('/').map(s => s.trim());
+                                    servicosDivididos.forEach(servico => {
+                                        atendentes.push({
+                                            nome: nome,
+                                            servico: servico
+                                        });
+                                    });
+                                } else {
+                                    atendentes.push({
+                                        nome: nome,
+                                        servico: servicosAtendente
+                                    });
+                                }
+                            });
                         }
 
                         // Carrega os serviços no select
@@ -575,15 +590,15 @@
                 });
         }
 
-        // Função para carregar os serviços da empresa
+        // Função para carregar os serviços da empresa de forma inteligente
         function carregarServicos() {
             const servicoSelect = document.getElementById('servico');
             const prestadorGroup = document.getElementById('prestador-group');
             
             servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
 
-            // Lista para armazenar todos os serviços únicos
-            let todosServicos = [];
+            // Conjunto para armazenar serviços únicos
+            const servicosUnicos = new Set();
 
             // 1. Processa serviços do campo "servicos" (separados por /)
             if (empresaSelecionada.servicos) {
@@ -592,7 +607,7 @@
                 if (Array.isArray(empresaSelecionada.servicos)) {
                     empresaSelecionada.servicos.forEach(item => {
                         if (typeof item === 'string' && item.includes('/')) {
-                            servicos.push(...item.split('/').map(s => s.trim()));
+                            item.split('/').forEach(s => servicos.push(s.trim()));
                         } else {
                             servicos.push(item.toString().trim());
                         }
@@ -601,28 +616,31 @@
                     servicos = empresaSelecionada.servicos.split('/').map(s => s.trim());
                 }
                 
-                // Adiciona à lista de todos os serviços
-                todosServicos = [...new Set(servicos.filter(s => s !== ''))];
+                // Adiciona ao conjunto de serviços únicos
+                servicos.filter(s => s !== '').forEach(s => servicosUnicos.add(s));
             }
 
             // 2. Processa serviços dos atendentes (campo servicoAtendente)
-            if (atendentes.length > 0) {
-                const servicosAtendentes = [...new Set(atendentes.map(a => a.servico))];
-                todosServicos = [...new Set([...todosServicos, ...servicosAtendentes])];
-            }
+            atendentes.forEach(atendente => {
+                if (atendente.servico.includes('/')) {
+                    atendente.servico.split('/').forEach(s => servicosUnicos.add(s.trim()));
+                } else {
+                    servicosUnicos.add(atendente.servico.trim());
+                }
+            });
 
             // Se não encontrou nenhum serviço
-            if (todosServicos.length === 0) {
+            if (servicosUnicos.size === 0) {
                 servicoSelect.innerHTML = '<option value="">Nenhum serviço disponível</option>';
                 prestadorGroup.style.display = 'none';
                 return;
             }
 
-            // Ordena os serviços alfabeticamente
-            todosServicos.sort();
+            // Converte para array e ordena alfabeticamente
+            const servicosOrdenados = Array.from(servicosUnicos).sort();
 
             // Adiciona os serviços ao select
-            todosServicos.forEach(servico => {
+            servicosOrdenados.forEach(servico => {
                 const option = document.createElement('option');
                 option.value = servico;
                 option.textContent = servico;
@@ -662,15 +680,21 @@
                 return;
             }
 
-            // Filtra atendentes para o serviço selecionado
-            const atendentesDoServico = atendentes.filter(a => a.servico === servicoSelecionado);
+            // Filtra atendentes para o serviço selecionado (considerando serviços múltiplos)
+            const atendentesDoServico = atendentes.filter(a => 
+                a.servico === servicoSelecionado || 
+                (a.servico.includes('/') && a.servico.split('/').map(s => s.trim()).includes(servicoSelecionado))
+                .map(a => a.nome);
             
-            if (atendentesDoServico.length > 0) {
+            // Remove duplicatas
+            const atendentesUnicos = [...new Set(atendentesDoServico)];
+            
+            if (atendentesUnicos.length > 0) {
                 // Preenche o select de prestadores
-                atendentesDoServico.forEach(atendente => {
+                atendentesUnicos.forEach(nome => {
                     const option = document.createElement('option');
-                    option.value = atendente.nome;
-                    option.textContent = atendente.nome;
+                    option.value = nome;
+                    option.textContent = nome;
                     prestadorSelect.appendChild(option);
                 });
                 
@@ -678,9 +702,9 @@
                 document.getElementById('prestador-group').style.display = 'block';
                 
                 // Se houver apenas um prestador, seleciona automaticamente
-                if (atendentesDoServico.length === 1) {
-                    prestadorSelect.value = atendentesDoServico[0].nome;
-                    prestadorSelecionado = atendentesDoServico[0].nome;
+                if (atendentesUnicos.length === 1) {
+                    prestadorSelect.value = atendentesUnicos[0];
+                    prestadorSelecionado = atendentesUnicos[0];
                 }
             } else {
                 // Oculta o campo de prestador
