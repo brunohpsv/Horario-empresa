@@ -368,19 +368,12 @@
                     empresaSelecionada = { id: doc.id, ...doc.data() };
                     document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || "Empresa";
                     
-                    if (empresaSelecionada.servicos) {
-                        const servicos = Array.isArray(empresaSelecionada.servicos) ? 
-                            empresaSelecionada.servicos : 
-                            empresaSelecionada.servicos.split(/[,/]/).map(s => s.trim());
-                        document.getElementById('empresa-servico').textContent = servicos.join(", ");
-                    }
+                    // Carrega os atendentes do campo 'atendentes' do Firestore
+                    carregarAtendentes();
                     
                     if (empresaSelecionada.horariosConfig) {
                         Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
                     }
-                    
-                    processarAtendentes();
-                    carregarServicos();
                 })
                 .catch(err => {
                     console.error("Erro ao carregar empresa:", err);
@@ -388,65 +381,67 @@
                 });
         }
         
-        function processarAtendentes() {
-            atendentes = [];
+        function carregarAtendentes() {
+            if (!empresaSelecionada || !empresaSelecionada.atendentes) {
+                mostrarErro("Nenhum atendente cadastrado para esta empresa.");
+                return;
+            }
             
-            if (empresaSelecionada.nomeservicoAtendente) {
-                // Verifica se é um array ou uma string única
-                const registrosAtendentes = Array.isArray(empresaSelecionada.nomeservicoAtendente) ? 
-                    empresaSelecionada.nomeservicoAtendente : 
-                    [empresaSelecionada.nomeservicoAtendente];
-                
-                registrosAtendentes.forEach(registro => {
-                    if (!registro) return;
-                    
-                    // Divide o nome do prestador e os serviços
-                    const partes = registro.split('-').map(p => p.trim());
-                    if (partes.length < 2) return;
-                    
-                    const nomePrestador = partes[0].trim();
-                    const servicos = partes[1].split('/').map(s => s.trim()).filter(s => s);
-                    
-                    // Para cada serviço, cria uma entrada no array de atendentes
-                    servicos.forEach(servico => {
-                        atendentes.push({
-                            nome: nomePrestador,
-                            servico: servico
-                        });
-                    });
+            // Processa os atendentes do campo 'atendentes' do Firestore
+            const dadosAtendentes = empresaSelecionada.atendentes;
+            
+            // Verifica se é um array ou uma string
+            if (typeof dadosAtendentes === 'string') {
+                // Processa como string formatada
+                processarAtendentesString(dadosAtendentes);
+            } else if (Array.isArray(dadosAtendentes)) {
+                // Processa como array de strings
+                dadosAtendentes.forEach(atendenteStr => {
+                    processarAtendentesString(atendenteStr);
                 });
             }
+            
+            // Depois de processar os atendentes, carrega os serviços
+            carregarServicos();
+        }
+        
+        function processarAtendentesString(atendenteStr) {
+            if (!atendenteStr) return;
+            
+            // Formato esperado: "Nome do Profissional - Serviço1/Serviço2/Serviço3"
+            const partes = atendenteStr.split('-').map(p => p.trim());
+            if (partes.length < 2) return;
+            
+            const nomePrestador = partes[0];
+            const servicos = partes[1].split('/').map(s => s.trim()).filter(s => s);
+            
+            servicos.forEach(servico => {
+                atendentes.push({
+                    nome: nomePrestador,
+                    servico: servico
+                });
+            });
         }
         
         function carregarServicos() {
             const servicoSelect = document.getElementById('servico');
             servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
             
-            // Criar um conjunto de serviços únicos
-            const servicosUnicos = new Set();
+            // Cria um mapa de serviços únicos
+            const servicosUnicos = new Map();
             
-            // Processar atendentes para obter todos os serviços
+            // Processa todos os atendentes para extrair serviços únicos
             atendentes.forEach(atendente => {
-                servicosUnicos.add(atendente.servico);
+                if (!servicosUnicos.has(atendente.servico)) {
+                    servicosUnicos.set(atendente.servico, true);
+                }
             });
             
-            // Adicionar também os serviços da empresa (se houver)
-            if (empresaSelecionada.servicos) {
-                const servicosEmpresa = Array.isArray(empresaSelecionada.servicos) ? 
-                    empresaSelecionada.servicos : 
-                    empresaSelecionada.servicos.split(/[,/]/).map(s => s.trim());
-                
-                servicosEmpresa.forEach(servico => {
-                    if (servico) servicosUnicos.add(servico);
-                });
-            }
+            // Ordena os serviços alfabeticamente
+            const servicosOrdenados = Array.from(servicosUnicos.keys()).sort((a, b) => a.localeCompare(b));
             
-            // Converter para array, remover duplicatas e ordenar
-            const servicosArray = Array.from(servicosUnicos).filter(servico => servico);
-            servicosArray.sort((a, b) => a.localeCompare(b));
-            
-            // Adicionar ao select
-            servicosArray.forEach(servico => {
+            // Adiciona ao select
+            servicosOrdenados.forEach(servico => {
                 const option = document.createElement('option');
                 option.value = servico;
                 option.textContent = servico;
@@ -475,19 +470,24 @@
                 return;
             }
             
-            // Filtrar atendentes pelo serviço selecionado e obter nomes únicos
-            const prestadoresParaServico = new Set();
+            // Filtra atendentes pelo serviço selecionado
+            const prestadoresParaServico = new Map();
             
             atendentes.forEach(atendente => {
                 if (atendente.servico === servicoSelecionado) {
-                    prestadoresParaServico.add(atendente.nome);
+                    if (!prestadoresParaServico.has(atendente.nome)) {
+                        prestadoresParaServico.set(atendente.nome, true);
+                    }
                 }
             });
             
-            const prestadoresArray = Array.from(prestadoresParaServico);
+            const prestadoresArray = Array.from(prestadoresParaServico.keys());
             
             if (prestadoresArray.length > 0) {
-                prestadoresArray.sort((a, b) => a.localeCompare(b)).forEach(nome => {
+                // Ordena os prestadores alfabeticamente
+                prestadoresArray.sort((a, b) => a.localeCompare(b));
+                
+                prestadoresArray.forEach(nome => {
                     const option = document.createElement('option');
                     option.value = nome;
                     option.textContent = nome;
@@ -496,6 +496,7 @@
                 
                 document.getElementById('prestador-group').style.display = 'block';
                 
+                // Se houver apenas um prestador, seleciona automaticamente
                 if (prestadoresArray.length === 1) {
                     prestadorSelect.value = prestadoresArray[0];
                     prestadorSelecionado = prestadoresArray[0];
