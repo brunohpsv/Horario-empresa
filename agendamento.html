@@ -556,26 +556,11 @@
                                     [empresaSelecionada.servicoAtendente]) : 
                                 Array(nomes.length).fill("Serviço não especificado");
                             
-                            // Cria array de atendentes com serviços expandidos
-                            atendentes = [];
-                            nomes.forEach((nome, index) => {
-                                const servicosAtendente = servicos[index];
-                                if (servicosAtendente.includes('/')) {
-                                    // Se o serviço contém "/", divide em múltiplos serviços
-                                    const servicosDivididos = servicosAtendente.split('/').map(s => s.trim());
-                                    servicosDivididos.forEach(servico => {
-                                        atendentes.push({
-                                            nome: nome,
-                                            servico: servico
-                                        });
-                                    });
-                                } else {
-                                    atendentes.push({
-                                        nome: nome,
-                                        servico: servicosAtendente
-                                    });
-                                }
-                            });
+                            // Cria array de atendentes
+                            atendentes = nomes.map((nome, index) => ({
+                                nome: nome,
+                                servico: servicos[index]
+                            }));
                         }
 
                         // Carrega os serviços no select
@@ -590,7 +575,7 @@
                 });
         }
 
-        // Função para carregar os serviços da empresa de forma inteligente
+        // Função para carregar os serviços da empresa
         function carregarServicos() {
             const servicoSelect = document.getElementById('servico');
             const prestadorGroup = document.getElementById('prestador-group');
@@ -600,32 +585,30 @@
             // Conjunto para armazenar serviços únicos
             const servicosUnicos = new Set();
 
-            // 1. Processa serviços do campo "servicos" (separados por /)
+            // 1. Processa serviços do campo "servicos"
             if (empresaSelecionada.servicos) {
                 let servicos = [];
                 
                 if (Array.isArray(empresaSelecionada.servicos)) {
-                    empresaSelecionada.servicos.forEach(item => {
-                        if (typeof item === 'string' && item.includes('/')) {
-                            item.split('/').forEach(s => servicos.push(s.trim()));
-                        } else {
-                            servicos.push(item.toString().trim());
-                        }
-                    });
+                    servicos = empresaSelecionada.servicos;
                 } else if (typeof empresaSelecionada.servicos === 'string') {
-                    servicos = empresaSelecionada.servicos.split('/').map(s => s.trim());
+                    // Se for string, divide por vírgula ou barra
+                    servicos = empresaSelecionada.servicos.split(/[,/]/).map(s => s.trim());
                 }
                 
                 // Adiciona ao conjunto de serviços únicos
                 servicos.filter(s => s !== '').forEach(s => servicosUnicos.add(s));
             }
 
-            // 2. Processa serviços dos atendentes (campo servicoAtendente)
+            // 2. Processa serviços dos atendentes
             atendentes.forEach(atendente => {
-                if (atendente.servico.includes('/')) {
-                    atendente.servico.split('/').forEach(s => servicosUnicos.add(s.trim()));
-                } else {
-                    servicosUnicos.add(atendente.servico.trim());
+                if (atendente.servico) {
+                    // Se o serviço contém barra, divide em múltiplos serviços
+                    if (atendente.servico.includes('/')) {
+                        atendente.servico.split('/').forEach(s => servicosUnicos.add(s.trim()));
+                    } else {
+                        servicosUnicos.add(atendente.servico.trim());
+                    }
                 }
             });
 
@@ -680,11 +663,16 @@
                 return;
             }
 
-            // Filtra atendentes para o serviço selecionado (considerando serviços múltiplos)
-            const atendentesDoServico = atendentes.filter(a => 
-                a.servico === servicoSelecionado || 
-                (a.servico.includes('/') && a.servico.split('/').map(s => s.trim()).includes(servicoSelecionado))
-                .map(a => a.nome);
+            // Filtra atendentes para o serviço selecionado
+            const atendentesDoServico = atendentes.filter(a => {
+                // Verifica se o serviço do atendente inclui o serviço selecionado (considerando múltiplos serviços)
+                return a.servico && (
+                    a.servico === servicoSelecionado || 
+                    a.servico.includes(servicoSelecionado + '/') || 
+                    a.servico.includes('/' + servicoSelecionado) || 
+                    a.servico.includes('/' + servicoSelecionado + '/')
+                );
+            }).map(a => a.nome);
             
             // Remove duplicatas
             const atendentesUnicos = [...new Set(atendentesDoServico)];
