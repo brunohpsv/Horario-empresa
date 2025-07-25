@@ -310,7 +310,7 @@
                 </div>
                 
                 <div class="servico-prestador-container" id="servico-prestador-container">
-                    <div class="form-group">
+                    <div class="form-group" id="servico-group">
                         <label for="servico">Serviço</label>
                         <select id="servico" class="form-control">
                             <option value="">Carregando serviços...</option>
@@ -566,69 +566,81 @@
         // Função para carregar os serviços da empresa
         function carregarServicos() {
             const servicoSelect = document.getElementById('servico');
+            const prestadorGroup = document.getElementById('prestador-group');
+            const servicoGroup = document.getElementById('servico-group');
+            
             servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
 
-            if (!empresaSelecionada || !empresaSelecionada.servicos) {
-                servicoSelect.innerHTML = '<option value="">Nenhum serviço disponível</option>';
-                return;
-            }
+            // Verifica se a empresa tem serviços cadastrados no campo "servicos"
+            if (empresaSelecionada.servicos) {
+                // Processa os serviços que podem estar separados por "/"
+                let servicos = [];
+                if (Array.isArray(empresaSelecionada.servicos)) {
+                    // Se for array, processa cada item
+                    empresaSelecionada.servicos.forEach(item => {
+                        if (item.includes('/')) {
+                            servicos.push(...item.split('/').map(s => s.trim()));
+                        } else {
+                            servicos.push(item.trim());
+                        }
+                    });
+                } else if (typeof empresaSelecionada.servicos === 'string') {
+                    // Se for string, separa por "/"
+                    servicos = empresaSelecionada.servicos.split('/').map(s => s.trim());
+                }
 
-            // Processa os serviços que podem estar separados por "/"
-            let servicos = [];
-            if (Array.isArray(empresaSelecionada.servicos)) {
-                // Se for array, processa cada item
-                empresaSelecionada.servicos.forEach(item => {
-                    if (item.includes('/')) {
-                        servicos.push(...item.split('/').map(s => s.trim()));
-                    } else {
-                        servicos.push(item.trim());
-                    }
+                // Remove serviços vazios e duplicados
+                servicos = servicos.filter(s => s !== '');
+                servicos = [...new Set(servicos)];
+
+                // Adiciona os serviços ao select
+                servicos.forEach(servico => {
+                    const option = document.createElement('option');
+                    option.value = servico;
+                    option.textContent = servico;
+                    servicoSelect.appendChild(option);
                 });
-            } else if (typeof empresaSelecionada.servicos === 'string') {
-                // Se for string, separa por "/"
-                servicos = empresaSelecionada.servicos.split('/').map(s => s.trim());
+
+                // Se houver atendentes, mostra o campo de prestador
+                if (atendentes.length > 0) {
+                    prestadorGroup.style.display = 'block';
+                } else {
+                    prestadorGroup.style.display = 'none';
+                }
+            } 
+            // Se não houver serviços no campo "servicos", verifica se há no "servicoAtendente"
+            else if (empresaSelecionada.servicoAtendente) {
+                // Mostra o campo de prestador
+                prestadorGroup.style.display = 'block';
+                
+                // Processa os serviços do campo servicoAtendente
+                let servicos = [];
+                if (Array.isArray(empresaSelecionada.servicoAtendente)) {
+                    servicos = [...new Set(empresaSelecionada.servicoAtendente)];
+                } else {
+                    servicos = [empresaSelecionada.servicoAtendente];
+                }
+
+                // Adiciona os serviços ao select
+                servicos.forEach(servico => {
+                    const option = document.createElement('option');
+                    option.value = servico;
+                    option.textContent = servico;
+                    servicoSelect.appendChild(option);
+                });
+            } 
+            // Se não houver nenhum serviço cadastrado
+            else {
+                servicoSelect.innerHTML = '<option value="">Nenhum serviço disponível</option>';
+                prestadorGroup.style.display = 'none';
             }
-
-            // Remove serviços vazios e duplicados
-            servicos = servicos.filter(s => s !== '');
-            servicos = [...new Set(servicos)];
-
-            // Adiciona os serviços ao select
-            servicos.forEach(servico => {
-                const option = document.createElement('option');
-                option.value = servico;
-                option.textContent = servico;
-                servicoSelect.appendChild(option);
-            });
 
             // Adiciona evento de change para selecionar o serviço
             servicoSelect.addEventListener('change', function() {
                 servicoSelecionado = this.value;
                 
-                // Mostra/oculta o campo de prestador conforme necessário
-                const prestadorGroup = document.getElementById('prestador-group');
-                const prestadorSelect = document.getElementById('prestador');
-                
-                // Filtra atendentes para o serviço selecionado
-                const atendentesDoServico = atendentes.filter(a => a.servico === servicoSelecionado);
-                
-                if (atendentesDoServico.length > 0) {
-                    // Preenche o select de prestadores
-                    prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
-                    atendentesDoServico.forEach(atendente => {
-                        const option = document.createElement('option');
-                        option.value = atendente.nome;
-                        option.textContent = atendente.nome;
-                        prestadorSelect.appendChild(option);
-                    });
-                    
-                    // Mostra o campo de prestador
-                    prestadorGroup.style.display = 'block';
-                } else {
-                    // Oculta o campo de prestador
-                    prestadorGroup.style.display = 'none';
-                    prestadorSelecionado = null;
-                }
+                // Atualiza o select de prestadores conforme o serviço selecionado
+                atualizarPrestadores();
                 
                 if (servicoSelecionado && dataSelecionada) {
                     carregarHorariosDisponiveis();
@@ -642,6 +654,38 @@
                     carregarHorariosDisponiveis();
                 }
             });
+        }
+
+        // Função para atualizar os prestadores com base no serviço selecionado
+        function atualizarPrestadores() {
+            const prestadorSelect = document.getElementById('prestador');
+            prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
+            prestadorSelecionado = null;
+
+            // Se não houver atendentes ou não houver serviço selecionado, oculta o campo
+            if (atendentes.length === 0 || !servicoSelecionado) {
+                document.getElementById('prestador-group').style.display = 'none';
+                return;
+            }
+
+            // Filtra atendentes para o serviço selecionado
+            const atendentesDoServico = atendentes.filter(a => a.servico === servicoSelecionado);
+            
+            if (atendentesDoServico.length > 0) {
+                // Preenche o select de prestadores
+                atendentesDoServico.forEach(atendente => {
+                    const option = document.createElement('option');
+                    option.value = atendente.nome;
+                    option.textContent = atendente.nome;
+                    prestadorSelect.appendChild(option);
+                });
+                
+                // Mostra o campo de prestador
+                document.getElementById('prestador-group').style.display = 'block';
+            } else {
+                // Oculta o campo de prestador
+                document.getElementById('prestador-group').style.display = 'none';
+            }
         }
 
         // Função para verificar se já existe agendamento para o CPF/CNPJ
@@ -922,7 +966,15 @@
                 data: dataFormatada,
                 horario: horarioSelecionado,
                 clienteNome: nome,
-                clienteDocument) {
+                clienteDocumento: documentoCliente.replace(/\D/g, ''),
+                clienteTelefone: telefone,
+                clienteEmail: email || '',
+                status: "confirmado",
+                dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            // Adiciona o prestador se existir
+            if (prestadorSelecionado) {
                 novoAgendamento.prestador = prestadorSelecionado;
             }
 
