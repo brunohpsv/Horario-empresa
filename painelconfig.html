@@ -846,7 +846,7 @@
                             nome: userData.nomeAtendente,
                             servicos: userData.servicoAtendente.split('/').map(s => s.trim()).filter(s => s !== '')
                         });
-                    } else if (Array.isArray(userData.nomeAtendente) {
+                    } else if (Array.isArray(userData.nomeAtendente)) {
                         // Processa arrays de atendentes e serviços
                         for (let i = 0; i < userData.nomeAtendente.length; i++) {
                             const servicos = Array.isArray(userData.servicoAtendente) ? 
