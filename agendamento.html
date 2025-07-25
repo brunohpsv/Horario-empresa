@@ -26,6 +26,53 @@
             background-color: var(--bg);
             color: var(--text);
             line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background: #000;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        nav ul li {
+            margin-left: 1rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .location-btn, .login-btn {
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .location-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
         
         .container {
@@ -35,24 +82,6 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             overflow: hidden;
-        }
-        
-        header {
-            background: #000;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            position: relative;
-        }
-        
-        .header-home {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
         }
         
         .card {
@@ -147,19 +176,35 @@
                 border-radius: 0;
             }
             
-            .header-home {
-                position: static;
-                transform: none;
-                display: inline-block;
+            header {
+                flex-direction: column;
+                padding: 0.5rem;
+            }
+            
+            .logo {
                 margin-bottom: 0.5rem;
+            }
+            
+            nav ul {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            nav ul li {
+                margin: 0;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <a href="index.html" class="header-home">Início</a>
-        <h1>HORÁRIO</h1>
+        <div class="logo">HORÁRIO</div>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i></a></li>
+                <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização"><i class="fas fa-map-marker-alt"></i></a></li>
+            </ul>
+        </nav>
     </header>
 
     <div class="container p-0">
