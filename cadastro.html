@@ -678,17 +678,16 @@
                 
                 // Coletar dados dos atendentes se existirem
                 const qtdAtendentes = parseInt(document.getElementById('atendentes').value);
-                const atendentes = [];
-                const servicosAtendentes = [];
+                const nomeservicoAtendente = [];
                 
                 if (qtdAtendentes > 0) {
                     for (let i = 0; i < qtdAtendentes; i++) {
                         const nome = document.getElementById(`atendente-nome-${i}`).value.trim();
                         const servicos = document.getElementById(`atendente-servicos-${i}`).value.trim();
                         
-                        if (nome) {
-                            atendentes.push(nome);
-                            servicosAtendentes.push(servicos);
+                        if (nome && servicos) {
+                            // Formatar como "Nome - Serviço1 / Serviço2"
+                            nomeservicoAtendente.push(`${nome} - ${servicos}`);
                         }
                     }
                 }
@@ -712,17 +711,12 @@
                     senha: senha, // Armazenando a senha no Firestore também
                     maquinas: document.getElementById('maquinas').value,
                     servicos: qtdAtendentes > 0 ? '' : servicos, // Só preenche serviços se não houver atendentes
-                    nomeAtendente: atendentes,
-                    servicoAtendente: servicosAtendentes, // Novo campo separado para serviços dos atendentes
+                    nomeservicoAtendente: nomeservicoAtendente, // Novo campo combinando nome e serviços
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
                     dataCadastro: new Date().toISOString(),
                     status: 'pendente'
                 };
 
-                // 1. Criar usuário no Authentication (usando email e senha gerada)
-                const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-                const userId = userCredential.user.uid;
-                
                 // Configuração padrão de horários
                 const horariosConfig = {
                     diasFuncionamento: ["1", "2", "3", "4", "5"], // Segunda a Sexta
@@ -732,6 +726,10 @@
                     intervaloAtendimento: 15
                 };
 
+                // 1. Criar usuário no Authentication (usando email e senha gerada)
+                const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+                const userId = userCredential.user.uid;
+                
                 // 2. Salvar dados no Firestore com a configuração de horários
                 await setDoc(doc(db, "usuarios", userId), {
                     ...formData,
