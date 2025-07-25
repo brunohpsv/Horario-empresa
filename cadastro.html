@@ -646,6 +646,14 @@
             return temDuplicado;
         }
 
+        // Função para formatar os serviços de um atendente
+        function formatarServicosAtendente(servicosStr) {
+            // Remove espaços extras e divide por /
+            const servicos = servicosStr.split('/').map(s => s.trim()).filter(s => s);
+            // Formata cada serviço com [ ]
+            return servicos.map(servico => `[${servico}]`).join('');
+        }
+
         // Adicionar verificação de duplicados ao enviar formulário
         document.getElementById('formCadastro').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -688,8 +696,9 @@
                         const servicos = document.getElementById(`atendente-servicos-${i}`).value.trim();
                         
                         if (nome && servicos) {
-                            // Formatar como "Nome - Serviço1 / Serviço2"
-                            atendentes.push(`${nome} - ${servicos}`);
+                            // Formatar como "(Nome) - [Serviço1][Serviço2]"
+                            const servicosFormatados = formatarServicosAtendente(servicos);
+                            atendentes.push(`(${nome}) - ${servicosFormatados}`);
                         }
                     }
                     
