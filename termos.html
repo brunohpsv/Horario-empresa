@@ -36,6 +36,7 @@
         nav ul {
             display: flex;
             list-style: none;
+            align-items: center;
         }
         
         nav ul li {
@@ -47,15 +48,15 @@
             text-decoration: none;
             font-size: 16px;
             transition: color 0.3s;
+            padding: 8px 16px;
         }
         
         nav ul li a:hover {
             color: #cccccc;
         }
         
-        .back-btn {
+        .nav-btn {
             background-color: #4CAF50;
-            padding: 8px 16px;
             border-radius: 4px;
             color: white;
             text-decoration: none;
@@ -64,7 +65,7 @@
             transition: background-color 0.3s;
         }
         
-        .back-btn:hover {
+        .nav-btn:hover {
             background-color: #45a049;
         }
         
@@ -175,8 +176,8 @@
         <div class="logo">HORÁRIO</div>
         <nav>
             <ul>
-                <li><a href="https://horario.site">Início</a></li>
-                <li><a href="cadastro.html" class="back-btn">Voltar para Cadastro</a></li>
+                <li><a href="https://horario.site" class="nav-btn">Início</a></li>
+                <li><a href="cadastro.html" class="nav-btn back-btn">Voltar para Cadastro</a></li>
             </ul>
         </nav>
     </header>
