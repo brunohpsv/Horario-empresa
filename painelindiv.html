@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Profissional | HORÁRIO</title>
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' rel='stylesheet' />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 15px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 10px 20px;
+            flex: 1;
+            width: 100%;
+        }
+        
+        #calendar {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            width: 100%;
+            height: 500px;
+            margin-top: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .config-section {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 5px;
+        }
+        
+        .config-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-group input, 
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .dias-trabalho {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .dia-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-salvar {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .btn-salvar:hover {
+            background-color: #45a049;
+        }
+        
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            background-color: #000000;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader"></div>
+    </div>
+
+    <header>
+        <div class="logo">PAINEL PROFISSIONAL</div>
+        <nav>
+            <ul>
+                <li><a href="#" class="active">CALENDÁRIO</a></li>
+                <li><a href="#" id="logoutBtn">SAIR</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div id="calendar"></div>
+        
+        <div class="config-section">
+            <h2>Configurações do Profissional</h2>
+            
+            <form id="configForm">
+                <div class="form-group">
+                    <label for="empresaId">ID da Empresa (Documento no Firestore)</label>
+                    <input type="text" id="empresaId" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nome">Nome Completo</label>
+                        <input type="text" id="nome" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="servicos">Serviços (separados por /)</label>
+                        <input type="text" id="servicos" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="telefone">Telefone</label>
+                        <input type="tel" id="telefone" required>
+                    </div>
+                </div>
+                
+                <h3>Configurações de Agenda</h3>
+                
+                <div class="form-group">
+                    <label>Dias de Trabalho</label>
+                    <div class="dias-trabalho">
+                        <div class="dia-checkbox"><input type="checkbox" id="segunda" value="segunda"><label for="segunda">Segunda</label></div>
+                        <div class="dia-checkbox"><input type="checkbox" id="terca" value="terca"><label for="terca">Terça</label></div>
+                        <div class="dia-checkbox"><input type="checkbox" id="quarta" value="quarta"><label for="quarta">Quarta</label></div>
+                        <div class="dia-checkbox"><input type="checkbox" id="quinta" value="quinta"><label for="quinta">Quinta</label></div>
+                        <div class="dia-checkbox"><input type="checkbox" id="sexta" value="sexta"><label for="sexta">Sexta</label></div>
+                        <div class="dia-checkbox"><input type="checkbox" id="sabado" value="sabado"><label for="sabado">Sábado</label></div>
+                        <div class="dia-checkbox"><input type="checkbox" id="domingo" value="domingo"><label for="domingo">Domingo</label></div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="horarioInicio">Horário de Início</label>
+                        <input type="time" id="horarioInicio" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="horarioFim">Horário de Término</label>
+                        <input type="time" id="horarioFim" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="almocoInicio">Início do Almoço</label>
+                        <input type="time" id="almocoInicio">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="almocoFim">Fim do Almoço</label>
+                        <input type="time" id="almocoFim">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="duracaoConsulta">Duração da Consulta (minutos)</label>
+                        <input type="number" id="duracaoConsulta" min="5" max="240" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="intervaloConsultas">Intervalo entre Consultas (minutos)</label>
+                        <input type="number" id="intervaloConsultas" min="0" max="60" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-salvar">Salvar Configurações</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>Painel Profissional - Horário &copy; 2023</p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/pt-br.js'></script>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+            authDomain: "banco-de-dados-d253e.firebaseapp.com",
+            projectId: "banco-de-dados-d253e",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
+            messagingSenderId: "1005413315224",
+            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+        };
+
+        // Inicializa o Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Variáveis globais
+        let currentUser = null;
+        let profissionalConfig = null;
+        
+        // Quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verifica autenticação
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    window.location.href = 'https://horario.site/login.html';
+                } else {
+                    currentUser = user;
+                    try {
+                        // Inicializa o calendário
+                        initializeCalendar();
+                        
+                        // Carrega as configurações do profissional
+                        await loadConfig();
+                        
+                        // Esconde o loader
+                        document.getElementById('loaderOverlay').style.display = 'none';
+                    } catch (error) {
+                        console.error('Erro:', error);
+                        alert('Erro ao carregar dados. Por favor, faça login novamente.');
+                        auth.signOut();
+                    }
+                }
+            });
+            
+            // Configura o formulário
+            document.getElementById('configForm').addEventListener('submit', saveConfig);
+            
+            // Configura logout
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                auth.signOut().then(() => {
+                    window.location.href = 'https://horario.site/login.html';
+                });
+            });
+        });
+        
+        // Inicializa o calendário
+        function initializeCalendar() {
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaDay'
+                },
+                defaultView: 'month',
+                locale: 'pt-br',
+                navLinks: true,
+                selectable: false,
+                editable: false,
+                eventLimit: false,
+                height: 500,
+                aspectRatio: 1.5,
+                dayClick: function(date, jsEvent, view) {
+                    if (view.name === 'month') {
+                        $('#calendar').fullCalendar('changeView', 'agendaDay');
+                        $('#calendar').fullCalendar('gotoDate', date);
+                    }
+                }
+            });
+        }
+        
+        // Carrega as configurações do profissional
+        async function loadConfig() {
+            try {
+                // Verifica se o usuário já tem configurações salvas
+                const userDoc = await db.collection('profissionais').doc(currentUser.uid).get();
+                
+                if (userDoc.exists) {
+                    profissionalConfig = userDoc.data();
+                    preencherFormulario(profissionalConfig);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+                throw error;
+            }
+        }
+        
+        // Preenche o formulário com os dados
+        function preencherFormulario(config) {
+            document.getElementById('empresaId').value = config.empresaId || '';
+            document.getElementById('nome').value = config.nome || '';
+            document.getElementById('servicos').value = config.servicos ? config.servicos.join('/') : '';
+            document.getElementById('email').value = config.email || '';
+            document.getElementById('telefone').value = config.telefone || '';
+            
+            // Dias de trabalho
+            if (config.diasTrabalho) {
+                config.diasTrabalho.forEach(dia => {
+                    const checkbox = document.getElementById(dia);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            // Horários
+            document.getElementById('horarioInicio').value = config.horarioInicio || '08:00';
+            document.getElementById('horarioFim').value = config.horarioFim || '18:00';
+            document.getElementById('almocoInicio').value = config.almocoInicio || '12:00';
+            document.getElementById('almocoFim').value = config.almocoFim || '13:00';
+            document.getElementById('duracaoConsulta').value = config.duracaoConsulta || 30;
+            document.getElementById('intervaloConsultas').value = config.intervaloConsultas || 10;
+        }
+        
+        // Salva as configurações
+        async function saveConfig(e) {
+            e.preventDefault();
+            
+            try {
+                // Coleta os dados do formulário
+                const empresaId = document.getElementById('empresaId').value.trim();
+                const nome = document.getElementById('nome').value.trim();
+                const servicos = document.getElementById('servicos').value.split('/').map(s => s.trim());
+                const email = document.getElementById('email').value.trim();
+                const telefone = document.getElementById('telefone').value.trim();
+                
+                // Dias de trabalho
+                const diasTrabalho = [];
+                ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].forEach(dia => {
+                    if (document.getElementById(dia).checked) {
+                        diasTrabalho.push(dia);
+                    }
+                });
+                
+                // Horários
+                const horarioInicio = document.getElementById('horarioInicio').value;
+                const horarioFim = document.getElementById('horarioFim').value;
+                const almocoInicio = document.getElementById('almocoInicio').value;
+                const almocoFim = document.getElementById('almocoFim').value;
+                const duracaoConsulta = parseInt(document.getElementById('duracaoConsulta').value);
+                const intervaloConsultas = parseInt(document.getElementById('intervaloConsultas').value);
+                
+                // Validações básicas
+                if (!empresaId || !nome || servicos.length === 0 || !email || !telefone) {
+                    throw new Error('Preencha todos os campos obrigatórios');
+                }
+                
+                if (diasTrabalho.length === 0) {
+                    throw new Error('Selecione pelo menos um dia de trabalho');
+                }
+                
+                // Cria o objeto de configuração
+                const config = {
+                    empresaId,
+                    nome,
+                    servicos,
+                    email,
+                    telefone,
+                    diasTrabalho,
+                    horarioInicio,
+                    horarioFim,
+                    almocoInicio,
+                    almocoFim,
+                    duracaoConsulta,
+                    intervaloConsultas,
+                    userId: currentUser.uid,
+                    updatedAt: new Date()
+                };
+                
+                // Salva no Firestore
+                await db.collection('profissionais').doc(currentUser.uid).set(config, { merge: true });
+                
+                // Atualiza a variável global
+                profissionalConfig = config;
+                
+                alert('Configurações salvas com sucesso!');
+                
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                alert('Erro: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
