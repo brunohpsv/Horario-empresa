@@ -731,29 +731,57 @@
             filtrarEmpresas();
         }
 
-        // Função para extrair serviços de qualquer campo que contenha "servico" ou "servicos"
+        // Função melhorada para extrair serviços de qualquer campo que contenha "servico" ou "servicos"
         function extrairServicos(empresa) {
             const servicos = [];
             
             // Verifica todos os campos do objeto empresa
             for (const [key, value] of Object.entries(empresa)) {
-                // Se o nome do campo contém "servico" (case insensitive)
-                if (key.toLowerCase().includes('servico')) {
-                    if (Array.isArray(value)) {
-                        // Se for array, adiciona todos os itens que são strings
-                        servicos.push(...value.filter(item => typeof item === 'string').map(s => s.trim()).filter(s => s));
-                    } else if (typeof value === 'string') {
-                        // Se for string, verifica se tem / para separar
-                        if (value.includes('/')) {
+                const keyLower = key.toLowerCase();
+                
+                // Se o nome do campo contém "servico" ou "servicos" (case insensitive)
+                if (keyLower.includes('servico') || keyLower.includes('serviço') || 
+                    keyLower.includes('service') || keyLower.includes('services')) {
+                    
+                    if (value === null || value === undefined) continue;
+                    
+                    // Caso 1: Valor é uma string
+                    if (typeof value === 'string') {
+                        // Se contém vírgulas, assume que é lista separada por vírgulas
+                        if (value.includes(',')) {
+                            servicos.push(...value.split(',').map(s => s.trim()).filter(s => s));
+                        } 
+                        // Se contém barras, assume que é lista separada por barras
+                        else if (value.includes('/')) {
                             servicos.push(...value.split('/').map(s => s.trim()).filter(s => s));
-                        } else {
+                        }
+                        // Se contém ponto e vírgula, assume que é lista separada por ponto e vírgula
+                        else if (value.includes(';')) {
+                            servicos.push(...value.split(';').map(s => s.trim()).filter(s => s));
+                        }
+                        // Se não tem separadores, adiciona a string inteira
+                        else {
                             servicos.push(value.trim());
                         }
+                    }
+                    // Caso 2: Valor é um array
+                    else if (Array.isArray(value)) {
+                        value.forEach(item => {
+                            if (typeof item === 'string') {
+                                servicos.push(item.trim());
+                            }
+                        });
+                    }
+                    // Caso 3: Valor é um objeto (poderia conter subserviços)
+                    else if (typeof value === 'object' && value !== null) {
+                        // Recursivamente extrai serviços de objetos aninhados
+                        servicos.push(...extrairServicos(value));
                     }
                 }
             }
             
-            return [...new Set(servicos)]; // Remove duplicatas
+            // Remove duplicatas e strings vazias
+            return [...new Set(servicos.filter(s => s && s.trim() !== ''))];
         }
 
         // Função para filtrar empresas de forma inteligente
