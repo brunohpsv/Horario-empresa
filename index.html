@@ -46,12 +46,12 @@
         header {
             background-color: var(--primary-color);
             color: var(--white);
-            padding: 1rem 2rem;
+            padding: 1.5rem 3rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 1.5rem;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -59,7 +59,7 @@
         }
         
         .logo {
-            font-size: clamp(1.25rem, 2vw, 1.5rem);
+            font-size: 1.75rem;
             font-weight: bold;
             letter-spacing: 0.5px;
             color: var(--white);
@@ -69,7 +69,7 @@
             display: flex;
             list-style: none;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1.5rem;
             flex-wrap: wrap;
             justify-content: center;
         }
@@ -81,12 +81,12 @@
         nav ul li a {
             color: var(--white);
             text-decoration: none;
-            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            font-size: 1.1rem;
             transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 0.25rem;
-            padding: 0.25rem;
+            gap: 0.5rem;
+            padding: 0.5rem;
             border-radius: 4px;
         }
         
@@ -98,9 +98,10 @@
         
         .login-btn {
             background-color: var(--secondary-color);
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
             font-weight: 500;
+            font-size: 1.1rem;
         }
         
         @media (hover: hover) {
@@ -112,14 +113,15 @@
 
         .location-btn {
             background-color: var(--accent-color);
-            padding: 0.5rem;
+            padding: 0.75rem;
             border-radius: 50%;
-            width: 2.25rem;
-            height: 2.25rem;
+            width: 2.75rem;
+            height: 2.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: var(--transition);
+            font-size: 1.2rem;
         }
         
         @media (hover: hover) {
@@ -135,34 +137,34 @@
 
         .filtro-section {
             background-color: var(--white);
-            padding: 1.25rem 2rem;
+            padding: 2rem 3rem;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             width: 100%;
         }
 
         .filtro-container {
             display: flex;
-            gap: 1rem;
+            gap: 2rem;
             flex-wrap: wrap;
             align-items: flex-end;
             width: 100%;
-            max-width: 75rem;
+            max-width: 120rem;
             margin: 0 auto;
             justify-content: center;
         }
 
         .filtro-item {
-            flex: 1 1 12.5rem;
-            min-width: 11.25rem;
-            max-width: 15.625rem;
+            flex: 1 1 20rem;
+            min-width: 18rem;
+            max-width: 25rem;
         }
 
         .filtro-item label {
             display: block;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
             font-weight: 600;
             color: var(--dark-gray);
-            font-size: 0.75rem;
+            font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -170,27 +172,28 @@
         .filtro-item select,
         .filtro-item input {
             width: 100%;
-            padding: 0.5rem 0.75rem;
+            padding: 0.75rem 1rem;
             border: 1px solid var(--medium-gray);
-            border-radius: 4px;
-            font-size: 0.875rem;
+            border-radius: 6px;
+            font-size: 1.1rem;
             transition: var(--transition);
             background-color: var(--white);
             color: var(--text-color);
+            height: 3.5rem;
         }
 
         .filtro-item select:focus,
         .filtro-item input:focus {
             border-color: var(--secondary-color);
             outline: none;
-            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
         }
 
         .empresas-container {
-            padding: 0 0 1.25rem 0;
+            padding: 2rem 3rem;
             margin-top: 0;
             width: 100%;
-            max-width: 75rem;
+            max-width: 120rem;
             margin: 0 auto;
             flex: 1;
         }
@@ -198,14 +201,13 @@
         .empresas-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 0.1875rem;
+            gap: 0.5rem;
             width: 100%;
-            padding: 0 1rem;
         }
 
         .empresa-item {
             background-color: var(--white);
-            padding: 1rem 2rem;
+            padding: 1.5rem 3rem;
             border: 1px solid var(--medium-gray);
             cursor: pointer;
             transition: var(--transition);
@@ -213,12 +215,14 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
+            border-radius: 8px;
         }
 
         @media (hover: hover) {
             .empresa-item:hover {
                 box-shadow: var(--box-shadow);
-                transform: translateY(-2px);
+                transform: translateY(-3px);
+                border-color: var(--accent-color);
             }
         }
 
@@ -228,19 +232,19 @@
         }
 
         .empresa-nome {
-            font-size: 0.875rem;
+            font-size: 1.3rem;
             font-weight: bold;
             color: var(--text-color);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
             text-transform: uppercase;
             display: flex;
             align-items: center;
             flex-wrap: wrap;
-            gap: 0.25rem;
+            gap: 0.5rem;
         }
 
         .empresa-endereco {
-            font-size: 0.6875rem;
+            font-size: 1rem;
             color: var(--dark-gray);
             text-align: left;
         }
@@ -251,37 +255,50 @@
 
         .loading {
             text-align: center;
-            padding: 2.5rem;
+            padding: 4rem;
             color: var(--dark-gray);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1rem;
+            gap: 1.5rem;
+        }
+
+        .loading .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.25rem;
+        }
+
+        .loading p {
+            font-size: 1.5rem;
         }
 
         .error-message {
             text-align: center;
-            padding: 1.25rem;
+            padding: 2rem;
             color: var(--error-color);
             background-color: var(--error-bg);
-            border-radius: 4px;
-            margin: 1.25rem;
+            border-radius: 8px;
+            margin: 2rem;
             max-width: 100%;
             word-break: break-word;
+            font-size: 1.2rem;
         }
 
         .distance-badge {
             background-color: var(--accent-color);
             color: var(--white);
-            padding: 0.1875rem 0.5rem;
-            border-radius: 0.625rem;
-            font-size: 0.625rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 1rem;
+            font-size: 0.9rem;
             font-weight: bold;
             white-space: nowrap;
         }
 
         .btn {
             transition: var(--transition);
+            font-size: 1.1rem;
+            padding: 0.75rem 1.5rem;
         }
 
         @media (hover: hover) {
@@ -291,14 +308,37 @@
         }
 
         /* Media Queries para responsividade */
+        @media (max-width: 1200px) {
+            .filtro-container,
+            .empresas-container {
+                max-width: 100rem;
+            }
+            
+            .empresa-item {
+                padding: 1.5rem 2rem;
+            }
+        }
+
         @media (max-width: 992px) {
+            header {
+                padding: 1.25rem 2rem;
+            }
+            
             .filtro-item {
                 flex: 1 1 45%;
                 max-width: none;
             }
             
             .empresa-item {
-                padding: 1rem;
+                padding: 1.25rem;
+            }
+            
+            .empresa-nome {
+                font-size: 1.1rem;
+            }
+            
+            .empresa-endereco {
+                font-size: 0.9rem;
             }
         }
 
@@ -309,9 +349,17 @@
                 justify-content: space-between;
             }
             
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            nav ul {
+                gap: 1rem;
+            }
+            
             .filtro-container {
                 flex-direction: column;
-                gap: 0.75rem;
+                gap: 1.5rem;
             }
             
             .filtro-item {
@@ -320,35 +368,59 @@
                 flex: 1 1 100%;
             }
             
-            nav ul {
-                gap: 0.5rem;
-            }
-            
             .empresas-grid {
                 padding: 0;
+            }
+            
+            .empresas-container {
+                padding: 1.5rem;
             }
         }
 
         @media (max-width: 576px) {
             header {
                 flex-direction: column;
-                gap: 0.75rem;
+                gap: 1rem;
                 text-align: center;
+                padding: 1rem;
             }
             
             nav ul {
                 width: 100%;
                 justify-content: center;
+                gap: 0.75rem;
+            }
+            
+            .login-btn {
+                padding: 0.5rem 1rem;
+                font-size: 1rem;
+            }
+            
+            .location-btn {
+                width: 2.5rem;
+                height: 2.5rem;
+                font-size: 1rem;
             }
             
             .empresa-item {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 0.5rem;
+                gap: 0.75rem;
+                padding: 1rem;
             }
             
             .loading {
+                padding: 2rem;
+            }
+            
+            .loading p {
+                font-size: 1.2rem;
+            }
+            
+            .error-message {
                 padding: 1.5rem;
+                margin: 1rem;
+                font-size: 1rem;
             }
         }
 
@@ -356,11 +428,94 @@
         @media (min-width: 1600px) {
             .filtro-container,
             .empresas-container {
-                max-width: 90rem;
+                max-width: 140rem;
+            }
+            
+            header {
+                padding: 2rem 4rem;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            nav ul li a {
+                font-size: 1.2rem;
+                gap: 0.75rem;
+            }
+            
+            .login-btn {
+                padding: 1rem 2rem;
+                font-size: 1.2rem;
+            }
+            
+            .location-btn {
+                width: 3.5rem;
+                height: 3.5rem;
+                font-size: 1.5rem;
+            }
+            
+            .filtro-section {
+                padding: 2.5rem 4rem;
+            }
+            
+            .filtro-item {
+                max-width: 30rem;
+            }
+            
+            .filtro-item label {
+                font-size: 1rem;
+            }
+            
+            .filtro-item select,
+            .filtro-item input {
+                font-size: 1.2rem;
+                height: 4rem;
+            }
+            
+            .empresas-container {
+                padding: 3rem 4rem;
             }
             
             .empresa-item {
-                padding: 1.5rem 3rem;
+                padding: 2rem 4rem;
+            }
+            
+            .empresa-nome {
+                font-size: 1.5rem;
+            }
+            
+            .empresa-endereco {
+                font-size: 1.2rem;
+            }
+            
+            .distance-badge {
+                font-size: 1rem;
+                padding: 0.4rem 1rem;
+            }
+            
+            .loading {
+                padding: 5rem;
+            }
+            
+            .loading .spinner-border {
+                width: 4rem;
+                height: 4rem;
+            }
+            
+            .loading p {
+                font-size: 2rem;
+            }
+        }
+
+        @media (min-width: 2000px) {
+            .filtro-container,
+            .empresas-container {
+                max-width: 160rem;
+            }
+            
+            body {
+                font-size: 110%;
             }
         }
     </style>
@@ -462,6 +617,7 @@
             empresaElement.dataset.id = empresa.id || Math.random().toString(36).substring(2, 9);
             empresaElement.setAttribute('role', 'button');
             empresaElement.setAttribute('aria-label', `Empresa ${empresa.nomeFantasia || 'sem nome'}`);
+            empresaElement.tabIndex = 0;
             
             const enderecoCompleto = [
                 empresa.endereco,
