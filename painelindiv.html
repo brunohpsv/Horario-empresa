@@ -144,6 +144,45 @@
         .btn-salvar:hover {
             background-color: #45a049;
         }
+
+        .btn-gerar-login {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .btn-gerar-login:hover {
+            background-color: #0b7dda;
+        }
+        
+        .login-section {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 5px;
+        }
+
+        .login-info {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .login-info p {
+            margin-bottom: 10px;
+        }
+
+        .login-info strong {
+            color: #333;
+        }
         
         .loader-overlay {
             position: fixed;
@@ -205,7 +244,7 @@
             
             <form id="configForm">
                 <div class="form-group">
-                    <label for="empresaId">ID da Empresa (Documento no Firestore)</label>
+                    <label for="empresaId">ID da Empresa</label>
                     <input type="text" id="empresaId" required>
                 </div>
                 
@@ -287,6 +326,20 @@
                 <button type="submit" class="btn-salvar">Salvar Configurações</button>
             </form>
         </div>
+
+        <div class="login-section">
+            <h2>Gerar Acesso para Profissional</h2>
+            <p>Crie um login e senha para que o profissional possa acessar este painel diretamente.</p>
+            <button id="gerarLoginBtn" class="btn-gerar-login">Gerar Login e Senha</button>
+            
+            <div id="loginInfo" class="login-info">
+                <h3>Credenciais Geradas:</h3>
+                <p><strong>Email:</strong> <span id="geradoEmail"></span></p>
+                <p><strong>Senha:</strong> <span id="geradoSenha"></span></p>
+                <p><strong>Link de Acesso:</strong> <span id="geradoLink"></span></p>
+                <p class="text-warning">Salve estas informações em um local seguro. A senha não poderá ser recuperada posteriormente.</p>
+            </div>
+        </div>
     </div>
 
     <footer>
@@ -358,6 +411,9 @@
                     window.location.href = 'https://horario.site/login.html';
                 });
             });
+
+            // Configura botão de gerar login
+            document.getElementById('gerarLoginBtn').addEventListener('click', gerarLoginSenha);
         });
         
         // Inicializa o calendário
@@ -388,15 +444,44 @@
         // Carrega as configurações do profissional
         async function loadConfig() {
             try {
-                // Verifica se o usuário já tem configurações salvas
-                const userDoc = await db.collection('profissionais').doc(currentUser.uid).get();
+                // Verifica se o usuário já tem configurações salvas na subcoleção
+                const configSnapshot = await db.collection('profissionais')
+                    .doc(currentUser.uid)
+                    .collection('configuracoes')
+                    .doc('dadosProfissional')
+                    .get();
                 
-                if (userDoc.exists) {
-                    profissionalConfig = userDoc.data();
+                if (configSnapshot.exists) {
+                    profissionalConfig = configSnapshot.data();
                     preencherFormulario(profissionalConfig);
+                } else {
+                    // Se não existir na subcoleção, verifica no documento principal (para compatibilidade)
+                    const userDoc = await db.collection('profissionais').doc(currentUser.uid).get();
+                    if (userDoc.exists) {
+                        profissionalConfig = userDoc.data();
+                        preencherFormulario(profissionalConfig);
+                        // Migra os dados para a subcoleção
+                        await saveConfigToSubcollection(profissionalConfig);
+                    }
                 }
             } catch (error) {
                 console.error('Erro ao carregar configurações:', error);
+                throw error;
+            }
+        }
+        
+        // Salva as configurações na subcoleção
+        async function saveConfigToSubcollection(config) {
+            try {
+                await db.collection('profissionais')
+                    .doc(currentUser.uid)
+                    .collection('configuracoes')
+                    .doc('dadosProfissional')
+                    .set(config);
+                
+                console.log('Configurações salvas na subcoleção com sucesso');
+            } catch (error) {
+                console.error('Erro ao salvar na subcoleção:', error);
                 throw error;
             }
         }
@@ -431,6 +516,9 @@
             e.preventDefault();
             
             try {
+                // Mostra o loader
+                document.getElementById('loaderOverlay').style.display = 'flex';
+                
                 // Coleta os dados do formulário
                 const empresaId = document.getElementById('empresaId').value.trim();
                 const nome = document.getElementById('nome').value.trim();
@@ -481,16 +569,77 @@
                     updatedAt: new Date()
                 };
                 
-                // Salva no Firestore
-                await db.collection('profissionais').doc(currentUser.uid).set(config, { merge: true });
+                // Salva na subcoleção do Firestore
+                await saveConfigToSubcollection(config);
                 
                 // Atualiza a variável global
                 profissionalConfig = config;
+                
+                // Esconde o loader
+                document.getElementById('loaderOverlay').style.display = 'none';
                 
                 alert('Configurações salvas com sucesso!');
                 
             } catch (error) {
                 console.error('Erro ao salvar configurações:', error);
+                document.getElementById('loaderOverlay').style.display = 'none';
+                alert('Erro: ' + error.message);
+            }
+        }
+
+        // Gera login e senha para o profissional
+        async function gerarLoginSenha() {
+            try {
+                // Verifica se já tem configurações salvas
+                if (!profissionalConfig || !profissionalConfig.nome) {
+                    throw new Error('Salve as configurações do profissional antes de gerar o login');
+                }
+
+                // Gera um email e senha aleatórios
+                const nomeUsuario = profissionalConfig.nome.toLowerCase().replace(/\s+/g, '.');
+                const randomNum = Math.floor(1000 + Math.random() * 9000);
+                const emailProfissional = `${nomeUsuario}.${randomNum}@profissional.horario.site`;
+                const senhaProfissional = Math.random().toString(36).slice(-8);
+
+                // Mostra o loader
+                document.getElementById('loaderOverlay').style.display = 'flex';
+
+                // Cria o usuário no Firebase Auth
+                await auth.createUserWithEmailAndPassword(emailProfissional, senhaProfissional);
+                
+                // Atualiza o perfil do usuário
+                await auth.currentUser.updateProfile({
+                    displayName: profissionalConfig.nome
+                });
+
+                // Salva as informações do profissional na subcoleção 'acessos'
+                await db.collection('profissionais')
+                    .doc(currentUser.uid)
+                    .collection('acessos')
+                    .add({
+                        email: emailProfissional,
+                        senha: senhaProfissional, // Nota: Em produção, nunca armazene senhas em texto claro
+                        profissionalId: currentUser.uid,
+                        empresaId: profissionalConfig.empresaId,
+                        nomeProfissional: profissionalConfig.nome,
+                        criadoEm: new Date(),
+                        criadoPor: currentUser.uid
+                    });
+
+                // Esconde o loader
+                document.getElementById('loaderOverlay').style.display = 'none';
+
+                // Mostra as informações geradas
+                document.getElementById('geradoEmail').textContent = emailProfissional;
+                document.getElementById('geradoSenha').textContent = senhaProfissional;
+                document.getElementById('geradoLink').textContent = 'https://horario.site/login.html';
+                document.getElementById('loginInfo').style.display = 'block';
+
+                alert('Login e senha gerados com sucesso!');
+
+            } catch (error) {
+                console.error('Erro ao gerar login:', error);
+                document.getElementById('loaderOverlay').style.display = 'none';
                 alert('Erro: ' + error.message);
             }
         }
