@@ -740,8 +740,8 @@
                 // Se o nome do campo contém "servico" (case insensitive)
                 if (key.toLowerCase().includes('servico')) {
                     if (Array.isArray(value)) {
-                        // Se for array, adiciona todos os itens
-                        servicos.push(...value.map(s => s.trim()).filter(s => s));
+                        // Se for array, adiciona todos os itens que são strings
+                        servicos.push(...value.filter(item => typeof item === 'string').map(s => s.trim()).filter(s => s));
                     } else if (typeof value === 'string') {
                         // Se for string, verifica se tem / para separar
                         if (value.includes('/')) {
@@ -927,7 +927,7 @@
                     // Extrai serviços de qualquer campo que contenha "servico" ou "servicos"
                     const servicos = extrairServicos(empresaData);
                     servicos.forEach(servico => {
-                        if (servico) {
+                        if (servico && typeof servico === 'string') {
                             servicosDisponiveis.add(servico.trim());
                         }
                     });
