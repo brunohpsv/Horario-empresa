@@ -731,57 +731,72 @@
             filtrarEmpresas();
         }
 
-        // Função melhorada para extrair serviços de qualquer campo que contenha "servico" ou "servicos"
+        // Função melhorada para extrair serviços
         function extrairServicos(empresa) {
             const servicos = [];
             
-            // Verifica todos os campos do objeto empresa
-            for (const [key, value] of Object.entries(empresa)) {
-                const keyLower = key.toLowerCase();
-                
-                // Se o nome do campo contém "servico" ou "servicos" (case insensitive)
-                if (keyLower.includes('servico') || keyLower.includes('serviço') || 
-                    keyLower.includes('service') || keyLower.includes('services')) {
-                    
-                    if (value === null || value === undefined) continue;
+            // Verifica campos específicos que podem conter serviços
+            const camposServicos = [
+                'servicos', 'serviços', 'services',
+                'tipoServico', 'tipoServiço', 'serviceType',
+                'categoria', 'category',
+                'especialidade', 'specialty'
+            ];
+            
+            // Verifica campos genéricos que podem conter serviços
+            const camposGenericos = Object.keys(empresa).filter(key => 
+                key.toLowerCase().includes('servico') || 
+                key.toLowerCase().includes('serviço') || 
+                key.toLowerCase().includes('service') ||
+                key.toLowerCase().includes('categoria') ||
+                key.toLowerCase().includes('category') ||
+                key.toLowerCase().includes('especialidade') ||
+                key.toLowerCase().includes('specialty')
+            );
+            
+            // Combina todos os campos relevantes
+            const todosCampos = [...new Set([...camposServicos, ...camposGenericos])];
+            
+            todosCampos.forEach(campo => {
+                if (empresa[campo]) {
+                    const valor = empresa[campo];
                     
                     // Caso 1: Valor é uma string
-                    if (typeof value === 'string') {
-                        // Se contém vírgulas, assume que é lista separada por vírgulas
-                        if (value.includes(',')) {
-                            servicos.push(...value.split(',').map(s => s.trim()).filter(s => s));
-                        } 
-                        // Se contém barras, assume que é lista separada por barras
-                        else if (value.includes('/')) {
-                            servicos.push(...value.split('/').map(s => s.trim()).filter(s => s));
-                        }
-                        // Se contém ponto e vírgula, assume que é lista separada por ponto e vírgula
-                        else if (value.includes(';')) {
-                            servicos.push(...value.split(';').map(s => s.trim()).filter(s => s));
-                        }
-                        // Se não tem separadores, adiciona a string inteira
-                        else {
-                            servicos.push(value.trim());
-                        }
-                    }
+                    if (typeof valor === 'string') {
+                        // Tenta dividir por vários separadores diferentes
+                        const separadores = [',', ';', '/', '|', '-', '•'];
+                        let partes = [valor];
+                        
+                        separadores.forEach(sep => {
+                            partes = partes.flatMap(part => 
+                                part.split(sep).map(p => p.trim()).filter(p => p)
+                            );
+                        });
+                        
+                        servicos.push(...partes);
+                    } 
                     // Caso 2: Valor é um array
-                    else if (Array.isArray(value)) {
-                        value.forEach(item => {
+                    else if (Array.isArray(valor)) {
+                        valor.forEach(item => {
                             if (typeof item === 'string') {
                                 servicos.push(item.trim());
                             }
                         });
                     }
                     // Caso 3: Valor é um objeto (poderia conter subserviços)
-                    else if (typeof value === 'object' && value !== null) {
+                    else if (typeof valor === 'object' && valor !== null) {
                         // Recursivamente extrai serviços de objetos aninhados
-                        servicos.push(...extrairServicos(value));
+                        servicos.push(...extrairServicos(valor));
                     }
                 }
-            }
+            });
             
-            // Remove duplicatas e strings vazias
-            return [...new Set(servicos.filter(s => s && s.trim() !== ''))];
+            // Remove duplicatas, strings vazias e normaliza (trim + uppercase first letter)
+            return [...new Set(
+                servicos
+                    .filter(s => s && s.trim() !== '')
+                    .map(s => s.trim())
+            )];
         }
 
         // Função para filtrar empresas de forma inteligente
@@ -796,7 +811,7 @@
                 const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
                 const estadoEmpresa = (empresa.estado || '');
                 
-                // Extrai serviços de qualquer campo que contenha "servico" ou "servicos"
+                // Extrai serviços da empresa
                 const servicosEmpresa = extrairServicos(empresa)
                     .map(s => s.toLowerCase());
                 
@@ -952,7 +967,7 @@
                     if (empresaData.cidade) cidadesDisponiveis.add(empresaData.cidade);
                     if (empresaData.estado) estadosDisponiveis.add(empresaData.estado);
                     
-                    // Extrai serviços de qualquer campo que contenha "servico" ou "servicos"
+                    // Extrai serviços da empresa
                     const servicos = extrairServicos(empresaData);
                     servicos.forEach(servico => {
                         if (servico && typeof servico === 'string') {
@@ -976,7 +991,7 @@
                         const option = document.createElement('option');
                         option.value = servico;
                         option.textContent = servico;
-                        if (servico === currentService) option.selected = true;
+                        if (servico.toLowerCase() === currentService.toLowerCase()) option.selected = true;
                         selectServico.appendChild(option);
                     });
                 
