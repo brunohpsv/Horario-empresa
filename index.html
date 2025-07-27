@@ -12,166 +12,214 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <!-- Estilos atualizados -->
     <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #4CAF50;
+            --accent-color: #2196F3;
+            --text-color: #333333;
+            --light-gray: #f5f5f5;
+            --medium-gray: #dddddd;
+            --dark-gray: #666666;
+            --white: #ffffff;
+            --error-color: #d32f2f;
+            --error-bg: #fde8e8;
+            --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
         
         body {
-            background-color: #f5f5f5;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         
         header {
-            background-color: #000000;
-            color: white;
-            padding: 20px 40px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         
         .logo {
-            font-size: 24px;
+            font-size: clamp(1.25rem, 2vw, 1.5rem);
             font-weight: bold;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            color: var(--white);
         }
         
         nav ul {
             display: flex;
             list-style: none;
             align-items: center;
-            gap: 15px;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         
         nav ul li {
-            margin-left: 0;
+            margin: 0;
         }
         
         nav ul li a {
-            color: white;
+            color: var(--white);
             text-decoration: none;
-            font-size: 16px;
-            transition: color 0.3s;
-            cursor: pointer;
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 0.25rem;
+            padding: 0.25rem;
+            border-radius: 4px;
         }
         
-        nav ul li a:hover {
-            color: #cccccc;
+        @media (hover: hover) {
+            nav ul li a:hover {
+                color: #cccccc;
+            }
         }
         
         .login-btn {
-            background-color: #4CAF50;
-            padding: 8px 16px;
-            border-radius: 0;
+            background-color: var(--secondary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 500;
         }
         
-        .login-btn:hover {
-            background-color: #45a049;
+        @media (hover: hover) {
+            .login-btn:hover {
+                background-color: #45a049;
+                transform: translateY(-1px);
+            }
         }
 
         .location-btn {
-            background-color: #2196F3;
-            padding: 8px;
+            background-color: var(--accent-color);
+            padding: 0.5rem;
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
+            width: 2.25rem;
+            height: 2.25rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
+            transition: var(--transition);
         }
         
-        .location-btn:hover {
-            background-color: #0b7dda;
+        @media (hover: hover) {
+            .location-btn:hover {
+                background-color: #0b7dda;
+                transform: scale(1.05);
+            }
         }
 
         .location-btn.active {
-            background-color: #4CAF50;
+            background-color: var(--secondary-color);
         }
 
         .filtro-section {
-            background-color: white;
-            padding: 20px 40px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background-color: var(--white);
+            padding: 1.25rem 2rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             width: 100%;
         }
 
         .filtro-container {
             display: flex;
-            gap: 15px;
+            gap: 1rem;
             flex-wrap: wrap;
             align-items: flex-end;
             width: 100%;
-            max-width: 1200px;
+            max-width: 75rem;
             margin: 0 auto;
             justify-content: center;
         }
 
         .filtro-item {
-            flex: 1 1 200px;
-            min-width: 180px;
-            max-width: 250px;
+            flex: 1 1 12.5rem;
+            min-width: 11.25rem;
+            max-width: 15.625rem;
         }
 
         .filtro-item label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-            font-size: 12px;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            color: var(--dark-gray);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .filtro-item select,
         .filtro-item input {
             width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--medium-gray);
             border-radius: 4px;
-            font-size: 14px;
-            transition: all 0.3s;
+            font-size: 0.875rem;
+            transition: var(--transition);
+            background-color: var(--white);
+            color: var(--text-color);
         }
 
         .filtro-item select:focus,
         .filtro-item input:focus {
-            border-color: #4CAF50;
+            border-color: var(--secondary-color);
             outline: none;
             box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
         }
 
         .empresas-container {
-            padding: 0 0 20px 0;
+            padding: 0 0 1.25rem 0;
             margin-top: 0;
             width: 100%;
-            max-width: 1200px;
+            max-width: 75rem;
             margin: 0 auto;
+            flex: 1;
         }
 
         .empresas-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 3px;
+            gap: 0.1875rem;
             width: 100%;
+            padding: 0 1rem;
         }
 
         .empresa-item {
-            background-color: white;
-            padding: 15px 40px;
-            border: 1px solid #eee;
+            background-color: var(--white);
+            padding: 1rem 2rem;
+            border: 1px solid var(--medium-gray);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition);
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
         }
 
-        .empresa-item:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        @media (hover: hover) {
+            .empresa-item:hover {
+                box-shadow: var(--box-shadow);
+                transform: translateY(-2px);
+            }
         }
 
         .empresa-info {
@@ -180,16 +228,20 @@
         }
 
         .empresa-nome {
-            font-size: 14px;
+            font-size: 0.875rem;
             font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
+            color: var(--text-color);
+            margin-bottom: 0.25rem;
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.25rem;
         }
 
         .empresa-endereco {
-            font-size: 11px;
-            color: #666;
+            font-size: 0.6875rem;
+            color: var(--dark-gray);
             text-align: left;
         }
 
@@ -199,62 +251,116 @@
 
         .loading {
             text-align: center;
-            padding: 40px;
-            color: #666;
+            padding: 2.5rem;
+            color: var(--dark-gray);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
         }
 
         .error-message {
             text-align: center;
-            padding: 20px;
-            color: #d32f2f;
-            background-color: #fde8e8;
+            padding: 1.25rem;
+            color: var(--error-color);
+            background-color: var(--error-bg);
             border-radius: 4px;
-            margin: 20px;
+            margin: 1.25rem;
+            max-width: 100%;
+            word-break: break-word;
         }
 
         .distance-badge {
-            background-color: #2196F3;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            margin-left: 5px;
+            background-color: var(--accent-color);
+            color: var(--white);
+            padding: 0.1875rem 0.5rem;
+            border-radius: 0.625rem;
+            font-size: 0.625rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .btn {
+            transition: var(--transition);
+        }
+
+        @media (hover: hover) {
+            .btn:hover {
+                transform: translateY(-1px);
+            }
+        }
+
+        /* Media Queries para responsividade */
+        @media (max-width: 992px) {
+            .filtro-item {
+                flex: 1 1 45%;
+                max-width: none;
+            }
+            
+            .empresa-item {
+                padding: 1rem;
+            }
         }
 
         @media (max-width: 768px) {
+            header {
+                padding: 1rem;
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            
             .filtro-container {
                 flex-direction: column;
+                gap: 0.75rem;
             }
             
             .filtro-item {
                 min-width: 100%;
                 max-width: 100%;
+                flex: 1 1 100%;
             }
             
+            nav ul {
+                gap: 0.5rem;
+            }
+            
+            .empresas-grid {
+                padding: 0;
+            }
+        }
+
+        @media (max-width: 576px) {
             header {
-                padding: 15px 20px;
                 flex-direction: column;
-                gap: 15px;
+                gap: 0.75rem;
+                text-align: center;
             }
             
             nav ul {
                 width: 100%;
-                justify-content: space-between;
-                flex-wrap: wrap;
-            }
-            
-            nav ul li {
-                margin: 0;
-            }
-            
-            .empresas-container {
-                padding: 0 0 15px 0;
+                justify-content: center;
             }
             
             .empresa-item {
-                padding: 15px;
                 flex-direction: column;
                 align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .loading {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Melhorias para TV e telas grandes */
+        @media (min-width: 1600px) {
+            .filtro-container,
+            .empresas-container {
+                max-width: 90rem;
+            }
+            
+            .empresa-item {
+                padding: 1.5rem 3rem;
             }
         }
     </style>
@@ -264,9 +370,9 @@
         <div class="logo">HORÁRIO</div>
         <nav>
             <ul>
-                <li><a href="index.html"></a></li>
-                <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização"><i class="fas fa-map-marker-alt"></i></a></li>
-                <li><a href="https://horario.site/login.html" class="login-btn">Login/Cadastro</a></li>
+                <li><a href="index.html"><i class="fas fa-home"></i><span class="sr-only">Home</span></a></li>
+                <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização" aria-label="Localização"><i class="fas fa-map-marker-alt"></i></a></li>
+                <li><a href="https://horario.site/login.html" class="login-btn"><i class="fas fa-user"></i> Login/Cadastro</a></li>
             </ul>
         </nav>
     </header>
@@ -275,40 +381,40 @@
         <div class="filtro-container">
             <div class="filtro-item">
                 <label for="cidade">CIDADE</label>
-                <select id="cidade">
+                <select id="cidade" aria-label="Filtrar por cidade">
                     <option value="">Todas as cidades</option>
                 </select>
             </div>
             
             <div class="filtro-item">
                 <label for="estado">ESTADO</label>
-                <select id="estado">
+                <select id="estado" aria-label="Filtrar por estado">
                     <option value="">Todos os estados</option>
                 </select>
             </div>
             
             <div class="filtro-item">
                 <label for="nome-empresa">NOME DA EMPRESA</label>
-                <input type="text" id="nome-empresa" placeholder="Digite o nome">
+                <input type="text" id="nome-empresa" placeholder="Digite o nome" aria-label="Filtrar por nome da empresa">
             </div>
             
             <div class="filtro-item">
                 <label for="servico">TIPOS DE SERVIÇO</label>
-                <select id="servico">
+                <select id="servico" aria-label="Filtrar por tipo de serviço">
                     <option value="">Todos os serviços</option>
                 </select>
             </div>
         </div>
     </section>
     
-    <section class="empresas-container">
+    <main class="empresas-container">
         <div id="empresas-lista" class="loading">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Carregando...</span>
             </div>
             <p>Carregando empresas...</p>
         </div>
-    </section>
+    </main>
 
     <script>
         // Configuração do Firebase
@@ -334,6 +440,7 @@
         let userLocation = null;
         let empresasComDistancia = [];
         let geolocationActive = false;
+        let watchId = null;
 
         // Função para calcular distância entre coordenadas (Haversine formula)
         function calcularDistancia(lat1, lon1, lat2, lon2) {
@@ -350,9 +457,11 @@
 
         // Função para criar elemento de empresa
         function createEmpresaElement(empresa) {
-            const empresaElement = document.createElement('div');
+            const empresaElement = document.createElement('article');
             empresaElement.className = 'empresa-item';
             empresaElement.dataset.id = empresa.id || Math.random().toString(36).substring(2, 9);
+            empresaElement.setAttribute('role', 'button');
+            empresaElement.setAttribute('aria-label', `Empresa ${empresa.nomeFantasia || 'sem nome'}`);
             
             const enderecoCompleto = [
                 empresa.endereco,
@@ -370,8 +479,8 @@
             
             empresaElement.innerHTML = `
                 <div class="empresa-info">
-                    <div class="empresa-nome">${empresa.nomeFantasia || 'Nome não informado'}${distanciaBadge}</div>
-                    <div class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</div>
+                    <h2 class="empresa-nome">${empresa.nomeFantasia || 'Nome não informado'}${distanciaBadge}</h2>
+                    <address class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</address>
                 </div>
                 <div class="divider"></div>
             `;
@@ -379,6 +488,14 @@
             // Adiciona evento de clique para redirecionar para a página de agendamento
             empresaElement.addEventListener('click', function() {
                 window.location.href = `agendamento.html?id=${empresa.id}`;
+            });
+            
+            // Suporte para navegação por teclado
+            empresaElement.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    window.location.href = `agendamento.html?id=${empresa.id}`;
+                }
             });
             
             return empresaElement;
@@ -390,15 +507,15 @@
             
             if (empresas.length === 0) {
                 if (isFirstLoad) {
-                    listaEmpresas.innerHTML = '<div class="error-message">Nenhuma empresa cadastrada no momento.</div>';
+                    listaEmpresas.innerHTML = '<div class="error-message" role="alert">Nenhuma empresa cadastrada no momento.</div>';
                 } else {
-                    listaEmpresas.innerHTML = '<div class="error-message">Nenhuma empresa encontrada com os critérios selecionados.</div>';
+                    listaEmpresas.innerHTML = '<div class="error-message" role="alert">Nenhuma empresa encontrada com os critérios selecionados.</div>';
                 }
                 return;
             }
             
             // Limpa completamente a lista antes de adicionar novos itens
-            listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid"></div>';
+            listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid" role="list"></div>';
             const gridEmpresas = document.getElementById('empresas-grid');
             
             // Ordena por distância se disponível e ativo
@@ -413,6 +530,7 @@
             empresas.forEach(empresa => {
                 const empresaElement = createEmpresaElement(empresa);
                 empresaElement.dataset.id = empresa.id || JSON.stringify(empresa);
+                empresaElement.setAttribute('role', 'listitem');
                 gridEmpresas.appendChild(empresaElement);
             });
             
@@ -539,7 +657,9 @@
                 
                 geolocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 geolocationBtn.classList.add('active');
+                geolocationBtn.setAttribute('aria-label', 'Localização ativa - carregando');
                 
+                // Primeiro obtemos a posição atual
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         userLocation = {
@@ -548,6 +668,23 @@
                         };
                         
                         geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
+                        geolocationBtn.setAttribute('aria-label', 'Localização ativa');
+                        
+                        // Depois começamos a monitorar a posição
+                        watchId = navigator.geolocation.watchPosition(
+                            (updatedPosition) => {
+                                userLocation = {
+                                    latitude: updatedPosition.coords.latitude,
+                                    longitude: updatedPosition.coords.longitude
+                                };
+                                // Atualiza os filtros com a nova posição
+                                filtrarEmpresas();
+                            },
+                            (error) => {
+                                console.error('Erro ao monitorar localização:', error);
+                            },
+                            { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+                        );
                         
                         // Aplica os filtros com a nova localização
                         filtrarEmpresas();
@@ -556,30 +693,36 @@
                         console.error('Erro ao obter localização:', error);
                         geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
                         geolocationBtn.classList.remove('active');
+                        geolocationBtn.setAttribute('aria-label', 'Localização');
                         geolocationActive = false;
                         
                         let errorMessage = 'Erro ao obter localização.';
                         switch(error.code) {
                             case error.PERMISSION_DENIED:
-                                errorMessage = 'Permissão de localização negada.';
+                                errorMessage = 'Permissão de localização negada. Por favor, habilite a localização nas configurações do seu navegador.';
                                 break;
                             case error.POSITION_UNAVAILABLE:
-                                errorMessage = 'Informação de localização indisponível.';
+                                errorMessage = 'Informação de localização indisponível. Verifique sua conexão ou GPS.';
                                 break;
                             case error.TIMEOUT:
-                                errorMessage = 'Tempo de espera para localização expirado.';
+                                errorMessage = 'Tempo de espera para localização expirado. Tente novamente.';
                                 break;
                         }
                         
                         alert(errorMessage);
                     },
-                    { enableHighAccuracy: true, timeout: 10000 }
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
                 // Desativa a localização
+                if (watchId) {
+                    navigator.geolocation.clearWatch(watchId);
+                    watchId = null;
+                }
                 userLocation = null;
                 geolocationBtn.classList.remove('active');
                 geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
+                geolocationBtn.setAttribute('aria-label', 'Localização');
                 
                 // Reaplica os filtros sem a localização
                 filtrarEmpresas();
@@ -592,7 +735,14 @@
                 const listaEmpresas = document.getElementById('empresas-lista');
                 
                 if (isFirstLoad) {
-                    listaEmpresas.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p>Carregando empresas...</p></div>';
+                    listaEmpresas.innerHTML = `
+                        <div class="loading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <p>Carregando empresas...</p>
+                        </div>
+                    `;
                 }
                 
                 // Busca os dados do Firestore
@@ -665,7 +815,7 @@
                 
                 const errorMessage = document.getElementById('empresas-lista');
                 errorMessage.innerHTML = `
-                    <div class="error-message">
+                    <div class="error-message" role="alert">
                         Ocorreu um erro ao carregar as empresas.<br>
                         <small>${error.message}</small><br>
                         <button onclick="carregarEmpresas()" class="btn btn-sm btn-primary mt-2">Tentar novamente</button>
@@ -712,11 +862,26 @@
             // Event listener para o botão de geolocalização
             document.getElementById('geolocation-btn').addEventListener('click', obterLocalizacaoUsuario);
             
+            // Suporte para teclado no botão de geolocalização
+            document.getElementById('geolocation-btn').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    obterLocalizacaoUsuario();
+                }
+            });
+            
             // Inicia o carregamento
             carregarEmpresas();
             
             // Configura a verificação diária às 00:10
             setInterval(verificarAtualizacaoDiaria, 60000); // Verifica a cada minuto
+            
+            // Limpa o watch de geolocalização quando a página é fechada
+            window.addEventListener('beforeunload', () => {
+                if (watchId) {
+                    navigator.geolocation.clearWatch(watchId);
+                }
+            });
         });
     </script>
 </body>
