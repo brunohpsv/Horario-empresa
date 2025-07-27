@@ -190,7 +190,7 @@
         }
 
         .empresas-container {
-            padding: 1rem 3rem; /* Reduzido o padding superior para subir a lista */
+            padding: 2rem 3rem;
             margin-top: 0;
             width: 100%;
             max-width: 120rem;
@@ -731,33 +731,29 @@
             filtrarEmpresas();
         }
 
-        // Função para processar os serviços (separar por / e criar array)
-        function processarServicos(servicos) {
-            if (!servicos) return [];
+        // Função para extrair serviços de qualquer campo que contenha "servico" ou "servicos"
+        function extrairServicos(empresa) {
+            const servicos = [];
             
-            if (Array.isArray(servicos)) {
-                // Se já for array, retorna como está
-                return servicos;
-            } else if (typeof servicos === 'string') {
-                // Se for string, verifica se tem / para separar
-                if (servicos.includes('/')) {
-                    return servicos.split('/').map(s => s.trim()).filter(s => s);
-                } else {
-                    return [servicos.trim()];
+            // Verifica todos os campos do objeto empresa
+            for (const [key, value] of Object.entries(empresa)) {
+                // Se o nome do campo contém "servico" (case insensitive)
+                if (key.toLowerCase().includes('servico')) {
+                    if (Array.isArray(value)) {
+                        // Se for array, adiciona todos os itens
+                        servicos.push(...value.map(s => s.trim()).filter(s => s));
+                    } else if (typeof value === 'string') {
+                        // Se for string, verifica se tem / para separar
+                        if (value.includes('/')) {
+                            servicos.push(...value.split('/').map(s => s.trim()).filter(s => s));
+                        } else {
+                            servicos.push(value.trim());
+                        }
+                    }
                 }
             }
             
-            return [];
-        }
-
-        // Função para combinar serviços dos campos servicoAtendente e servicos
-        function combinarServicos(empresa) {
-            const servicosAtendente = processarServicos(empresa.servicoAtendente || []);
-            const servicosEmpresa = processarServicos(empresa.servicos || []);
-            
-            // Combina ambos arrays e remove duplicatas
-            const todosServicos = [...new Set([...servicosAtendente, ...servicosEmpresa])];
-            return todosServicos;
+            return [...new Set(servicos)]; // Remove duplicatas
         }
 
         // Função para filtrar empresas de forma inteligente
@@ -772,13 +768,14 @@
                 const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
                 const estadoEmpresa = (empresa.estado || '');
                 
-                // Combina serviços de ambos campos
-                const servicosEmpresa = combinarServicos(empresa);
+                // Extrai serviços de qualquer campo que contenha "servico" ou "servicos"
+                const servicosEmpresa = extrairServicos(empresa)
+                    .map(s => s.toLowerCase());
                 
                 // Verifica todos os filtros de forma combinada com busca parcial
                 const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
                 const estadoMatch = !estado || estadoEmpresa === estado;
-                const servicoMatch = !servico || servicosEmpresa.some(s => s.toLowerCase().includes(servico));
+                const servicoMatch = !servico || servicosEmpresa.some(s => s.includes(servico));
                 const nomeMatch = !nomeEmpresa || nome.includes(nomeEmpresa);
                 
                 return cidadeMatch && estadoMatch && servicoMatch && nomeMatch;
@@ -927,9 +924,9 @@
                     if (empresaData.cidade) cidadesDisponiveis.add(empresaData.cidade);
                     if (empresaData.estado) estadosDisponiveis.add(empresaData.estado);
                     
-                    // Combina serviços de ambos campos (servicoAtendente e servicos)
-                    const todosServicos = combinarServicos(empresaData);
-                    todosServicos.forEach(servico => {
+                    // Extrai serviços de qualquer campo que contenha "servico" ou "servicos"
+                    const servicos = extrairServicos(empresaData);
+                    servicos.forEach(servico => {
                         if (servico) {
                             servicosDisponiveis.add(servico.trim());
                         }
