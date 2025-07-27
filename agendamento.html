@@ -19,6 +19,7 @@
             --text-light: #666;
             --border: #ddd;
             --bg: #f8f9fa;
+            --container-width: 800px; /* Default para mobile */
         }
         
         body {
@@ -76,7 +77,7 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: var(--container-width);
             margin: 2rem auto;
             background: white;
             border-radius: 8px;
@@ -94,13 +95,19 @@
             background: white;
             border-bottom: 1px solid var(--border);
             font-weight: 600;
+            padding: 1.25rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
         }
         
         .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
             font-weight: 500;
             transition: all 0.2s;
+            font-size: 1rem;
         }
         
         .btn-primary {
@@ -117,38 +124,52 @@
             border: none;
         }
         
-        .form-control {
-            border-radius: 4px;
-            padding: 0.5rem 0.75rem;
+        .form-control, .form-select {
+            border-radius: 6px;
+            padding: 0.75rem;
             border: 1px solid var(--border);
+            font-size: 1rem;
+            height: auto;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
         }
         
         .time-slot {
-            padding: 0.5rem;
+            padding: 0.75rem;
             border: 1px solid var(--border);
-            border-radius: 4px;
+            border-radius: 6px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            width: 100%;
         }
         
         .time-slot:hover, .time-slot.selected {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         .time-slot.disabled {
             background: var(--bg);
             color: var(--text-light);
             cursor: not-allowed;
+            opacity: 0.7;
         }
         
         .alert {
-            padding: 0.75rem 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
         }
         
         .alert-error {
@@ -162,27 +183,207 @@
         }
         
         .summary-item {
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
         }
         
         .summary-label {
             font-weight: 600;
             color: var(--text-light);
+            display: inline-block;
+            min-width: 120px;
         }
         
-        @media (max-width: 768px) {
-            .container {
-                margin: 1rem;
-                border-radius: 0;
+        /* Responsividade */
+        @media (min-width: 576px) {
+            :root {
+                --container-width: 540px;
             }
             
-            header {
-                flex-direction: column;
-                padding: 0.5rem;
+            .time-slot {
+                padding: 0.85rem;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            :root {
+                --container-width: 720px;
+            }
+            
+            .card-header {
+                padding: 1.5rem;
+            }
+            
+            .card-body {
+                padding: 2rem;
+            }
+            
+            .btn {
+                padding: 0.85rem 1.5rem;
+                font-size: 1.05rem;
+            }
+            
+            .form-control, .form-select {
+                padding: 0.85rem;
+            }
+            
+            .summary-item {
+                font-size: 1.15rem;
+            }
+        }
+        
+        @media (min-width: 992px) {
+            :root {
+                --container-width: 960px;
             }
             
             .logo {
-                margin-bottom: 0.5rem;
+                font-size: 1.75rem;
+            }
+            
+            .card-header {
+                padding: 1.75rem;
+            }
+            
+            .card-body {
+                padding: 2.5rem;
+            }
+            
+            .btn {
+                padding: 1rem 1.75rem;
+                font-size: 1.1rem;
+            }
+            
+            .form-control, .form-select {
+                padding: 1rem;
+                font-size: 1.05rem;
+            }
+            
+            .form-label {
+                font-size: 1.05rem;
+            }
+            
+            .time-slot {
+                padding: 1rem;
+                font-size: 1.05rem;
+            }
+            
+            .summary-item {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            :root {
+                --container-width: 1140px;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .card-header h5 {
+                font-size: 1.75rem;
+            }
+            
+            .card-body h4, .card-body h5 {
+                font-size: 1.5rem;
+            }
+            
+            .btn {
+                padding: 1.1rem 2rem;
+                font-size: 1.15rem;
+            }
+            
+            .form-control, .form-select {
+                padding: 1.1rem;
+                font-size: 1.1rem;
+            }
+            
+            .form-label {
+                font-size: 1.1rem;
+            }
+            
+            .time-slot {
+                padding: 1.1rem;
+                font-size: 1.1rem;
+            }
+            
+            .alert {
+                padding: 1.25rem;
+                font-size: 1.1rem;
+            }
+            
+            .summary-item {
+                font-size: 1.25rem;
+                margin-bottom: 1.25rem;
+            }
+        }
+        
+        @media (min-width: 1400px) {
+            :root {
+                --container-width: 1320px;
+            }
+            
+            body {
+                font-size: 1.1rem;
+            }
+            
+            .logo {
+                font-size: 2.25rem;
+            }
+            
+            .card-header h5 {
+                font-size: 2rem;
+            }
+            
+            .card-body h4, .card-body h5 {
+                font-size: 1.75rem;
+            }
+            
+            .btn {
+                padding: 1.25rem 2.25rem;
+                font-size: 1.2rem;
+            }
+            
+            .form-control, .form-select {
+                padding: 1.25rem;
+                font-size: 1.15rem;
+            }
+            
+            .form-label {
+                font-size: 1.15rem;
+            }
+            
+            .time-slot {
+                padding: 1.25rem;
+                font-size: 1.15rem;
+            }
+            
+            .alert {
+                padding: 1.5rem;
+                font-size: 1.15rem;
+            }
+            
+            .summary-item {
+                font-size: 1.3rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .summary-label {
+                min-width: 150px;
+            }
+        }
+        
+        @media (max-width: 575.98px) {
+            header {
+                flex-direction: column;
+                padding: 0.75rem;
+            }
+            
+            .logo {
+                margin-bottom: 0.75rem;
+                font-size: 1.4rem;
             }
             
             nav ul {
@@ -192,6 +393,35 @@
             
             nav ul li {
                 margin: 0;
+            }
+            
+            .container {
+                margin: 1rem;
+                border-radius: 0;
+            }
+            
+            .card-header, .card-body {
+                padding: 1rem;
+            }
+            
+            .btn {
+                padding: 0.65rem 1rem;
+                font-size: 0.95rem;
+            }
+            
+            .time-slot {
+                padding: 0.65rem;
+                font-size: 0.95rem;
+            }
+            
+            .summary-item {
+                font-size: 1rem;
+            }
+            
+            .summary-label {
+                min-width: 100px;
+                display: block;
+                margin-bottom: 0.25rem;
             }
         }
     </style>
@@ -220,18 +450,20 @@
                 <div id="info-agendamento-existente" class="alert alert-info" style="display:none">
                     <h5>Você já tem um agendamento!</h5>
                     <div id="resumo-agendamento-existente"></div>
-                    <button class="btn btn-danger mb-2" id="btn-cancelar-agendamento">Cancelar Agendamento</button>
-                    <button class="btn btn-primary" id="btn-novo-agendamento">Fazer Novo Agendamento</button>
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-danger" id="btn-cancelar-agendamento">Cancelar Agendamento</button>
+                        <button class="btn btn-primary" id="btn-novo-agendamento">Fazer Novo Agendamento</button>
+                    </div>
                 </div>
                 
                 <div id="formulario-agendamento">
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label class="form-label">CPF/CNPJ</label>
                         <input type="text" id="documento" class="form-control" placeholder="Digite seu CPF ou CNPJ" required>
                     </div>
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6" id="servico-group">
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0" id="servico-group">
                             <label class="form-label">Serviço</label>
                             <select id="servico" class="form-select">
                                 <option value="">Carregando serviços...</option>
@@ -245,42 +477,44 @@
                         </div>
                     </div>
                     
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label class="form-label">Data</label>
                         <input type="text" id="calendar-input" class="form-control" placeholder="Selecione uma data">
                     </div>
                     
-                    <div class="mb-3" id="horario-section" style="display:none">
+                    <div class="mb-4" id="horario-section" style="display:none">
                         <label class="form-label">Horários disponíveis para <span id="selected-date"></span></label>
-                        <div class="row g-2" id="horarios-container">
-                            <div class="col-12 text-center py-3">
-                                <div class="spinner-border text-primary" role="status"></div>
-                                <p class="mt-2">Carregando horários...</p>
+                        <div class="row g-3" id="horarios-container">
+                            <div class="col-12 text-center py-4">
+                                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                                <p class="mt-3">Carregando horários...</p>
                             </div>
                         </div>
                     </div>
                     
                     <div id="dados-section" style="display:none">
-                        <h5 class="mb-3">Preencha seus dados</h5>
-                        <div class="mb-3">
+                        <h5 class="mb-4">Preencha seus dados</h5>
+                        <div class="mb-4">
                             <label class="form-label">Nome Completo</label>
                             <input type="text" id="nome" class="form-control" required>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label">Telefone</label>
                             <input type="tel" id="telefone" class="form-control" required>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label">E-mail (opcional)</label>
                             <input type="email" id="email" class="form-control">
                         </div>
                     </div>
                     
-                    <button class="btn btn-primary w-100" id="btn-confirmar" style="display:none">Confirmar Agendamento</button>
+                    <div class="d-grid">
+                        <button class="btn btn-primary btn-lg" id="btn-confirmar" style="display:none">Confirmar Agendamento</button>
+                    </div>
                 </div>
                 
                 <div id="resumo-agendamento" style="display:none">
-                    <h4 class="mb-3">Agendamento confirmado!</h4>
+                    <h4 class="mb-4">Agendamento confirmado!</h4>
                     <div class="summary-item">
                         <span class="summary-label">Empresa:</span>
                         <span id="resumo-empresa"></span>
@@ -309,16 +543,16 @@
                         <span class="summary-label">CPF/CNPJ:</span>
                         <span id="resumo-documento"></span>
                     </div>
-                    <div class="summary-item mb-4">
+                    <div class="summary-item mb-5">
                         <span class="summary-label">Contato:</span>
                         <span id="resumo-contato"></span>
                     </div>
                     
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-primary" onclick="window.print()">
+                    <div class="d-grid gap-3">
+                        <button class="btn btn-primary btn-lg" onclick="window.print()">
                             <i class="fas fa-print"></i> Imprimir
                         </button>
-                        <button class="btn btn-outline-secondary" onclick="window.location.href='index.html'">
+                        <button class="btn btn-outline-secondary btn-lg" onclick="window.location.href='index.html'">
                             <i class="fas fa-home"></i> Voltar ao Início
                         </button>
                     </div>
@@ -390,6 +624,9 @@
             const el = document.getElementById('error-message');
             el.textContent = mensagem;
             el.style.display = 'block';
+            setTimeout(() => {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
         }
         
         function esconderErro() {
@@ -655,10 +892,10 @@
             const resumoDiv = document.getElementById('resumo-agendamento-existente');
             
             resumoDiv.innerHTML = `
-                <p><strong>Serviço:</strong> ${agendamento.servico}</p>
-                ${agendamento.prestador ? `<p><strong>Prestador:</strong> ${agendamento.prestador}</p>` : ''}
-                <p><strong>Data:</strong> ${formatarData(agendamento.data)}</p>
-                <p><strong>Horário:</strong> ${agendamento.horario}</p>
+                <p class="mb-2"><strong>Serviço:</strong> ${agendamento.servico}</p>
+                ${agendamento.prestador ? `<p class="mb-2"><strong>Prestador:</strong> ${agendamento.prestador}</p>` : ''}
+                <p class="mb-2"><strong>Data:</strong> ${formatarData(agendamento.data)}</p>
+                <p class="mb-3"><strong>Horário:</strong> ${agendamento.horario}</p>
             `;
             
             infoDiv.style.display = 'block';
@@ -724,7 +961,7 @@
             if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado) return;
             
             const container = document.getElementById('horarios-container');
-            container.innerHTML = '<div class="col-12 text-center py-3"><div class="spinner-border text-primary"></div><p class="mt-2">Carregando...</p></div>';
+            container.innerHTML = '<div class="col-12 text-center py-4"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3">Carregando...</p></div>';
             
             document.getElementById('horario-section').style.display = 'block';
             document.getElementById('dados-section').style.display = 'none';
@@ -799,6 +1036,14 @@
                         horarioSelecionado = item.horario;
                         document.getElementById('dados-section').style.display = 'block';
                         document.getElementById('btn-confirmar').style.display = 'block';
+                        
+                        // Rolagem suave para o formulário de dados
+                        setTimeout(() => {
+                            document.getElementById('dados-section').scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start' 
+                            });
+                        }, 300);
                     });
                 }
                 
@@ -823,6 +1068,14 @@
             
             document.getElementById('formulario-agendamento').style.display = 'none';
             document.getElementById('resumo-agendamento').style.display = 'block';
+            
+            // Rolagem suave para o topo do resumo
+            setTimeout(() => {
+                document.getElementById('resumo-agendamento').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }, 100);
         }
         
         function confirmarAgendamento() {
