@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Individual | HORÁRIO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .logout-btn {
+            background-color: #f44336;
+        }
+        
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+        
+        .section h2 {
+            color: #444;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-secondary {
+            background-color: #2196F3;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #0b7dda;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+            display: block;
+        }
+        
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+            display: block;
+        }
+        
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            background-color: #000000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .contato-rodape {
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .contato-rodape a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader inicial -->
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader"></div>
+    </div>
+
+    <header>
+        <div class="logo">PAINEL INDIVIDUAL</div>
+        <nav>
+            <ul>
+                <li><a href="#" id="logoutBtn" class="nav-btn logout-btn">SAIR</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Configuração do Painel Individual</h1>
+        
+        <div id="message" class="message"></div>
+        
+        <div class="section">
+            <h2>Configuração de Horários de Atendimento</h2>
+            <p>Configure os horários de atendimento da sua empresa.</p>
+            <button id="configHorariosBtn" class="btn-secondary">Configurar Horários</button>
+        </div>
+        
+        <div class="section">
+            <h2>Solicitar Relatório</h2>
+            <p>Gere relatórios de agendamentos e atendimentos.</p>
+            <button id="solicitarRelatorioBtn" class="btn-secondary">Solicitar Relatório</button>
+        </div>
+        
+        <div class="section">
+            <h2>Formulário de Cadastro</h2>
+            <form id="empresaForm">
+                <div class="form-group">
+                    <label for="empresaId">ID do Documento da Empresa:</label>
+                    <input type="text" id="empresaId" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="empresaNome">Nome da Empresa:</label>
+                    <input type="text" id="empresaNome" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="empresaServicos">Serviços (separados por /):</label>
+                    <input type="text" id="empresaServicos" placeholder="Ex: Corte/Cabelo/Barba" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="empresaTelefone">Telefone:</label>
+                    <input type="text" id="empresaTelefone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="empresaEmail">E-mail:</label>
+                    <input type="email" id="empresaEmail" required>
+                </div>
+                
+                <button type="submit">Salvar Informações</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="contato-rodape">
+            <p>Precisa de ajuda? Entre em contato conosco:</p>
+            <p>E-mail: <a href="mailto:suportehorario@gmail.com">suportehorario@gmail.com</a> | Telefone: (62) 98159-6601</p>
+            <p>Horário de atendimento: Segunda a Domingo, 24 horas</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+            authDomain: "banco-de-dados-d253e.firebaseapp.com",
+            projectId: "banco-de-dados-d253e",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
+            messagingSenderId: "1005413315224",
+            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+        };
+
+        // Inicializa o Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Verificação de autenticação
+        document.addEventListener('DOMContentLoaded', function() {
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    // Usuário não autenticado, redireciona para login
+                    window.location.href = 'https://horario.site/login.html';
+                } else {
+                    // Esconde o loader
+                    document.getElementById('loaderOverlay').style.display = 'none';
+                }
+            });
+        });
+
+        // Função para mostrar mensagem
+        function showMessage(type, text) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message ' + type;
+            messageDiv.textContent = text;
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Formulário de cadastro
+        document.getElementById('empresaForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const empresaId = document.getElementById('empresaId').value;
+            const empresaNome = document.getElementById('empresaNome').value;
+            const empresaServicos = document.getElementById('empresaServicos').value;
+            const empresaTelefone = document.getElementById('empresaTelefone').value;
+            const empresaEmail = document.getElementById('empresaEmail').value;
+            
+            try {
+                // Referência para o documento do usuário específico
+                const userId = 'rluUgTA0OeShylKBt3Tf73sdU952';
+                const empresaRef = db.collection('usuarios').doc(userId)
+                    .collection('Painel Individual').doc(empresaId);
+                
+                // Salva os dados
+                await empresaRef.set({
+                    id: empresaId,
+                    nome: empresaNome,
+                    servicos: empresaServicos.split('/').map(s => s.trim()),
+                    telefone: empresaTelefone,
+                    email: empresaEmail,
+                    dataCadastro: new Date()
+                });
+                
+                showMessage('success', 'Informações salvas com sucesso!');
+            } catch (error) {
+                console.error('Erro ao salvar informações:', error);
+                showMessage('error', 'Erro ao salvar informações. Tente novamente.');
+            }
+        });
+
+        // Botão de Configurar Horários
+        document.getElementById('configHorariosBtn').addEventListener('click', function() {
+            alert('Redirecionando para a configuração de horários...');
+            // Aqui você pode redirecionar para outra página ou abrir um modal
+        });
+
+        // Botão de Solicitar Relatório
+        document.getElementById('solicitarRelatorioBtn').addEventListener('click', function() {
+            alert('Solicitação de relatório enviada. Você receberá por e-mail.');
+            // Implemente a lógica para gerar o relatório
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            auth.signOut().then(() => {
+                window.location.href = 'https://horario.site/login.html';
+            }).catch(error => {
+                console.error('Erro ao fazer logout:', error);
+            });
+        });
+    </script>
+</body>
+</html>
