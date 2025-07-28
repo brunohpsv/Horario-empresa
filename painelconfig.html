@@ -770,36 +770,21 @@
         }
 
         // Carrega as configurações de horários do usuário
-async function loadHorariosConfig(userData) {
-    try {
-        // Busca da subcoleção horariosTrabalho
-        const horariosDoc = await db.collection('usuarios').doc(userData.id)
-                                  .collection('horariosTrabalho').doc('config').get();
-        
-        if (horariosDoc.exists) {
-            loadHorariosData(horariosDoc.data());
-        } else {
-            // Se não existir, cria com valores padrão
-            const defaultConfig = {
-                diasFuncionamento: [],
-                horarioAbertura: '08:00',
-                horarioFechamento: '18:00',
-                duracaoAtendimento: 30,
-                intervaloAtendimento: 15,
-                almocoInicio: '',
-                almocoFim: '',
-                ultimaAtualizacao: new Date().toISOString()
-            };
-            
-            await db.collection('usuarios').doc(userData.id)
-                   .collection('horariosTrabalho').doc('config').set(defaultConfig);
-            
-            loadHorariosData(defaultConfig);
+        async function loadHorariosConfig(userData) {
+            try {
+                if (userData.horariosConfig) {
+                    loadHorariosData(userData.horariosConfig);
+                } else {
+                    // Tenta buscar do Firestore
+                    const userDoc = await db.collection('usuarios').doc(userData.id).get();
+                    if (userDoc.exists && userDoc.data().horariosConfig) {
+                        loadHorariosData(userDoc.data().horariosConfig);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações de horários:', error);
+            }
         }
-    } catch (error) {
-        console.error('Erro ao carregar configurações de horários:', error);
-    }
-}
         
         // Carrega as configurações de atendentes do usuário
 async function loadAtendentesConfig(userData) {
@@ -983,37 +968,37 @@ function editAtendente(index) {
         }
 
         // Preenche o formulário com os dados de horários
-function loadHorariosData(horariosData) {
-    if (horariosData.diasFuncionamento) {
-        horariosData.diasFuncionamento.forEach(dia => {
-            const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
-            if (checkbox) checkbox.checked = true;
-        });
-    }
-    
-    if (horariosData.horarioAbertura) {
-        document.getElementById('horarioAbertura').value = horariosData.horarioAbertura;
-    }
-    
-    if (horariosData.horarioFechamento) {
-        document.getElementById('horarioFechamento').value = horariosData.horarioFechamento;
-    }
-    
-    if (horariosData.almocoInicio && horariosData.almocoFim) {
-        document.getElementById('temAlmoco').checked = true;
-        document.getElementById('almocoTimes').classList.add('active');
-        document.getElementById('almocoInicio').value = horariosData.almocoInicio;
-        document.getElementById('almocoFim').value = horariosData.almocoFim;
-    }
-    
-    if (horariosData.duracaoAtendimento) {
-        document.getElementById('duracaoAtendimento').value = horariosData.duracaoAtendimento;
-    }
-    
-    if (horariosData.intervaloAtendimento) {
-        document.getElementById('intervaloAtendimento').value = horariosData.intervaloAtendimento;
-    }
-}
+        function loadHorariosData(horariosData) {
+            if (horariosData.diasFuncionamento) {
+                horariosData.diasFuncionamento.forEach(dia => {
+                    const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            if (horariosData.horarioAbertura) {
+                document.getElementById('horarioAbertura').value = horariosData.horarioAbertura;
+            }
+            
+            if (horariosData.horarioFechamento) {
+                document.getElementById('horarioFechamento').value = horariosData.horarioFechamento;
+            }
+            
+            if (horariosData.almocoInicio && horariosData.almocoFim) {
+                document.getElementById('temAlmoco').checked = true;
+                document.getElementById('almocoTimes').classList.add('active');
+                document.getElementById('almocoInicio').value = horariosData.almocoInicio;
+                document.getElementById('almocoFim').value = horariosData.almocoFim;
+            }
+            
+            if (horariosData.duracaoAtendimento) {
+                document.getElementById('duracaoAtendimento').value = horariosData.duracaoAtendimento;
+            }
+            
+            if (horariosData.intervaloAtendimento) {
+                document.getElementById('intervaloAtendimento').value = horariosData.intervaloAtendimento;
+            }
+        }
         
         // Renderiza a lista de atendentes simplificada
         function renderAtendentesList(atendentes) {
@@ -1150,32 +1135,30 @@ function loadHorariosData(horariosData) {
         }
 
         // Salva as configurações de horários no Firebase
-async function saveHorariosConfig(userData, config) {
-    try {
-        // Referência para o documento na subcoleção horariosTrabalho
-        const horariosRef = db.collection('usuarios').doc(userData.id)
-                             .collection('horariosTrabalho').doc('config');
-        
-        // Adiciona data/hora da última atualização
-        config.ultimaAtualizacao = new Date().toISOString();
-        
-        // Salva ou atualiza o documento
-        await horariosRef.set(config);
-        
-        // Mostra mensagem de sucesso
-        const successMessage = document.getElementById('successMessage');
-        successMessage.style.display = 'block';
-        setTimeout(() => {
-            successMessage.style.display = 'none';
-        }, 3000);
-        
-        return true;
-    } catch (error) {
-        console.error('Erro ao salvar configurações:', error);
-        alert('Erro ao salvar configurações. Tente novamente.');
-        return false;
-    }
-}
+        async function saveHorariosConfig(userData, config) {
+            try {
+                // Caminho específico para salvar as configurações
+                const horariosRef = db.collection('usuarios').doc(userData.id);
+                
+                // Salva ou atualiza o documento
+                await horariosRef.set({
+                    horariosConfig: config
+                }, { merge: true });
+                
+                // Mostra mensagem de sucesso
+                const successMessage = document.getElementById('successMessage');
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+                
+                return true;
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                alert('Erro ao salvar configurações. Tente novamente.');
+                return false;
+            }
+        }
         
         // Edita um serviço
         function editServico(index) {
@@ -1452,4 +1435,4 @@ async function saveHorariosConfig(userData, config) {
         });
     </script>
 </body>
-</html>
+</html
