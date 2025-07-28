@@ -423,7 +423,7 @@
             <div class="form-group">
                 <label for="empresaDocId">Código do Documento da Empresa:</label>
                 <input type="text" id="empresaDocId" placeholder="Digite o ID do documento da empresa" required>
-                <p style="margin-top: 5px; font-size: 14px; color: #666;">Este é o ID do documento da empresa na coleção 'usuario'</p>
+                <p style="margin-top: 5px; font-size: 14px; color: #666;">Este é o ID do documento da empresa na coleção 'usuarios'</p>
             </div>
         </div>
         
@@ -627,26 +627,13 @@
         // Função para carregar dados existentes do painel individual
         async function loadExistingData(userId) {
             try {
-                // Referência para o documento do usuário na coleção 'usuario'
-                const userRef = db.collection('usuario').doc(userId);
-                const userDoc = await userRef.get();
-                
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    
-                    // Preenche o campo de identificação se existir
-                    if (userData.identificacao) {
-                        document.getElementById('identificacao').value = userData.identificacao;
-                    }
-                }
-                
                 // Verifica se já existe um documento de empresa associado
                 const empresaDocId = localStorage.getItem('empresaDocId');
                 if (empresaDocId) {
                     document.getElementById('empresaDocId').value = empresaDocId;
                     
                     // Carrega os dados do painel individual se existirem
-                    const painelRef = db.collection('usuario').doc(empresaDocId)
+                    const painelRef = db.collection('usuarios').doc(empresaDocId)
                                         .collection('painelIndividual').doc(userId);
                     const painelDoc = await painelRef.get();
                     
@@ -723,6 +710,16 @@
                 // Mostra o loader enquanto salva os dados
                 document.getElementById('loaderOverlay').style.display = 'flex';
                 
+                // Verifica se o documento da empresa existe
+                const empresaRef = db.collection('usuarios').doc(empresaDocId);
+                const empresaDoc = await empresaRef.get();
+                
+                if (!empresaDoc.exists) {
+                    showMessage('error', 'Documento da empresa não encontrado. Verifique o ID fornecido.');
+                    document.getElementById('loaderOverlay').style.display = 'none';
+                    return;
+                }
+                
                 // Coletar dados pessoais
                 const nomeCompleto = document.getElementById('nomeCompleto').value;
                 const cpf = document.getElementById('cpf').value;
@@ -760,7 +757,7 @@
                 }
                 
                 // Referência para o documento do painel individual dentro da subcoleção do documento da empresa
-                const painelRef = db.collection('usuario').doc(empresaDocId)
+                const painelRef = db.collection('usuarios').doc(empresaDocId)
                                     .collection('painelIndividual').doc(userId);
                 
                 // Objeto com todos os dados a serem salvos
@@ -831,7 +828,7 @@
                 document.getElementById('loaderOverlay').style.display = 'flex';
                 
                 // Salva a solicitação no Firestore
-                const relatorioRef = db.collection('usuario').doc(empresaDocId)
+                const relatorioRef = db.collection('usuarios').doc(empresaDocId)
                                     .collection('solicitacoes_relatorios').doc();
                 await relatorioRef.set({
                     userId: userId,
