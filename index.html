@@ -27,14 +27,15 @@
             --transition: all 0.3s ease;
             
             /* Variáveis de tamanho responsivas */
-            --base-font-size: clamp(14px, 2vw, 18px);
-            --heading-font-size: clamp(1.25rem, 3vw, 1.75rem);
-            --small-font-size: clamp(0.75rem, 1.5vw, 0.9rem);
-            --padding-base: clamp(0.5rem, 2vw, 1.5rem);
-            --padding-large: clamp(1rem, 3vw, 2rem);
-            --gap-base: clamp(0.5rem, 2vw, 1.5rem);
-            --border-radius: clamp(4px, 1vw, 8px);
-            --element-height: clamp(2.5rem, 6vw, 3.5rem);
+            --base-font-size: clamp(14px, 2vw, 16px);
+            --heading-font-size: clamp(1.25rem, 3vw, 1.5rem);
+            --small-font-size: clamp(0.75rem, 1.5vw, 0.85rem);
+            --padding-base: clamp(0.5rem, 1.5vw, 1rem);
+            --padding-large: clamp(1rem, 2.5vw, 1.5rem);
+            --gap-base: clamp(0.5rem, 1.5vw, 1rem);
+            --border-radius: clamp(4px, 1vw, 6px);
+            --element-height: clamp(2.5rem, 5vw, 3rem);
+            --header-height: clamp(3.5rem, 7vw, 4.5rem);
         }
         
         * {
@@ -57,7 +58,7 @@
         header {
             background-color: var(--primary-color);
             color: var(--white);
-            padding: var(--padding-base) var(--padding-large);
+            padding: 0 var(--padding-large);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -67,6 +68,7 @@
             top: 0;
             z-index: 1000;
             box-shadow: var(--box-shadow);
+            height: var(--header-height);
         }
         
         .logo {
@@ -112,7 +114,7 @@
         
         .login-btn {
             background-color: var(--secondary-color);
-            padding: 0.75em 1.5em;
+            padding: 0.5em 1em;
             border-radius: var(--border-radius);
             font-weight: 500;
             font-size: 1em;
@@ -129,13 +131,13 @@
             background-color: var(--accent-color);
             padding: 0.75em;
             border-radius: 50%;
-            width: 2.75em;
-            height: 2.75em;
+            width: 2.5em;
+            height: 2.5em;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: var(--transition);
-            font-size: 1.2em;
+            font-size: 1em;
         }
         
         @media (hover: hover) {
@@ -151,23 +153,24 @@
 
         .filtro-section {
             background-color: var(--white);
-            padding: var(--padding-large);
+            padding: var(--padding-base) var(--padding-large);
             box-shadow: var(--box-shadow);
             width: 100%;
         }
 
         .filtro-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: var(--gap-base);
             align-items: flex-end;
             width: 100%;
-            max-width: 120rem;
+            max-width: 140rem;
             margin: 0 auto;
         }
 
         .filtro-item {
-            min-width: 0; /* Permite que o item encolha */
+            flex: 1;
+            min-width: min(100%, 15rem);
         }
 
         .filtro-item label {
@@ -183,7 +186,7 @@
         .filtro-item select,
         .filtro-item input {
             width: 100%;
-            padding: 0.75em 1em;
+            padding: 0.5em 0.75em;
             border: 1px solid var(--medium-gray);
             border-radius: var(--border-radius);
             font-size: 1em;
@@ -204,7 +207,7 @@
             padding: var(--padding-large);
             margin-top: 0;
             width: 100%;
-            max-width: 120rem;
+            max-width: 140rem;
             margin: 0 auto;
             flex: 1;
         }
@@ -241,11 +244,11 @@
 
         .empresa-info {
             flex: 1;
-            min-width: min(100%, 20rem);
+            min-width: min(100%, 15rem);
         }
 
         .empresa-nome {
-            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            font-size: clamp(1rem, 2vw, 1.2rem);
             font-weight: bold;
             color: var(--text-color);
             margin-bottom: 0.5em;
@@ -257,7 +260,7 @@
         }
 
         .empresa-endereco {
-            font-size: clamp(0.9rem, 1.5vw, 1rem);
+            font-size: clamp(0.85rem, 1.5vw, 0.95rem);
             color: var(--dark-gray);
             text-align: left;
         }
@@ -283,7 +286,7 @@
         }
 
         .loading p {
-            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-size: clamp(1rem, 3vw, 1.2rem);
         }
 
         .error-message {
@@ -295,13 +298,13 @@
             margin: var(--padding-base);
             max-width: 100%;
             word-break: break-word;
-            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-size: clamp(0.9rem, 2vw, 1rem);
         }
 
         .distance-badge {
             background-color: var(--accent-color);
             color: var(--white);
-            padding: 0.3em 0.8em;
+            padding: 0.25em 0.6em;
             border-radius: 1em;
             font-size: var(--small-font-size);
             font-weight: bold;
@@ -311,7 +314,7 @@
         .btn {
             transition: var(--transition);
             font-size: 1em;
-            padding: 0.75em 1.5em;
+            padding: 0.5em 1em;
         }
 
         @media (hover: hover) {
@@ -321,34 +324,48 @@
         }
 
         /* Melhorias específicas para telas muito pequenas */
-        @media (max-width: 576px) {
+        @media (max-width: 768px) {
+            :root {
+                --padding-base: clamp(0.5rem, 2vw, 0.75rem);
+                --padding-large: clamp(0.75rem, 2vw, 1rem);
+                --gap-base: clamp(0.5rem, 2vw, 0.75rem);
+            }
+            
             header {
-                flex-direction: row;
-                justify-content: space-between;
-                padding: var(--padding-base);
-                gap: 0.5em;
+                padding: 0 var(--padding-base);
+                height: auto;
+                min-height: var(--header-height);
             }
             
             .logo {
-                font-size: clamp(1.2rem, 5vw, 1.5rem);
+                font-size: clamp(1rem, 5vw, 1.25rem);
             }
             
             nav ul {
-                gap: 0.5em;
+                gap: 0.25em;
             }
             
             .login-btn {
-                padding: 0.5em 1em;
+                padding: 0.4em 0.8em;
+                font-size: 0.9em;
             }
             
             .location-btn {
-                width: 2.5em;
-                height: 2.5em;
-                font-size: 1em;
+                width: 2.25em;
+                height: 2.25em;
+                font-size: 0.9em;
             }
             
             .filtro-section {
                 padding: var(--padding-base);
+            }
+            
+            .filtro-container {
+                gap: 0.5em;
+            }
+            
+            .filtro-item {
+                min-width: calc(50% - 0.25em);
             }
             
             .empresas-container {
@@ -357,8 +374,6 @@
             
             .empresa-item {
                 padding: var(--padding-base);
-                flex-direction: column;
-                align-items: flex-start;
             }
             
             .loading {
@@ -367,33 +382,28 @@
         }
 
         /* Melhorias para telas médias */
-        @media (min-width: 577px) and (max-width: 992px) {
-            .filtro-container {
-                grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
-            }
-            
-            .empresa-item {
-                flex-direction: row;
-                align-items: center;
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .filtro-item {
+                min-width: min(100%, 12rem);
             }
         }
 
         /* Melhorias para telas grandes */
-        @media (min-width: 993px) {
-            .filtro-container {
-                grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+        @media (min-width: 1025px) {
+            .filtro-item {
+                min-width: min(100%, 15rem);
             }
         }
 
         /* Melhorias para telas muito grandes (TVs) */
         @media (min-width: 1600px) {
             :root {
-                --base-font-size: clamp(16px, 1.2vw, 20px);
-                --heading-font-size: clamp(1.5rem, 2.5vw, 2rem);
+                --base-font-size: clamp(16px, 1.2vw, 18px);
+                --heading-font-size: clamp(1.5rem, 2.5vw, 1.75rem);
             }
             
             header {
-                padding: clamp(1.5rem, 2vw, 2rem) clamp(2rem, 3vw, 4rem);
+                padding: 0 clamp(2rem, 3vw, 4rem);
             }
             
             .logo {
@@ -405,19 +415,15 @@
             }
             
             .filtro-section {
-                padding: clamp(1.5rem, 2vw, 2.5rem) clamp(2rem, 3vw, 4rem);
+                padding: var(--padding-large) clamp(2rem, 3vw, 4rem);
             }
             
             .empresas-container {
-                padding: clamp(1.5rem, 2vw, 3rem) clamp(2rem, 3vw, 4rem);
+                padding: var(--padding-large) clamp(2rem, 3vw, 4rem);
             }
             
             .empresa-item {
-                padding: clamp(1rem, 1.5vw, 2rem) clamp(1.5rem, 2vw, 4rem);
-            }
-            
-            .distance-badge {
-                font-size: clamp(0.9rem, 1vw, 1rem);
+                padding: var(--padding-base) var(--padding-large);
             }
         }
     </style>
