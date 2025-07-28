@@ -410,12 +410,13 @@
         
         <div id="message" class="message"></div>
         
-        <!-- Campo para buscar ID da empresa -->
+        <!-- Campo para inserir ID do documento da empresa -->
         <div class="section">
-            <h2>BUSCAR DADOS DA EMPRESA</h2>
-            <div class="buscar-container">
-                <input type="text" id="empresaId" placeholder="Digite o ID do documento da empresa" required>
-                <button type="button" id="buscarBtn" class="btn-secondary">Buscar Dados</button>
+            <h2>DOCUMENTO DA EMPRESA</h2>
+            <div class="form-group">
+                <label for="empresaDocId">Código do Documento da Empresa:</label>
+                <input type="text" id="empresaDocId" placeholder="Digite o ID do documento da empresa" required>
+                <p style="margin-top: 5px; font-size: 14px; color: #666;">Este é o ID do documento da empresa na coleção 'usuario'</p>
             </div>
         </div>
         
@@ -434,55 +435,10 @@
                     <label for="cpf">CPF:</label>
                     <input type="text" id="cpf" placeholder="000.000.000-00" required>
                 </div>
-            </div>
-            
-            <!-- Seção de Informações da Empresa -->
-            <div class="section" id="empresaSection">
-                <h2>INFORMAÇÕES DA EMPRESA</h2>
                 
                 <div class="form-group">
-                    <label for="empresaNome">Nome Fantasia:</label>
-                    <input type="text" id="empresaNome" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="empresaEndereco">Endereço:</label>
-                    <input type="text" id="empresaEndereco" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="empresaBairro">Bairro:</label>
-                    <input type="text" id="empresaBairro" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="empresaCidade">Cidade:</label>
-                    <input type="text" id="empresaCidade" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="empresaEstado">Estado:</label>
-                    <input type="text" id="empresaEstado" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="empresaCep">CEP:</label>
-                    <input type="text" id="empresaCep" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="empresaServicos">Serviços (separados por /):</label>
-                    <input type="text" id="empresaServicos" placeholder="Ex: Corte/Cabelo/Barba" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="empresaTelefone">Telefone:</label>
-                    <input type="text" id="empresaTelefone" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="empresaEmail">E-mail:</label>
-                    <input type="email" id="empresaEmail" required>
+                    <label for="identificacao">Identificação:</label>
+                    <input type="text" id="identificacao" placeholder="Sua identificação na empresa" required>
                 </div>
             </div>
             
@@ -652,112 +608,70 @@
                     almocoTimes.classList.remove('active');
                 }
             });
-            
-            // Botão para buscar dados da empresa
-            document.getElementById('buscarBtn').addEventListener('click', buscarDadosEmpresa);
         });
-
-        // Função para buscar dados da empresa pelo ID na coleção 'usuario'
-        async function buscarDadosEmpresa() {
-            const empresaId = document.getElementById('empresaId').value.trim();
-            
-            if (!empresaId) {
-                showMessage('error', 'Por favor, insira o ID da empresa');
-                return;
-            }
-            
-            try {
-                // Mostra o loader enquanto busca os dados
-                document.getElementById('loaderOverlay').style.display = 'flex';
-                
-                // Busca o documento da empresa na coleção 'usuario' no Firestore
-                const empresaRef = db.collection('usuario').doc(empresaId);
-                const docSnapshot = await empresaRef.get();
-                
-                if (docSnapshot.exists) {
-                    const data = docSnapshot.data();
-                    
-                    // Preenche os campos com os dados da empresa
-                    document.getElementById('empresaNome').value = data.nomeFantasia || '';
-                    document.getElementById('empresaEndereco').value = data.endereco || '';
-                    document.getElementById('empresaBairro').value = data.bairro || '';
-                    document.getElementById('empresaCidade').value = data.cidade || '';
-                    document.getElementById('empresaEstado').value = data.estado || '';
-                    document.getElementById('empresaCep').value = data.cep || '';
-                    
-                    // Remove o atributo readonly dos campos que podem ser editados
-                    document.getElementById('empresaServicos').removeAttribute('readonly');
-                    document.getElementById('empresaTelefone').removeAttribute('readonly');
-                    document.getElementById('empresaEmail').removeAttribute('readonly');
-                    
-                    showMessage('success', 'Dados da empresa carregados com sucesso!');
-                } else {
-                    showMessage('error', 'Nenhuma empresa encontrada com este ID na coleção de usuários');
-                }
-            } catch (error) {
-                console.error('Erro ao buscar dados da empresa:', error);
-                showMessage('error', 'Erro ao buscar dados da empresa. Tente novamente.');
-            } finally {
-                // Esconde o loader
-                document.getElementById('loaderOverlay').style.display = 'none';
-            }
-        }
 
         // Função para carregar dados existentes do painel individual
         async function loadExistingData(userId) {
             try {
-                // Referência para o documento do painel individual do usuário
-                const painelRef = db.collection('painelIndividual').doc(userId);
+                // Referência para o documento do usuário na coleção 'usuario'
+                const userRef = db.collection('usuario').doc(userId);
+                const userDoc = await userRef.get();
                 
-                // Tenta carregar as informações
-                const docSnapshot = await painelRef.get();
-                
-                if (docSnapshot.exists) {
-                    const data = docSnapshot.data();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
                     
-                    // Preenche informações pessoais
-                    document.getElementById('nomeCompleto').value = data.nomeCompleto || '';
-                    document.getElementById('cpf').value = data.cpf || '';
-                    
-                    // Preenche informações da empresa se existirem
-                    if (data.empresaId) {
-                        document.getElementById('empresaId').value = data.empresaId;
-                        // Busca automaticamente os dados da empresa
-                        buscarDadosEmpresa();
+                    // Preenche o campo de identificação se existir
+                    if (userData.identificacao) {
+                        document.getElementById('identificacao').value = userData.identificacao;
                     }
+                }
+                
+                // Verifica se já existe um documento de empresa associado
+                const empresaDocId = localStorage.getItem('empresaDocId');
+                if (empresaDocId) {
+                    document.getElementById('empresaDocId').value = empresaDocId;
                     
-                    // Preenche serviços, telefone e email
-                    document.getElementById('empresaServicos').value = data.servicos ? data.servicos.join('/') : '';
-                    document.getElementById('empresaTelefone').value = data.telefone || '';
-                    document.getElementById('empresaEmail').value = data.email || '';
+                    // Carrega os dados do painel individual se existirem
+                    const painelRef = db.collection('usuario').doc(empresaDocId)
+                                        .collection('painelIndividual').doc(userId);
+                    const painelDoc = await painelRef.get();
                     
-                    // Preenche configurações de horários se existirem
-                    if (data.horarios) {
-                        const horarios = data.horarios;
+                    if (painelDoc.exists) {
+                        const data = painelDoc.data();
                         
-                        // Marca os dias selecionados
-                        if (horarios.diasFuncionamento) {
-                            horarios.diasFuncionamento.forEach(dia => {
-                                const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
-                                if (checkbox) checkbox.checked = true;
-                            });
+                        // Preenche informações pessoais
+                        document.getElementById('nomeCompleto').value = data.nomeCompleto || '';
+                        document.getElementById('cpf').value = data.cpf || '';
+                        document.getElementById('identificacao').value = data.identificacao || '';
+                        
+                        // Preenche configurações de horários se existirem
+                        if (data.horarios) {
+                            const horarios = data.horarios;
+                            
+                            // Marca os dias selecionados
+                            if (horarios.diasFuncionamento) {
+                                horarios.diasFuncionamento.forEach(dia => {
+                                    const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                            
+                            // Preenche os horários
+                            if (horarios.horarioAbertura) document.getElementById('horarioAbertura').value = horarios.horarioAbertura;
+                            if (horarios.horarioFechamento) document.getElementById('horarioFechamento').value = horarios.horarioFechamento;
+                            
+                            // Preenche horário de almoço se existir
+                            if (horarios.almocoInicio && horarios.almocoFim) {
+                                document.getElementById('temAlmoco').checked = true;
+                                document.getElementById('almocoTimes').classList.add('active');
+                                document.getElementById('almocoInicio').value = horarios.almocoInicio;
+                                document.getElementById('almocoFim').value = horarios.almocoFim;
+                            }
+                            
+                            // Preenche duração e intervalo
+                            if (horarios.duracaoAtendimento) document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento;
+                            if (horarios.intervaloAtendimento) document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento;
                         }
-                        
-                        // Preenche os horários
-                        if (horarios.horarioAbertura) document.getElementById('horarioAbertura').value = horarios.horarioAbertura;
-                        if (horarios.horarioFechamento) document.getElementById('horarioFechamento').value = horarios.horarioFechamento;
-                        
-                        // Preenche horário de almoço se existir
-                        if (horarios.almocoInicio && horarios.almocoFim) {
-                            document.getElementById('temAlmoco').checked = true;
-                            document.getElementById('almocoTimes').classList.add('active');
-                            document.getElementById('almocoInicio').value = horarios.almocoInicio;
-                            document.getElementById('almocoFim').value = horarios.almocoFim;
-                        }
-                        
-                        // Preenche duração e intervalo
-                        if (horarios.duracaoAtendimento) document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento;
-                        if (horarios.intervaloAtendimento) document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento;
                     }
                 }
             } catch (error) {
@@ -784,6 +698,12 @@
             const userId = auth.currentUser.uid;
             if (!userId) return;
             
+            const empresaDocId = document.getElementById('empresaDocId').value.trim();
+            if (!empresaDocId) {
+                showMessage('error', 'Por favor, insira o ID do documento da empresa');
+                return;
+            }
+            
             try {
                 // Mostra o loader enquanto salva os dados
                 document.getElementById('loaderOverlay').style.display = 'flex';
@@ -791,31 +711,11 @@
                 // Coletar dados pessoais
                 const nomeCompleto = document.getElementById('nomeCompleto').value;
                 const cpf = document.getElementById('cpf').value;
+                const identificacao = document.getElementById('identificacao').value;
                 
                 // Validar dados pessoais
-                if (!nomeCompleto || !cpf) {
+                if (!nomeCompleto || !cpf || !identificacao) {
                     showMessage('error', 'Preencha todas as informações pessoais');
-                    document.getElementById('loaderOverlay').style.display = 'none';
-                    return;
-                }
-                
-                // Coletar ID da empresa
-                const empresaId = document.getElementById('empresaId').value;
-                
-                // Coletar dados da empresa
-                const empresaNome = document.getElementById('empresaNome').value;
-                const empresaEndereco = document.getElementById('empresaEndereco').value;
-                const empresaBairro = document.getElementById('empresaBairro').value;
-                const empresaCidade = document.getElementById('empresaCidade').value;
-                const empresaEstado = document.getElementById('empresaEstado').value;
-                const empresaCep = document.getElementById('empresaCep').value;
-                const empresaServicos = document.getElementById('empresaServicos').value;
-                const empresaTelefone = document.getElementById('empresaTelefone').value;
-                const empresaEmail = document.getElementById('empresaEmail').value;
-                
-                // Validar dados da empresa
-                if (!empresaId || !empresaNome || !empresaServicos || !empresaTelefone || !empresaEmail) {
-                    showMessage('error', 'Preencha todas as informações da empresa');
                     document.getElementById('loaderOverlay').style.display = 'none';
                     return;
                 }
@@ -843,23 +743,17 @@
                     return;
                 }
                 
-                // Referência para o documento do painel individual do usuário
-                const painelRef = db.collection('painelIndividual').doc(userId);
+                // Referência para o documento do painel individual dentro da subcoleção do documento da empresa
+                const painelRef = db.collection('usuario').doc(empresaDocId)
+                                    .collection('painelIndividual').doc(userId);
                 
                 // Objeto com todos os dados a serem salvos
                 const dataToSave = {
                     nomeCompleto: nomeCompleto,
                     cpf: cpf,
-                    empresaId: empresaId,
-                    empresaNome: empresaNome,
-                    empresaEndereco: empresaEndereco,
-                    empresaBairro: empresaBairro,
-                    empresaCidade: empresaCidade,
-                    empresaEstado: empresaEstado,
-                    empresaCep: empresaCep,
-                    servicos: empresaServicos.split('/').map(s => s.trim()),
-                    telefone: empresaTelefone,
-                    email: empresaEmail,
+                    identificacao: identificacao,
+                    empresaDocId: empresaDocId,
+                    userId: userId,
                     dataAtualizacao: new Date().toISOString(),
                     horarios: {
                         diasFuncionamento: diasSelecionados,
@@ -877,8 +771,11 @@
                     dataToSave.horarios.almocoFim = almocoFim;
                 }
                 
-                // Salva todos os dados no Firestore na coleção painelIndividual
+                // Salva todos os dados no Firestore
                 await painelRef.set(dataToSave, { merge: true });
+                
+                // Salva o ID do documento da empresa no localStorage para carregar na próxima vez
+                localStorage.setItem('empresaDocId', empresaDocId);
                 
                 // Mostra mensagem de sucesso
                 showMessage('success', 'Todas as configurações foram salvas com sucesso!');
@@ -905,13 +802,20 @@
             if (!userId) return;
             
             const periodo = document.getElementById('periodoRelatorio').value;
+            const empresaDocId = document.getElementById('empresaDocId').value.trim();
+            
+            if (!empresaDocId) {
+                showMessage('error', 'Por favor, insira o ID do documento da empresa antes de solicitar o relatório');
+                return;
+            }
             
             try {
                 // Mostra o loader enquanto envia a solicitação
                 document.getElementById('loaderOverlay').style.display = 'flex';
                 
                 // Salva a solicitação no Firestore
-                const relatorioRef = db.collection('solicitacoes_relatorios').doc();
+                const relatorioRef = db.collection('usuario').doc(empresaDocId)
+                                    .collection('solicitacoes_relatorios').doc();
                 await relatorioRef.set({
                     userId: userId,
                     tipo: 'relatorio',
