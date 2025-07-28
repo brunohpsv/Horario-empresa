@@ -417,14 +417,14 @@
                 return;
             }
             
-            // Primeiro tenta carregar sem o prefixo "PI -"
-            db.collection("usuarios").doc(empresaId).get()
+            // Primeiro tenta carregar com o prefixo "PI -"
+            db.collection("usuarios").doc(`PI - ${empresaId}`).get()
                 .then(doc => {
                     if (doc.exists) {
                         processarDadosEmpresa(doc);
                     } else {
-                        // Se não encontrou sem o prefixo, tenta com o prefixo "PI -"
-                        return db.collection("usuarios").doc(`PI - ${empresaId}`).get();
+                        // Se não encontrou com o prefixo, tenta sem o prefixo
+                        return db.collection("usuarios").doc(empresaId).get();
                     }
                 })
                 .then(doc => {
@@ -457,9 +457,11 @@
         }
         
         function processarDadosPrestadorIndividual() {
-            // Processa serviços do prestador individual (separados por /)
+            // Processa serviços do prestador individual
             if (empresaSelecionada.servicos) {
                 servicosDisponiveis = empresaSelecionada.servicos.split('/').map(s => s.trim()).filter(s => s.length > 0);
+            } else if (empresaSelecionada.servico) {
+                servicosDisponiveis = empresaSelecionada.servico.split(',').map(s => s.trim()).filter(s => s.length > 0);
             }
             
             // Adiciona o próprio prestador como atendente para todos os serviços
@@ -625,8 +627,8 @@
                 ? empresaSelecionada.id.replace("PI - ", "")
                 : empresaSelecionada.id;
             
-            // Primeiro verifica na coleção sem PI -
-            db.collection("usuarios").doc(empresaId)
+            // Primeiro verifica na coleção com PI -
+            db.collection("usuarios").doc(empresaSelecionada.id)
                 .collection("agendamentos")
                 .where("clienteDocumento", "==", documentoLimpo)
                 .where("status", "==", "confirmado")
@@ -637,9 +639,9 @@
                             agendamentoExistente = { id: doc.id, ...doc.data() };
                             exibirAgendamentoExistente(agendamentoExistente);
                         });
-                    } else if (empresaSelecionada.id.startsWith("PI -")) {
-                        // Se não encontrou e é PI -, verifica na coleção com PI -
-                        return db.collection("usuarios").doc(empresaSelecionada.id)
+                    } else if (!empresaSelecionada.id.startsWith("PI -")) {
+                        // Se não encontrou e não é PI -, verifica na coleção sem PI -
+                        return db.collection("usuarios").doc(empresaId)
                             .collection("agendamentos")
                             .where("clienteDocumento", "==", documentoLimpo)
                             .where("status", "==", "confirmado")
@@ -693,9 +695,7 @@
         }
         
         function cancelarAgendamentoExistente(id) {
-            const empresaRef = empresaSelecionada.id.startsWith("PI -")
-                ? db.collection("usuarios").doc(empresaSelecionada.id)
-                : db.collection("usuarios").doc(empresaSelecionada.id.replace("PI - ", ""));
+            const empresaRef = db.collection("usuarios").doc(empresaSelecionada.id);
             
             empresaRef.collection("agendamentos")
                 .doc(id)
@@ -753,9 +753,7 @@
             const isHoje = dataFormatada === hojeFormatado;
             const agora = new Date();
             
-            const empresaRef = empresaSelecionada.id.startsWith("PI -")
-                ? db.collection("usuarios").doc(empresaSelecionada.id)
-                : db.collection("usuarios").doc(empresaSelecionada.id);
+            const empresaRef = db.collection("usuarios").doc(empresaSelecionada.id);
             
             let query = empresaRef.collection("agendamentos")
                 .where("data", "==", dataFormatada)
@@ -876,9 +874,7 @@
             
             if (prestadorSelecionado) agendamento.prestador = prestadorSelecionado;
             
-            const empresaRef = empresaSelecionada.id.startsWith("PI -")
-                ? db.collection("usuarios").doc(empresaSelecionada.id)
-                : db.collection("usuarios").doc(empresaSelecionada.id);
+            const empresaRef = db.collection("usuarios").doc(empresaSelecionada.id);
             
             empresaRef.collection("agendamentos")
                 .add(agendamento)
