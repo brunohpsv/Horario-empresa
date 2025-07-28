@@ -657,7 +657,7 @@
             document.getElementById('buscarBtn').addEventListener('click', buscarDadosEmpresa);
         });
 
-        // Função para buscar dados da empresa pelo ID
+        // Função para buscar dados da empresa pelo ID na coleção 'usuario'
         async function buscarDadosEmpresa() {
             const empresaId = document.getElementById('empresaId').value.trim();
             
@@ -670,8 +670,8 @@
                 // Mostra o loader enquanto busca os dados
                 document.getElementById('loaderOverlay').style.display = 'flex';
                 
-                // Busca o documento da empresa no Firestore
-                const empresaRef = db.collection('empresas').doc(empresaId);
+                // Busca o documento da empresa na coleção 'usuario' no Firestore
+                const empresaRef = db.collection('usuario').doc(empresaId);
                 const docSnapshot = await empresaRef.get();
                 
                 if (docSnapshot.exists) {
@@ -685,9 +685,14 @@
                     document.getElementById('empresaEstado').value = data.estado || '';
                     document.getElementById('empresaCep').value = data.cep || '';
                     
+                    // Remove o atributo readonly dos campos que podem ser editados
+                    document.getElementById('empresaServicos').removeAttribute('readonly');
+                    document.getElementById('empresaTelefone').removeAttribute('readonly');
+                    document.getElementById('empresaEmail').removeAttribute('readonly');
+                    
                     showMessage('success', 'Dados da empresa carregados com sucesso!');
                 } else {
-                    showMessage('error', 'Nenhuma empresa encontrada com este ID');
+                    showMessage('error', 'Nenhuma empresa encontrada com este ID na coleção de usuários');
                 }
             } catch (error) {
                 console.error('Erro ao buscar dados da empresa:', error);
