@@ -6,301 +6,83 @@
     <title>Agendamento - HORÁRIO</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
-        :root {
-    --primary: #4CAF50;
-    --primary-dark: #45a049;
-    --error: #d32f2f;
-    --error-bg: #fde8e8;
-    --info: #1976d2;
-    --info-bg: #e3f2fd;
-    --text: #333;
-    --text-light: #666;
-    --border: #ddd;
-    --bg: #f8f9fa;
-    --container-width: 95%;
-}
-
-body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-    font-size: clamp(0.9rem, 2vw, 1.1rem);
-}
-
-header {
-    background: #000;
-    color: white;
-    padding: clamp(0.5rem, 2vw, 1rem);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    gap: 1rem;
-}
-
-.logo {
-    font-size: clamp(1.2rem, 4vw, 2rem);
-    font-weight: bold;
-    white-space: nowrap;
-    margin-right: auto; /* Isso empurra o nav para a direita */
-}
-
-nav ul {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-nav ul li {
-    margin-left: 0;
-}
-
-nav ul li a {
-    color: white;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    font-size: clamp(0.8rem, 3vw, 1rem);
-}
-
-.location-btn, .login-btn {
-    padding: clamp(0.3rem, 1.5vw, 0.5rem);
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-
-.location-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.container {
-    width: var(--container-width);
-    max-width: 1400px;
-    margin: clamp(1rem, 3vw, 2rem) auto;
-    background: white;
-    border-radius: clamp(4px, 1vw, 8px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-
-.card {
-    border: none;
-    border-radius: 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.card-header {
-    background: white;
-    border-bottom: 1px solid var(--border);
-    font-weight: 600;
-    padding: clamp(1rem, 2vw, 1.75rem);
-}
-
-.card-body {
-    padding: clamp(1rem, 3vw, 2.5rem);
-}
-
-.btn {
-    padding: clamp(0.6rem, 2vw, 1.25rem) clamp(1rem, 3vw, 2.25rem);
-    border-radius: clamp(4px, 0.5vw, 6px);
-    font-weight: 500;
-    transition: all 0.2s;
-    font-size: clamp(0.9rem, 2vw, 1.2rem);
-}
-
-.btn-primary {
-    background: var(--primary);
-    border: none;
-}
-
-.btn-primary:hover {
-    background: var(--primary-dark);
-}
-
-.btn-danger {
-    background: var(--error);
-    border: none;
-}
-
-.form-control, .form-select {
-    border-radius: clamp(4px, 0.5vw, 6px);
-    padding: clamp(0.6rem, 2vw, 1.25rem);
-    border: 1px solid var(--border);
-    font-size: clamp(0.9rem, 2vw, 1.15rem);
-    height: auto;
-}
-
-.form-label {
-    font-weight: 500;
-    margin-bottom: clamp(0.3rem, 1vw, 0.5rem);
-    display: block;
-    font-size: clamp(0.95rem, 2vw, 1.15rem);
-}
-
-.time-slot {
-    padding: clamp(0.5rem, 2vw, 1.25rem);
-    border: 1px solid var(--border);
-    border-radius: clamp(4px, 0.5vw, 6px);
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
-    font-size: clamp(0.9rem, 2vw, 1.15rem);
-    width: 100%;
-    white-space: nowrap; /* Isso evita que o horário quebre em várias linhas */
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Ajuste adicional para telas muito pequenas */
-@media (max-width: 400px) {
-    #horarios-container {
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    }
-    
-    .time-slot {
-        padding: 0.5rem 0.3rem;
-        font-size: 0.9rem;
-    }
-}
-
-.time-slot:hover, .time-slot.selected {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.time-slot.disabled {
-    background: var(--bg);
-    color: var(--text-light);
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.alert {
-    padding: clamp(0.8rem, 2vw, 1.5rem);
-    border-radius: clamp(4px, 0.5vw, 6px);
-    margin-bottom: clamp(1rem, 2vw, 1.5rem);
-    font-size: clamp(0.9rem, 2vw, 1.15rem);
-}
-
-.alert-error {
-    background: var(--error-bg);
-    color: var(--error);
-}
-
-.alert-info {
-    background: var(--info-bg);
-    color: var(--info);
-}
-
-.summary-item {
-    margin-bottom: clamp(0.8rem, 2vw, 1.5rem);
-    font-size: clamp(1rem, 2.5vw, 1.3rem);
-}
-
-.summary-label {
-    font-weight: 600;
-    color: var(--text-light);
-    display: inline-block;
-    min-width: clamp(100px, 15vw, 150px);
-}
-
-/* Layout responsivo para slots de horário */
-#horarios-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: clamp(0.5rem, 1.5vw, 1rem);
-}
-
-/* Ajustes para telas muito pequenas */
-@media (max-width: 400px) {
-    :root {
-        --container-width: 100%;
-    }
-    
-    header {
-        padding: 0.5rem;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .logo {
-        margin-bottom: 0.5rem;
-    }
-    
-    nav ul {
-        width: 100%;
-        justify-content: space-around;
-    }
-    
-    .container {
-        margin: 0;
-        border-radius: 0;
-        box-shadow: none;
-    }
-    
-    .card-header, .card-body {
-        padding: 0.8rem;
-    }
-    
-    #horarios-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: clamp(0.5rem, 1.5vw, 1rem);
-}
-    
-    .summary-label {
-        display: block;
-        min-width: 100%;
-        margin-bottom: 0.2rem;
-    }
-}
-
-/* Ajustes para telas médias */
-@media (min-width: 768px) {
-    .row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-    
-    .row > * {
-        flex: 1 1 calc(50% - 0.5rem);
-    }
-}
-
-/* Ajustes para telas grandes */
-@media (min-width: 1200px) {
-    .row > * {
-        flex: 1 1 calc(33.333% - 0.67rem);
-    }
-}
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        header {
+            background: #000;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card {
+            border: none;
+        }
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #ddd;
+            font-weight: 600;
+            padding: 1.5rem;
+        }
+        .card-body {
+            padding: 2rem;
+        }
+        .time-slot {
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.75rem;
+            width: 100%;
+        }
+        .time-slot:hover, .time-slot.selected {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        .time-slot.disabled {
+            background: #f8f9fa;
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        #horarios-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+        @media (max-width: 768px) {
+            #horarios-container {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+        }
     </style>
 </head>
 <body>
     <header>
-    <div class="logo">HORÁRIO</div>
-    <nav>
-        <ul>
-            <li><a href="https://horario.site">Início</a></li>
-            <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização"><i class="fas fa-map-marker-alt"></i></a></li>
-        </ul>
-    </nav>
-</header>
+        <div class="logo">HORÁRIO</div>
+        <nav>
+            <a href="https://horario.site" style="color: white; text-decoration: none;">Início</a>
+        </nav>
+    </header>
 
     <div class="container p-0">
         <div class="card">
@@ -310,16 +92,7 @@ nav ul li a {
             </div>
             
             <div class="card-body">
-                <div id="error-message" class="alert alert-error" style="display:none"></div>
-                
-                <div id="info-agendamento-existente" class="alert alert-info" style="display:none">
-                    <h5>Você já tem um agendamento!</h5>
-                    <div id="resumo-agendamento-existente"></div>
-                    <div class="d-grid gap-2 mt-3">
-                        <button class="btn btn-danger" id="btn-cancelar-agendamento">Cancelar Agendamento</button>
-                        <button class="btn btn-primary" id="btn-novo-agendamento">Fazer Novo Agendamento</button>
-                    </div>
-                </div>
+                <div id="error-message" class="alert alert-danger" style="display:none"></div>
                 
                 <div id="formulario-agendamento">
                     <div class="mb-4">
@@ -349,12 +122,7 @@ nav ul li a {
                     
                     <div class="mb-4" id="horario-section" style="display:none">
                         <label class="form-label">Horários disponíveis para <span id="selected-date"></span></label>
-                        <div class="row g-3" id="horarios-container">
-                            <div class="col-12 text-center py-4">
-                                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
-                                <p class="mt-3">Carregando horários...</p>
-                            </div>
-                        </div>
+                        <div id="horarios-container"></div>
                     </div>
                     
                     <div id="dados-section" style="display:none">
@@ -380,62 +148,45 @@ nav ul li a {
                 
                 <div id="resumo-agendamento" style="display:none">
                     <h4 class="mb-4">Agendamento confirmado!</h4>
-                    <div class="summary-item">
-                        <span class="summary-label">Empresa:</span>
-                        <span id="resumo-empresa"></span>
+                    <div class="mb-3">
+                        <strong>Empresa:</strong> <span id="resumo-empresa"></span>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Serviço:</span>
-                        <span id="resumo-servico"></span>
+                    <div class="mb-3">
+                        <strong>Serviço:</strong> <span id="resumo-servico"></span>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Prestador:</span>
-                        <span id="resumo-prestador"></span>
+                    <div class="mb-3">
+                        <strong>Prestador:</strong> <span id="resumo-prestador"></span>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Data:</span>
-                        <span id="resumo-data"></span>
+                    <div class="mb-3">
+                        <strong>Data:</strong> <span id="resumo-data"></span>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Horário:</span>
-                        <span id="resumo-horario"></span>
+                    <div class="mb-3">
+                        <strong>Horário:</strong> <span id="resumo-horario"></span>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Cliente:</span>
-                        <span id="resumo-cliente"></span>
+                    <div class="mb-3">
+                        <strong>Cliente:</strong> <span id="resumo-cliente"></span>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-label">CPF/CNPJ:</span>
-                        <span id="resumo-documento"></span>
-                    </div>
-                    <div class="summary-item mb-5">
-                        <span class="summary-label">Contato:</span>
-                        <span id="resumo-contato"></span>
+                    <div class="mb-3">
+                        <strong>Contato:</strong> <span id="resumo-contato"></span>
                     </div>
                     
                     <div class="d-grid gap-3">
-                        <button class="btn btn-primary btn-lg" onclick="window.print()">
-                            <i class="fas fa-print"></i> Imprimir
-                        </button>
-                        <button class="btn btn-outline-secondary btn-lg" onclick="window.location.href='index.html'">
-                            <i class="fas fa-home"></i> Voltar ao Início
-                        </button>
+                        <button class="btn btn-primary btn-lg" onclick="window.print()">Imprimir</button>
+                        <button class="btn btn-outline-secondary btn-lg" onclick="window.location.href='index.html'">Voltar ao Início</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     
     <script>
-        // Configuração e inicialização do Firebase
+        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
             authDomain: "banco-de-dados-d253e.firebaseapp.com",
@@ -455,12 +206,8 @@ nav ul li a {
         let dataSelecionada = null;
         let horarioSelecionado = null;
         let documentoCliente = null;
-        let agendamentoExistente = null;
-        let agendamentoConfirmado = false;
-        let atendentes = [];
-        let servicosDisponiveis = [];
         
-        // Configurações padrão de horários
+        // Configurações de horários padrão
         const horariosConfig = {
             duracaoAtendimento: 30,
             horarioAbertura: "08:00",
@@ -482,20 +229,18 @@ nav ul li a {
         });
         
         // Funções auxiliares
-        const formatarData = date => new Date(date).toLocaleDateString('pt-BR');
-        const formatarDataFirestore = date => new Date(date).toISOString().split('T')[0];
+        function formatarData(date) {
+            return new Date(date).toLocaleDateString('pt-BR');
+        }
+        
+        function formatarDataFirestore(date) {
+            return new Date(date).toISOString().split('T')[0];
+        }
         
         function mostrarErro(mensagem) {
             const el = document.getElementById('error-message');
             el.textContent = mensagem;
             el.style.display = 'block';
-            setTimeout(() => {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-        }
-        
-        function esconderErro() {
-            document.getElementById('error-message').style.display = 'none';
         }
         
         // Funções principais
@@ -503,7 +248,7 @@ nav ul li a {
             const empresaId = new URLSearchParams(window.location.search).get('id');
             
             if (!empresaId) {
-                mostrarErro("Nenhuma empresa selecionada. Volte e selecione uma empresa.");
+                mostrarErro("Nenhuma empresa selecionada.");
                 return;
             }
             
@@ -517,12 +262,8 @@ nav ul li a {
                     empresaSelecionada = { id: doc.id, ...doc.data() };
                     document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || "Empresa";
                     
-                    // Carrega os serviços e atendentes
-                    carregarServicosEAtendentes();
-                    
-                    if (empresaSelecionada.horariosConfig) {
-                        Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-                    }
+                    // Carrega os serviços
+                    carregarServicos();
                 })
                 .catch(err => {
                     console.error("Erro ao carregar empresa:", err);
@@ -530,293 +271,54 @@ nav ul li a {
                 });
         }
         
-        function carregarServicosEAtendentes() {
+        function carregarServicos() {
             if (!empresaSelecionada) return;
             
-            // Primeiro verifica se existe o campo 'servicoAtendente'
-            if (empresaSelecionada.servicoAtendente) {
-                processarServicosAtendentes(empresaSelecionada.servicoAtendente);
-            } 
-            // Depois verifica se existe o campo 'atendentes' (para compatibilidade com versões antigas)
-            else if (empresaSelecionada.atendentes) {
-                processarAtendentes(empresaSelecionada.atendentes);
-            } 
-            // Se não tiver nenhum dos dois, verifica se tem o campo 'servico'
-            else if (empresaSelecionada.servico) {
-                processarServicos(empresaSelecionada.servico);
-            } 
-            // Se não tiver nenhum dos campos
-            else {
-                mostrarErro("Esta empresa ainda não configurou seus serviços. Entre em contato com a empresa para mais informações.");
-                document.getElementById('servico').innerHTML = '<option value="">Nenhum serviço disponível</option>';
-                return;
-            }
-            
-            // Depois de processar, carrega os serviços no select
-            carregarSelectServicos();
-        }
-        
-        function processarServicosAtendentes(dadosServicosAtendentes) {
-            // Se for uma string, tentamos processar como texto formatado
-            if (typeof dadosServicosAtendentes === 'string') {
-                // Dividir por linhas
-                const linhas = dadosServicosAtendentes.split('\n').filter(linha => linha.trim() !== '');
-                
-                linhas.forEach(linha => {
-                    // Formato esperado: "Serviço - Atendente1, Atendente2, Atendente3"
-                    const partes = linha.split('-').map(p => p.trim());
-                    if (partes.length === 2) {
-                        const servico = partes[0];
-                        const nomesAtendentes = partes[1].split(',').map(n => n.trim());
-                        
-                        // Adiciona o serviço à lista de serviços disponíveis
-                        if (!servicosDisponiveis.includes(servico)) {
-                            servicosDisponiveis.push(servico);
-                        }
-                        
-                        // Adiciona os atendentes para este serviço
-                        nomesAtendentes.forEach(nome => {
-                            atendentes.push({
-                                nome: nome,
-                                servico: servico
-                            });
-                        });
-                    }
-                });
-            } 
-            // Se for um array, processamos cada item
-            else if (Array.isArray(dadosServicosAtendentes)) {
-                dadosServicosAtendentes.forEach(item => {
-                    if (item.servico && item.atendentes) {
-                        // Adiciona o serviço à lista de serviços disponíveis
-                        if (!servicosDisponiveis.includes(item.servico)) {
-                            servicosDisponiveis.push(item.servico);
-                        }
-                        
-                        // Adiciona os atendentes para este serviço
-                        item.atendentes.forEach(nome => {
-                            atendentes.push({
-                                nome: nome,
-                                servico: item.servico
-                            });
-                        });
-                    }
-                });
-            }
-            
-            // Ordena os serviços
-            servicosDisponiveis.sort((a, b) => a.localeCompare(b));
-        }
-        
-        function processarAtendentes(dadosAtendentes) {
-            // Expressão regular para extrair nomes entre parênteses e serviços entre colchetes
-            const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
-            let match;
-            
-            while ((match = regex.exec(dadosAtendentes)) !== null) {
-                const nomePrestador = match[1].trim();
-                const servicosStr = match[2];
-                
-                // Extrai todos os serviços entre colchetes
-                const servicos = servicosStr.match(/\[([^\]]+)\]/g).map(s => 
-                    s.replace(/[\[\]]/g, '').trim()
-                );
-                
-                // Para cada serviço, adicionamos um registro de atendente
-                servicos.forEach(servico => {
-                    atendentes.push({
-                        nome: nomePrestador,
-                        servico: servico
-                    });
-                    
-                    // Adiciona o serviço à lista de serviços disponíveis
-                    if (!servicosDisponiveis.includes(servico)) {
-                        servicosDisponiveis.push(servico);
-                    }
-                });
-            }
-        }
-        
-        function processarServicos(dadosServicos) {
-            // Se for uma string, separa por vírgula ou quebra de linha
-            if (typeof dadosServicos === 'string') {
-                servicosDisponiveis = dadosServicos.split(/[\n,]/)
-                    .map(s => s.trim())
-                    .filter(s => s.length > 0);
-            } 
-            // Se for um array, usa diretamente
-            else if (Array.isArray(dadosServicos)) {
-                servicosDisponiveis = [...dadosServicos];
-            }
-            
-            // Ordena os serviços
-            servicosDisponiveis.sort((a, b) => a.localeCompare(b));
-        }
-        
-        function carregarSelectServicos() {
             const servicoSelect = document.getElementById('servico');
             servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
             
-            if (servicosDisponiveis.length === 0) {
-                servicoSelect.innerHTML = '<option value="">Nenhum serviço disponível</option>';
-                return;
-            }
-            
-            servicosDisponiveis.forEach(servico => {
-                const option = document.createElement('option');
-                option.value = servico;
-                option.textContent = servico;
-                servicoSelect.appendChild(option);
-            });
-            
-            servicoSelect.addEventListener('change', function() {
-                servicoSelecionado = this.value;
-                atualizarPrestadores();
-                if (dataSelecionada) carregarHorariosDisponiveis();
-            });
-            
-            document.getElementById('prestador').addEventListener('change', function() {
-                prestadorSelecionado = this.value;
-                if (servicoSelecionado && dataSelecionada) carregarHorariosDisponiveis();
-            });
-        }
-        
-        function atualizarPrestadores() {
-            const prestadorSelect = document.getElementById('prestador');
-            prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
-            prestadorSelecionado = null;
-            
-            if (!servicoSelecionado || atendentes.length === 0) {
-                document.getElementById('prestador-group').style.display = 'none';
-                return;
-            }
-            
-            // Filtra atendentes pelo serviço selecionado
-            const prestadoresParaServico = [];
-            
-            atendentes.forEach(atendente => {
-                if (atendente.servico === servicoSelecionado && 
-                    !prestadoresParaServico.includes(atendente.nome)) {
-                    prestadoresParaServico.push(atendente.nome);
-                }
-            });
-            
-            if (prestadoresParaServico.length > 0) {
-                // Ordena os prestadores alfabeticamente
-                prestadoresParaServico.sort((a, b) => a.localeCompare(b));
+            // Verifica se a empresa tem serviços definidos
+            if (empresaSelecionada.servico) {
+                let servicos = [];
                 
-                prestadoresParaServico.forEach(nome => {
+                if (typeof empresaSelecionada.servico === 'string') {
+                    servicos = empresaSelecionada.servico.split('\n')
+                        .map(s => s.trim())
+                        .filter(s => s.length > 0);
+                } else if (Array.isArray(empresaSelecionada.servico)) {
+                    servicos = empresaSelecionada.servico;
+                }
+                
+                servicos.forEach(servico => {
                     const option = document.createElement('option');
-                    option.value = nome;
-                    option.textContent = nome;
-                    prestadorSelect.appendChild(option);
+                    option.value = servico;
+                    option.textContent = servico;
+                    servicoSelect.appendChild(option);
                 });
                 
-                document.getElementById('prestador-group').style.display = 'block';
-                
-                // Se houver apenas um prestador, seleciona automaticamente
-                if (prestadoresParaServico.length === 1) {
-                    prestadorSelect.value = prestadoresParaServico[0];
-                    prestadorSelecionado = prestadoresParaServico[0];
-                }
+                // Event listener para seleção de serviço
+                servicoSelect.addEventListener('change', function() {
+                    servicoSelecionado = this.value;
+                    if (dataSelecionada) carregarHorariosDisponiveis();
+                });
             } else {
-                document.getElementById('prestador-group').style.display = 'none';
+                mostrarErro("Esta empresa não possui serviços cadastrados.");
             }
-        }
-        
-        function verificarAgendamentoExistente(documento) {
-            const documentoLimpo = documento.replace(/\D/g, '');
-            
-            if (!empresaSelecionada || !documentoLimpo) return;
-            
-            db.collection("usuarios").doc(empresaSelecionada.id)
-                .collection("agendamentos")
-                .where("clienteDocumento", "==", documentoLimpo)
-                .where("status", "==", "confirmado")
-                .get()
-                .then(querySnapshot => {
-                    if (!querySnapshot.empty) {
-                        querySnapshot.forEach(doc => {
-                            agendamentoExistente = { id: doc.id, ...doc.data() };
-                            exibirAgendamentoExistente(agendamentoExistente);
-                        });
-                    } else {
-                        document.getElementById('info-agendamento-existente').style.display = 'none';
-                        document.getElementById('formulario-agendamento').style.display = 'block';
-                    }
-                })
-                .catch(err => {
-                    console.error("Erro ao verificar agendamento:", err);
-                    document.getElementById('info-agendamento-existente').style.display = 'none';
-                    document.getElementById('formulario-agendamento').style.display = 'block';
-                });
-        }
-        
-        function exibirAgendamentoExistente(agendamento) {
-            const infoDiv = document.getElementById('info-agendamento-existente');
-            const resumoDiv = document.getElementById('resumo-agendamento-existente');
-            
-            resumoDiv.innerHTML = `
-                <p class="mb-2"><strong>Serviço:</strong> ${agendamento.servico}</p>
-                ${agendamento.prestador ? `<p class="mb-2"><strong>Prestador:</strong> ${agendamento.prestador}</p>` : ''}
-                <p class="mb-2"><strong>Data:</strong> ${formatarData(agendamento.data)}</p>
-                <p class="mb-3"><strong>Horário:</strong> ${agendamento.horario}</p>
-            `;
-            
-            infoDiv.style.display = 'block';
-            document.getElementById('formulario-agendamento').style.display = 'none';
-            
-            document.getElementById('btn-cancelar-agendamento').onclick = () => {
-                if (confirm("Cancelar este agendamento?")) {
-                    cancelarAgendamentoExistente(agendamento.id);
-                }
-            };
-            
-            document.getElementById('btn-novo-agendamento').onclick = () => {
-                infoDiv.style.display = 'none';
-                document.getElementById('formulario-agendamento').style.display = 'block';
-                agendamentoExistente = null;
-            };
-        }
-        
-        function cancelarAgendamentoExistente(id) {
-            db.collection("usuarios").doc(empresaSelecionada.id)
-                .collection("agendamentos")
-                .doc(id)
-                .update({ status: "cancelado" })
-                .then(() => {
-                    alert("Agendamento cancelado!");
-                    document.getElementById('info-agendamento-existente').style.display = 'none';
-                    document.getElementById('formulario-agendamento').style.display = 'block';
-                    agendamentoExistente = null;
-                })
-                .catch(err => {
-                    console.error("Erro ao cancelar:", err);
-                    mostrarErro("Erro ao cancelar agendamento.");
-                });
         }
         
         function calcularHorariosDisponiveis() {
             const horarios = [];
-            const toMinutes = timeStr => {
-                const [h, m] = timeStr.split(':').map(Number);
-                return h * 60 + m;
-            };
+            const [hAbertura, mAbertura] = horariosConfig.horarioAbertura.split(':').map(Number);
+            const [hFechamento, mFechamento] = horariosConfig.horarioFechamento.split(':').map(Number);
             
-            const toTimeStr = minutes => {
-                const h = Math.floor(minutes / 60);
-                const m = minutes % 60;
-                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-            };
-            
-            const inicio = toMinutes(horariosConfig.horarioAbertura);
-            const fim = toMinutes(horariosConfig.horarioFechamento);
-            const duracao = horariosConfig.duracaoAtendimento;
+            const inicio = hAbertura * 60 + mAbertura;
+            const fim = hFechamento * 60 + mFechamento;
             const intervalo = horariosConfig.intervaloAtendimento;
-            const totalPorAtendimento = duracao + intervalo;
             
-            for (let time = inicio; time + duracao <= fim; time += totalPorAtendimento) {
-                horarios.push(toTimeStr(time));
+            for (let minutos = inicio; minutos + horariosConfig.duracaoAtendimento <= fim; minutos += intervalo) {
+                const horas = Math.floor(minutos / 60);
+                const mins = minutos % 60;
+                horarios.push(`${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}`);
             }
             
             return horarios;
@@ -826,54 +328,17 @@ nav ul li a {
             if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado) return;
             
             const container = document.getElementById('horarios-container');
-            container.innerHTML = '<div class="col-12 text-center py-4"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3">Carregando...</p></div>';
+            container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-3">Carregando...</p></div>';
             
             document.getElementById('horario-section').style.display = 'block';
             document.getElementById('dados-section').style.display = 'none';
             document.getElementById('btn-confirmar').style.display = 'none';
             
-            const dataFormatada = formatarDataFirestore(dataSelecionada);
-            const hojeFormatado = formatarDataFirestore(new Date());
-            const isHoje = dataFormatada === hojeFormatado;
-            const agora = new Date();
-            
-            let query = db.collection("usuarios").doc(empresaSelecionada.id)
-                .collection("agendamentos")
-                .where("data", "==", dataFormatada)
-                .where("servico", "==", servicoSelecionado)
-                .where("status", "==", "confirmado");
-            
-            if (prestadorSelecionado) {
-                query = query.where("prestador", "==", prestadorSelecionado);
-            }
-            
-            query.get()
-                .then(querySnapshot => {
-                    const horariosOcupados = [];
-                    querySnapshot.forEach(doc => horariosOcupados.push(doc.data().horario));
-                    
-                    const horariosBase = calcularHorariosDisponiveis();
-                    const horariosDisponiveis = [];
-                    
-                    horariosBase.forEach(horario => {
-                        const [h, m] = horario.split(':').map(Number);
-                        const horarioValido = !isHoje || 
-                            (h > agora.getHours() || (h === agora.getHours() && m > agora.getMinutes()));
-                        
-                        if (horarioValido) {
-                            horariosDisponiveis.push({
-                                horario,
-                                disponivel: !horariosOcupados.includes(horario)
-                            });
-                        }
-                    });
-                    
-                    exibirHorariosDisponiveis(horariosDisponiveis);
-                })
-                .catch(err => {
-                    console.error("Erro ao carregar horários:", err);
-                    container.innerHTML = '<div class="col-12 alert alert-error">Erro ao carregar horários.</div>';
-                });
+            // Simulação de carregamento - na prática, você consultaria o banco de dados
+            setTimeout(() => {
+                const horarios = calcularHorariosDisponiveis();
+                exibirHorariosDisponiveis(horarios);
+            }, 500);
         }
         
         function exibirHorariosDisponiveis(horarios) {
@@ -881,71 +346,28 @@ nav ul li a {
             container.innerHTML = '';
             
             if (horarios.length === 0) {
-                container.innerHTML = '<div class="col-12 alert alert-error">Nenhum horário disponível.</div>';
+                container.innerHTML = '<div class="alert alert-danger">Nenhum horário disponível.</div>';
                 return;
             }
             
-            horarios.forEach(item => {
-                const col = document.createElement('div');
-                col.className = 'col-6 col-md-4 col-lg-3';
-                
+            horarios.forEach(horario => {
                 const btn = document.createElement('button');
-                btn.className = `time-slot w-100 ${item.disponivel ? '' : 'disabled'}`;
-                btn.textContent = item.horario;
-                btn.disabled = !item.disponivel;
+                btn.className = 'time-slot';
+                btn.textContent = horario;
                 
-                if (item.disponivel) {
-                    btn.addEventListener('click', function() {
-                        document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
-                        this.classList.add('selected');
-                        horarioSelecionado = item.horario;
-                        document.getElementById('dados-section').style.display = 'block';
-                        document.getElementById('btn-confirmar').style.display = 'block';
-                        
-                        // Rolagem suave para o formulário de dados
-                        setTimeout(() => {
-                            document.getElementById('dados-section').scrollIntoView({ 
-                                behavior: 'smooth', 
-                                block: 'start' 
-                            });
-                        }, 300);
-                    });
-                }
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    horarioSelecionado = horario;
+                    document.getElementById('dados-section').style.display = 'block';
+                    document.getElementById('btn-confirmar').style.display = 'block';
+                });
                 
-                col.appendChild(btn);
-                container.appendChild(col);
+                container.appendChild(btn);
             });
         }
         
-        function preencherResumoAgendamento() {
-            const nome = document.getElementById('nome').value.trim();
-            const telefone = document.getElementById('telefone').value.trim();
-            const email = document.getElementById('email').value.trim();
-            
-            document.getElementById('resumo-empresa').textContent = empresaSelecionada.nomeFantasia || "Empresa";
-            document.getElementById('resumo-servico').textContent = servicoSelecionado;
-            document.getElementById('resumo-prestador').textContent = prestadorSelecionado || "Não especificado";
-            document.getElementById('resumo-data').textContent = formatarData(dataSelecionada);
-            document.getElementById('resumo-horario').textContent = horarioSelecionado;
-            document.getElementById('resumo-cliente').textContent = nome;
-            document.getElementById('resumo-documento').textContent = documentoCliente;
-            document.getElementById('resumo-contato').textContent = telefone + (email ? ` (${email})` : '');
-            
-            document.getElementById('formulario-agendamento').style.display = 'none';
-            document.getElementById('resumo-agendamento').style.display = 'block';
-            
-            // Rolagem suave para o topo do resumo
-            setTimeout(() => {
-                document.getElementById('resumo-agendamento').scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'start' 
-                });
-            }, 100);
-        }
-        
         function confirmarAgendamento() {
-            if (agendamentoConfirmado) return;
-            
             const nome = document.getElementById('nome').value.trim();
             const telefone = document.getElementById('telefone').value.trim();
             const email = document.getElementById('email').value.trim();
@@ -955,31 +377,28 @@ nav ul li a {
                 return;
             }
             
-            const agendamento = {
+            // Preenche o resumo
+            document.getElementById('resumo-empresa').textContent = empresaSelecionada.nomeFantasia || "Empresa";
+            document.getElementById('resumo-servico').textContent = servicoSelecionado;
+            document.getElementById('resumo-prestador').textContent = prestadorSelecionado || "Não especificado";
+            document.getElementById('resumo-data').textContent = formatarData(dataSelecionada);
+            document.getElementById('resumo-horario').textContent = horarioSelecionado;
+            document.getElementById('resumo-cliente').textContent = nome;
+            document.getElementById('resumo-contato').textContent = telefone + (email ? ` (${email})` : '');
+            
+            // Mostra o resumo e esconde o formulário
+            document.getElementById('formulario-agendamento').style.display = 'none';
+            document.getElementById('resumo-agendamento').style.display = 'block';
+            
+            // Aqui você normalmente enviaria os dados para o Firebase
+            console.log("Agendamento confirmado:", {
                 servico: servicoSelecionado,
                 data: formatarDataFirestore(dataSelecionada),
                 horario: horarioSelecionado,
                 clienteNome: nome,
-                clienteDocumento: documentoCliente.replace(/\D/g, ''),
                 clienteTelefone: telefone,
-                clienteEmail: email || '',
-                status: "confirmado",
-                dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            if (prestadorSelecionado) agendamento.prestador = prestadorSelecionado;
-            
-            db.collection("usuarios").doc(empresaSelecionada.id)
-                .collection("agendamentos")
-                .add(agendamento)
-                .then(() => {
-                    agendamentoConfirmado = true;
-                    preencherResumoAgendamento();
-                })
-                .catch(err => {
-                    console.error("Erro ao confirmar:", err);
-                    mostrarErro("Erro ao confirmar agendamento.");
-                });
+                clienteEmail: email
+            });
         }
         
         // Inicialização
@@ -991,19 +410,13 @@ nav ul li a {
             // Máscara para CPF/CNPJ
             document.getElementById('documento').addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
-                
-                if (value.length <= 11) { // CPF
+                if (value.length <= 11) {
                     value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-                } else { // CNPJ
+                } else {
                     value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
                 }
-                
-                e.target.value = value.substring(0, value.length > 14 ? 18 : 14);
-                documentoCliente = e.target.value;
-                
-                if (value.replace(/\D/g, '').length >= 11) {
-                    verificarAgendamentoExistente(documentoCliente);
-                }
+                e.target.value = value;
+                documentoCliente = value;
             });
             
             // Máscara para telefone
