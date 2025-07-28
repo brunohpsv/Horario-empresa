@@ -205,7 +205,7 @@
             text-decoration: none;
         }
 
-        /* Estilos para a configuração de horários */
+        /* Estilos para as novas seções */
         .horarios-config {
             background-color: white;
             padding: 30px;
@@ -300,7 +300,6 @@
             display: none;
         }
 
-        /* Seção de almoço */
         .almoco-section {
             background-color: #f8f9fa;
             padding: 20px;
@@ -350,7 +349,6 @@
             margin-top: 10px;
         }
 
-        /* Seção de Relatório */
         .relatorio-section {
             background-color: white;
             padding: 30px;
@@ -395,7 +393,7 @@
         
         <div id="message" class="message"></div>
         
-        <!-- Seção de Configuração de Horários atualizada -->
+        <!-- Seção de Configuração de Horários (atualizada) -->
         <div class="horarios-config">
             <h3>CONFIGURAÇÃO DE HORÁRIOS DE ATENDIMENTO</h3>
             
@@ -490,8 +488,8 @@
                 <p>O sistema calculará automaticamente os horários disponíveis para agendamento.</p>
             </div>
         </div>
-        
-        <!-- Seção de Solicitação de Relatório atualizada -->
+
+        <!-- Seção de Solicitar Relatório (atualizada) -->
         <div class="relatorio-section">
             <h3>SOLICITAR RELATÓRIO</h3>
             <p>Solicite um relatório completo dos seus agendamentos.</p>
@@ -510,7 +508,6 @@
                 </div>
                 
                 <button type="submit" class="btn-salvar">Solicitar Relatório</button>
-                <div class="success-message" id="successMessageRelatorio">Solicitação enviada com sucesso!</div>
             </form>
             
             <div class="relatorio-info">
@@ -519,7 +516,8 @@
                 <p>Para dúvidas ou solicitações específicas, (por favor, colocar no assunto do e-mail: CNPJ/CPF - RELATÓRIO - DATA XX/XX/XXXX A XX/XX/XXXX) entre em contato: <strong>suportehorario@gmail.com</strong></p>
             </div>
         </div>
-        
+
+        <!-- Seção de Cadastro (original) -->
         <div class="section">
             <h2>Formulário de Cadastro</h2>
             <form id="empresaForm">
@@ -582,6 +580,9 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         
+        // Variável para armazenar dados do usuário
+        let currentUserData = null;
+        
         // Verificação de autenticação
         document.addEventListener('DOMContentLoaded', function() {
             auth.onAuthStateChanged(async (user) => {
@@ -589,24 +590,102 @@
                     // Usuário não autenticado, redireciona para login
                     window.location.href = 'https://horario.site/login.html';
                 } else {
-                    // Esconde o loader
-                    document.getElementById('loaderOverlay').style.display = 'none';
-                    
-                    // Carrega as configurações de horários se existirem
-                    loadHorariosConfig(user.uid);
-                }
-            });
-            
-            // Toggle para mostrar/ocultar horário de almoço
-            document.getElementById('temAlmoco').addEventListener('change', function() {
-                const almocoTimes = document.getElementById('almocoTimes');
-                if (this.checked) {
-                    almocoTimes.classList.add('active');
-                } else {
-                    almocoTimes.classList.remove('active');
+                    try {
+                        // Busca os dados do usuário no Firestore
+                        const userDoc = await db.collection('usuarios').where('email', '==', user.email).get();
+                        
+                        if (userDoc.empty) {
+                            throw new Error('Dados do usuário não encontrados');
+                        }
+                        
+                        // Pega o primeiro documento (deveria ter apenas um com o mesmo email)
+                        const doc = userDoc.docs[0];
+                        currentUserData = doc.data();
+                        currentUserData.id = doc.id;
+                        
+                        // Carrega os dados existentes
+                        loadExistingData();
+                        
+                        // Configura o toggle do horário de almoço
+                        document.getElementById('temAlmoco').addEventListener('change', function() {
+                            const almocoTimes = document.getElementById('almocoTimes');
+                            if (this.checked) {
+                                almocoTimes.classList.add('active');
+                            } else {
+                                almocoTimes.classList.remove('active');
+                            }
+                        });
+                        
+                        // Esconde o loader
+                        document.getElementById('loaderOverlay').style.display = 'none';
+                    } catch (error) {
+                        console.error('Erro ao carregar dados do usuário:', error);
+                        alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
+                        auth.signOut();
+                        window.location.href = 'https://horario.site/login.html';
+                    }
                 }
             });
         });
+
+        // Função para carregar dados existentes
+        function loadExistingData() {
+            if (!currentUserData) return;
+            
+            // Carrega dados do formulário de cadastro
+            if (currentUserData.id) {
+                document.getElementById('empresaId').value = currentUserData.id;
+            }
+            if (currentUserData.nomeFantasia) {
+                document.getElementById('empresaNome').value = currentUserData.nomeFantasia;
+            }
+            if (currentUserData.servicos) {
+                document.getElementById('empresaServicos').value = currentUserData.servicos;
+            }
+            if (currentUserData.telefone) {
+                document.getElementById('empresaTelefone').value = currentUserData.telefone;
+            }
+            if (currentUserData.email) {
+                document.getElementById('empresaEmail').value = currentUserData.email;
+            }
+            
+            // Carrega configurações de horários
+            if (currentUserData.horariosConfig) {
+                const horarios = currentUserData.horariosConfig;
+                
+                // Dias de funcionamento
+                if (horarios.diasFuncionamento) {
+                    horarios.diasFuncionamento.forEach(dia => {
+                        const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }
+                
+                // Horários
+                if (horarios.horarioAbertura) {
+                    document.getElementById('horarioAbertura').value = horarios.horarioAbertura;
+                }
+                if (horarios.horarioFechamento) {
+                    document.getElementById('horarioFechamento').value = horarios.horarioFechamento;
+                }
+                
+                // Horário de almoço
+                if (horarios.almocoInicio && horarios.almocoFim) {
+                    document.getElementById('temAlmoco').checked = true;
+                    document.getElementById('almocoTimes').classList.add('active');
+                    document.getElementById('almocoInicio').value = horarios.almocoInicio;
+                    document.getElementById('almocoFim').value = horarios.almocoFim;
+                }
+                
+                // Duração e intervalo
+                if (horarios.duracaoAtendimento) {
+                    document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento;
+                }
+                if (horarios.intervaloAtendimento) {
+                    document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento;
+                }
+            }
+        }
 
         // Função para mostrar mensagem
         function showMessage(type, text) {
@@ -617,44 +696,6 @@
             setTimeout(() => {
                 messageDiv.style.display = 'none';
             }, 5000);
-        }
-
-        // Carrega as configurações de horários do Firestore
-        async function loadHorariosConfig(userId) {
-            try {
-                const docRef = db.collection('usuarios').doc(userId).collection('Painel Individual').doc('horarios');
-                const doc = await docRef.get();
-                
-                if (doc.exists) {
-                    const data = doc.data();
-                    
-                    // Marca os dias selecionados
-                    if (data.diasFuncionamento) {
-                        data.diasFuncionamento.forEach(dia => {
-                            const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
-                            if (checkbox) checkbox.checked = true;
-                        });
-                    }
-                    
-                    // Preenche os horários
-                    if (data.horarioAbertura) document.getElementById('horarioAbertura').value = data.horarioAbertura;
-                    if (data.horarioFechamento) document.getElementById('horarioFechamento').value = data.horarioFechamento;
-                    
-                    // Preenche horário de almoço se existir
-                    if (data.almocoInicio && data.almocoFim) {
-                        document.getElementById('temAlmoco').checked = true;
-                        document.getElementById('almocoTimes').classList.add('active');
-                        document.getElementById('almocoInicio').value = data.almocoInicio;
-                        document.getElementById('almocoFim').value = data.almocoFim;
-                    }
-                    
-                    // Preenche duração e intervalo
-                    if (data.duracaoAtendimento) document.getElementById('duracaoAtendimento').value = data.duracaoAtendimento;
-                    if (data.intervaloAtendimento) document.getElementById('intervaloAtendimento').value = data.intervaloAtendimento;
-                }
-            } catch (error) {
-                console.error('Erro ao carregar configurações de horários:', error);
-            }
         }
 
         // Formulário de cadastro
@@ -668,20 +709,26 @@
             const empresaEmail = document.getElementById('empresaEmail').value;
             
             try {
-                // Referência para o documento do usuário específico
-                const userId = auth.currentUser.uid;
-                const empresaRef = db.collection('usuarios').doc(userId)
-                    .collection('Painel Individual').doc(empresaId);
+                // Referência para o documento do usuário
+                const userId = currentUserData.id;
+                const empresaRef = db.collection('usuarios').doc(userId);
                 
                 // Salva os dados
                 await empresaRef.set({
                     id: empresaId,
-                    nome: empresaNome,
-                    servicos: empresaServicos.split('/').map(s => s.trim()),
+                    nomeFantasia: empresaNome,
+                    servicos: empresaServicos,
                     telefone: empresaTelefone,
                     email: empresaEmail,
-                    dataCadastro: new Date()
-                });
+                    dataAtualizacao: new Date()
+                }, { merge: true });
+                
+                // Atualiza os dados locais
+                currentUserData.id = empresaId;
+                currentUserData.nomeFantasia = empresaNome;
+                currentUserData.servicos = empresaServicos;
+                currentUserData.telefone = empresaTelefone;
+                currentUserData.email = empresaEmail;
                 
                 showMessage('success', 'Informações salvas com sucesso!');
             } catch (error) {
@@ -694,8 +741,7 @@
         document.getElementById('horariosForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const userId = auth.currentUser.uid;
-            if (!userId) return;
+            if (!currentUserData) return;
             
             try {
                 // Coletar dados do formulário
@@ -741,8 +787,12 @@
                 }
                 
                 // Salvar no Firebase
-                const docRef = db.collection('usuarios').doc(userId).collection('Painel Individual').doc('horarios');
-                await docRef.set(config);
+                await db.collection('usuarios').doc(currentUserData.id).set({
+                    horariosConfig: config
+                }, { merge: true });
+                
+                // Atualiza os dados locais
+                currentUserData.horariosConfig = config;
                 
                 // Mostra mensagem de sucesso
                 const successMessage = document.getElementById('successMessageHorarios');
@@ -752,7 +802,7 @@
                 }, 3000);
             } catch (error) {
                 console.error('Erro ao salvar configurações:', error);
-                alert('Erro ao salvar configurações. Tente novamente.');
+                showMessage('error', 'Erro ao salvar configurações. Tente novamente.');
             }
         });
         
@@ -760,33 +810,25 @@
         document.getElementById('relatorioForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const userId = auth.currentUser.uid;
-            if (!userId) return;
+            if (!currentUserData) return;
             
             const periodo = document.getElementById('periodoRelatorio').value;
             
             try {
-                // Salva a solicitação no Firestore
-                const relatorioRef = db.collection('usuarios').doc(userId).collection('solicitacoes').doc();
-                await relatorioRef.set({
-                    tipo: 'relatorio',
-                    periodo: periodo,
-                    dataSolicitacao: new Date().toISOString(),
+                // Cria um documento na coleção de solicitações de relatório
+                await db.collection('solicitacoesRelatorio').add({
+                    userId: currentUserData.id,
+                    email: currentUserData.email,
+                    periodoDias: parseInt(periodo),
+                    dataSolicitacao: new Date(),
                     status: 'pendente'
                 });
                 
                 // Mostra mensagem de sucesso
-                const successMessage = document.getElementById('successMessageRelatorio');
-                successMessage.style.display = 'block';
-                setTimeout(() => {
-                    successMessage.style.display = 'none';
-                }, 3000);
-                
-                // Mostra alerta
                 alert(`Relatório solicitado com sucesso! Você receberá um e-mail com o relatório dos últimos ${periodo} dias em até 24 horas.`);
             } catch (error) {
                 console.error('Erro ao solicitar relatório:', error);
-                alert('Erro ao solicitar relatório. Tente novamente.');
+                showMessage('error', 'Erro ao solicitar relatório. Tente novamente.');
             }
         });
 
