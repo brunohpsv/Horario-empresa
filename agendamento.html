@@ -456,69 +456,35 @@
             carregarSelectServicos();
         }
         
-        function carregarServicosEAtendentes() {
-    if (!empresaSelecionada) return;
-
-    // Primeiro, verifica os dados diretamente no documento da empresa
-    if (empresaSelecionada.servicoAtendente) {
-        processarServicosAtendentes(empresaSelecionada.servicoAtendente);
-    } else if (empresaSelecionada.atendentes) {
-        processarAtendentes(empresaSelecionada.atendentes);
-    } else if (empresaSelecionada.servico) {
-        processarServicos(empresaSelecionada.servico);
-    }
-
-    // Agora busca na subcoleção painelIndividual
-    db.collection("usuarios").doc(empresaSelecionada.id)
-        .collection("painelIndividual")
-        .get()
-        .then(querySnapshot => {
-            querySnapshot.forEach(doc => {
-                const prestadorData = doc.data();
-                
-                // Processa nomeCompleto e servicos
-                if (prestadorData.nomeCompleto && prestadorData.servicos) {
-                    const nomePrestador = prestadorData.nomeCompleto;
-                    let servicosPrestador = [];
-                    
-                    // Processa serviços que podem vir como string ou array
-                    if (typeof prestadorData.servicos === 'string') {
-                        servicosPrestador = prestadorData.servicos.split(/[\n,]/).map(s => s.trim()).filter(s => s);
-                    } else if (Array.isArray(prestadorData.servicos)) {
-                        servicosPrestador = [...prestadorData.servicos];
+        function processarServicosAtendentes(dados) {
+            if (typeof dados === 'string') {
+                dados.split('\n').filter(linha => linha.trim() !== '').forEach(linha => {
+                    const partes = linha.split('-').map(p => p.trim());
+                    if (partes.length === 2) {
+                        const servico = partes[0];
+                        const nomesAtendentes = partes[1].split(',').map(n => n.trim());
+                        
+                        if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
+                        
+                        nomesAtendentes.forEach(nome => {
+                            atendentes.push({ nome, servico });
+                        });
                     }
-                    
-                    // Adiciona cada combinação de prestador-serviço
-                    servicosPrestador.forEach(servico => {
-                        atendentes.push({ nome: nomePrestador, servico });
-                        if (!servicosDisponiveis.includes(servico)) {
-                            servicosDisponiveis.push(servico);
-                        }
-                    });
-                }
-                
-                // Processa configurações de horários individuais se existirem
-                if (prestadorData.horariosConfig && prestadorSelecionado === prestadorData.nomeCompleto) {
-                    Object.assign(horariosConfig, prestadorData.horariosConfig);
-                }
-            });
-            
-            // Ordena os serviços e carrega o select
-            servicosDisponiveis.sort((a, b) => a.localeCompare(b));
-            carregarSelectServicos();
-        })
-        .catch(err => {
-            console.error("Erro ao carregar painel individual:", err);
-            // Continua mesmo com erro, usando apenas os dados do documento principal
-            servicosDisponiveis.sort((a, b) => a.localeCompare(b));
-            carregarSelectServicos();
-            
-            if (servicosDisponiveis.length === 0) {
-                mostrarErro("Esta empresa ainda não configurou seus serviços.");
-                document.getElementById('servico').innerHTML = '<option value="">Nenhum serviço disponível</option>';
+                });
+            } else if (Array.isArray(dados)) {
+                dados.forEach(item => {
+                    if (item.servico && item.atendentes) {
+                        if (!servicosDisponiveis.includes(item.servico)) servicosDisponiveis.push(item.servico);
+                        
+                        item.atendentes.forEach(nome => {
+                            atendentes.push({ nome, servico: item.servico });
+                        });
+                    }
+                });
             }
-        });
-}
+            
+            servicosDisponiveis.sort((a, b) => a.localeCompare(b));
+        }
         
         function processarAtendentes(dados) {
             const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
@@ -569,58 +535,35 @@
         }
         
         function atualizarPrestadores() {
-    const prestadorSelect = document.getElementById('prestador');
-    prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
-    prestadorSelecionado = null;
-    
-    if (!servicoSelecionado || atendentes.length === 0) {
-        document.getElementById('prestador-group').style.display = 'none';
-        return;
-    }
-    
-    const prestadores = [...new Set(
-        atendentes
-            .filter(a => a.servico === servicoSelecionado)
-            .map(a => a.nome)
-    )].sort((a, b) => a.localeCompare(b));
-    
-    if (prestadores.length > 0) {
-        prestadores.forEach(nome => {
-            prestadorSelect.innerHTML += `<option value="${nome}">${nome}</option>`;
-        });
-        
-        document.getElementById('prestador-group').style.display = 'block';
-        
-        // Adiciona evento para carregar horários específicos quando selecionar um prestador
-        prestadorSelect.addEventListener('change', function() {
-            prestadorSelecionado = this.value;
+            const prestadorSelect = document.getElementById('prestador');
+            prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
+            prestadorSelecionado = null;
             
-            // Busca configurações específicas do prestador na subcoleção
-            db.collection("usuarios").doc(empresaSelecionada.id)
-                .collection("painelIndividual")
-                .where("nomeCompleto", "==", prestadorSelecionado)
-                .limit(1)
-                .get()
-                .then(querySnapshot => {
-                    if (!querySnapshot.empty) {
-                        const prestadorDoc = querySnapshot.docs[0].data();
-                        if (prestadorDoc.horariosConfig) {
-                            Object.assign(horariosConfig, prestadorDoc.horariosConfig);
-                        }
-                    }
-                    
-                    if (dataSelecionada) carregarHorariosDisponiveis();
+            if (!servicoSelecionado || atendentes.length === 0) {
+                document.getElementById('prestador-group').style.display = 'none';
+                return;
+            }
+            
+            const prestadores = [...new Set(
+                atendentes
+                    .filter(a => a.servico === servicoSelecionado)
+                    .map(a => a.nome)
+            )].sort((a, b) => a.localeCompare(b));
+            
+            if (prestadores.length > 0) {
+                prestadores.forEach(nome => {
+                    prestadorSelect.innerHTML += `<option value="${nome}">${nome}</option>`;
                 });
-        });
-        
-        if (prestadores.length === 1) {
-            prestadorSelect.value = prestadores[0];
-            prestadorSelecionado = prestadores[0];
+                
+                document.getElementById('prestador-group').style.display = 'block';
+                if (prestadores.length === 1) {
+                    prestadorSelect.value = prestadores[0];
+                    prestadorSelecionado = prestadores[0];
+                }
+            } else {
+                document.getElementById('prestador-group').style.display = 'none';
+            }
         }
-    } else {
-        document.getElementById('prestador-group').style.display = 'none';
-    }
-}
         
         function verificarAgendamentoExistente(documento) {
             const documentoLimpo = documento.replace(/\D/g, '');
@@ -895,6 +838,183 @@
                 e.target.value = value.substring(0, 15);
             });
         });
+	// Adicione esta função junto com as outras funções auxiliares
+async function carregarPrestadoresPainelIndividual() {
+    if (!empresaSelecionada) return;
+    
+    try {
+        const painelRef = db.collection("usuarios").doc(empresaSelecionada.id)
+                          .collection("painelIndividual");
+        const snapshot = await painelRef.get();
+        
+        if (snapshot.empty) {
+            console.log("Nenhum prestador encontrado no painel individual.");
+            return;
+        }
+        
+        snapshot.forEach(doc => {
+            const prestadorData = doc.data();
+            const nomePrestador = prestadorData.nomeCompleto || doc.id;
+            
+            // Processar serviços do prestador
+            if (prestadorData.servicos) {
+                let servicosPrestador = [];
+                
+                if (typeof prestadorData.servicos === 'string') {
+                    servicosPrestador = prestadorData.servicos.split(/[\n,]/)
+                        .map(s => s.trim())
+                        .filter(s => s.length > 0);
+                } else if (Array.isArray(prestadorData.servicos)) {
+                    servicosPrestador = [...prestadorData.servicos];
+                }
+                
+                // Adicionar cada serviço do prestador
+                servicosPrestador.forEach(servico => {
+                    // Adicionar serviço à lista geral se não existir
+                    if (!servicosDisponiveis.includes(servico)) {
+                        servicosDisponiveis.push(servico);
+                    }
+                    
+                    // Adicionar prestador à lista de atendentes
+                    atendentes.push({
+                        nome: nomePrestador,
+                        servico: servico,
+                        idPainel: doc.id,
+                        horariosConfig: prestadorData.horarios || null
+                    });
+                });
+            }
+        });
+        
+        // Ordenar serviços alfabeticamente
+        servicosDisponiveis.sort((a, b) => a.localeCompare(b));
+        
+    } catch (err) {
+        console.error("Erro ao carregar painel individual:", err);
+    }
+}
+
+// Modifique a função carregarServicosEAtendentes para incluir a chamada ao painel individual
+async function carregarServicosEAtendentes() {
+    if (!empresaSelecionada) return;
+    
+    // Limpar arrays antes de recarregar
+    servicosDisponiveis = [];
+    atendentes = [];
+    
+    // Carregar dados principais da empresa
+    if (empresaSelecionada.servicoAtendente) {
+        processarServicosAtendentes(empresaSelecionada.servicoAtendente);
+    } else if (empresaSelecionada.atendentes) {
+        processarAtendentes(empresaSelecionada.atendentes);
+    } else if (empresaSelecionada.servico) {
+        processarServicos(empresaSelecionada.servico);
+    }
+    
+    // Carregar dados do painel individual (prestadores independentes)
+    await carregarPrestadoresPainelIndividual();
+    
+    if (servicosDisponiveis.length === 0) {
+        mostrarErro("Esta empresa ainda não configurou seus serviços.");
+        document.getElementById('servico').innerHTML = '<option value="">Nenhum serviço disponível</option>';
+        return;
+    }
+    
+    carregarSelectServicos();
+}
+
+// Modifique a função carregarHorariosDisponiveis para considerar horários específicos do prestador
+async function carregarHorariosDisponiveis() {
+    if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado) return;
+    
+    const container = document.getElementById('horarios-container');
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3">Carregando...</p></div>';
+    
+    document.getElementById('horario-section').style.display = 'block';
+    document.getElementById('dados-section').style.display = 'none';
+    document.getElementById('btn-confirmar').style.display = 'none';
+    
+    const dataFormatada = formatarDataFirestore(dataSelecionada);
+    const hojeFormatado = formatarDataFirestore(new Date());
+    const isHoje = dataFormatada === hojeFormatado;
+    const agora = new Date();
+    
+    try {
+        // Verificar se o prestador tem configuração de horários específica
+        let configHorariosPrestador = null;
+        if (prestadorSelecionado) {
+            const prestador = atendentes.find(a => 
+                a.nome === prestadorSelecionado && a.servico === servicoSelecionado
+            );
+            if (prestador && prestador.horariosConfig) {
+                configHorariosPrestador = prestador.horariosConfig;
+            }
+        }
+        
+        // Usar configuração do prestador se existir, senão usar a geral
+        const config = configHorariosPrestador || horariosConfig;
+        
+        // Consultar agendamentos existentes
+        let query = db.collection("usuarios").doc(empresaSelecionada.id)
+            .collection("agendamentos")
+            .where("data", "==", dataFormatada)
+            .where("servico", "==", servicoSelecionado)
+            .where("status", "==", "confirmado");
+        
+        if (prestadorSelecionado) {
+            query = query.where("prestador", "==", prestadorSelecionado);
+        }
+        
+        const querySnapshot = await query.get();
+        const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
+        
+        // Calcular horários disponíveis
+        const horariosBase = calcularHorariosDisponiveis(config);
+        
+        const horariosDisponiveis = horariosBase.map(horario => {
+            const [h, m] = horario.split(':').map(Number);
+            const horarioValido = !isHoje || (h > agora.getHours() || (h === agora.getHours() && m > agora.getMinutes()));
+            
+            return {
+                horario,
+                disponivel: horarioValido && !horariosOcupados.includes(horario)
+            };
+              
+        exibirHorariosDisponiveis(horariosDisponiveis);
+        
+    } catch (err) {
+        console.error("Erro ao carregar horários:", err);
+        container.innerHTML = '<div class="alert alert-danger">Erro ao carregar horários.</div>';
+    }
+}
+
+// Atualize a função calcularHorariosDisponiveis para aceitar configuração específica
+function calcularHorariosDisponiveis(config = horariosConfig) {
+    const horarios = [];
+    const toMinutes = timeStr => {
+        const [h, m] = timeStr.split(':').map(Number);
+        return h * 60 + m;
+    };
+    
+    const toTimeStr = minutes => {
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    };
+    
+    const inicio = toMinutes(config.horarioAbertura || horariosConfig.horarioAbertura);
+    const fim = toMinutes(config.horarioFechamento || horariosConfig.horarioFechamento);
+    const duracao = config.duracaoAtendimento || horariosConfig.duracaoAtendimento;
+    const intervalo = config.intervaloAtendimento || horariosConfig.intervaloAtendimento;
+    const totalPorAtendimento = duracao + intervalo;
+    
+    for (let time = inicio; time + duracao <= fim; time += totalPorAtendimento) {
+        horarios.push(toTimeStr(time));
+    }
+    
+    return horarios;
+}
+});
     </script>
 </body>
 </html>
