@@ -505,6 +505,59 @@
         let geolocationActive = false;
         let watchId = null;
 
+        // Função para agrupar empresas mãe e filhas (PI -)
+        function agruparEmpresas(empresas) {
+            const empresasAgrupadas = [];
+            const empresasMap = new Map();
+            
+            // Primeiro, identificamos todas as empresas mãe e filhas
+            empresas.forEach(empresa => {
+                const nome = empresa.nomeFantasia || '';
+                
+                // Verifica se é uma empresa filha (começa com "PI -")
+                if (nome.startsWith("PI -")) {
+                    const nomeMae = nome.substring(4).trim();
+                    if (!empresasMap.has(nomeMae)) {
+                        empresasMap.set(nomeMae, { filhas: [] });
+                    }
+                    empresasMap.get(nomeMae).filhas.push(empresa);
+                } else {
+                    // É uma empresa mãe ou independente
+                    if (!empresasMap.has(nome)) {
+                        empresasMap.set(nome, { 
+                            mae: empresa,
+                            filhas: [] 
+                        });
+                    } else {
+                        // Se já existe no mapa (pode ser que a mãe venha depois das filhas)
+                        empresasMap.get(nome).mae = empresa;
+                    }
+                }
+            });
+            
+            // Agora criamos a lista consolidada
+            empresasMap.forEach((grupo, nome) => {
+                if (grupo.mae) {
+                    // Se tem empresa mãe, adiciona ela com as filhas consolidadas
+                    const empresaConsolidada = { ...grupo.mae };
+                    
+                    // Adiciona informações das filhas se necessário
+                    if (grupo.filhas.length > 0) {
+                        empresaConsolidada.filhas = grupo.filhas;
+                    }
+                    
+                    empresasAgrupadas.push(empresaConsolidada);
+                } else {
+                    // Se não tem mãe, mas tem filhas, adiciona a primeira filha como representante
+                    if (grupo.filhas.length > 0) {
+                        empresasAgrupadas.push(grupo.filhas[0]);
+                    }
+                }
+            });
+            
+            return empresasAgrupadas;
+        }
+
         // Função para calcular distância entre coordenadas (Haversine formula)
         function calcularDistancia(lat1, lon1, lat2, lon2) {
             const R = 6371; // Raio da Terra em km
@@ -527,6 +580,11 @@
             empresaElement.setAttribute('aria-label', `Empresa ${empresa.nomeFantasia || 'sem nome'}`);
             empresaElement.tabIndex = 0;
             
+            // Remove "PI -" do nome se existir
+            const nomeExibicao = empresa.nomeFantasia ? 
+                empresa.nomeFantasia.replace(/^PI -/, '') : 
+                'Nome não informado';
+            
             const enderecoCompleto = [
                 empresa.endereco,
                 empresa.numero ? ', ' + empresa.numero : '',
@@ -543,7 +601,7 @@
             
             empresaElement.innerHTML = `
                 <div class="empresa-info">
-                    <h2 class="empresa-nome">${empresa.nomeFantasia || 'Nome não informado'}${distanciaBadge}</h2>
+                    <h2 class="empresa-nome">${nomeExibicao}${distanciaBadge}</h2>
                     <address class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</address>
                 </div>
                 <div class="divider"></div>
@@ -578,20 +636,23 @@
                 return;
             }
             
+            // Agrupa empresas mãe e filhas antes de exibir
+            const empresasAgrupadas = agruparEmpresas(empresas);
+            
             // Limpa completamente a lista antes de adicionar novos itens
             listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid" role="list"></div>';
             const gridEmpresas = document.getElementById('empresas-grid');
             
             // Ordena por distância se disponível e ativo
             if (geolocationActive && userLocation) {
-                empresas.sort((a, b) => {
+                empresasAgrupadas.sort((a, b) => {
                     const distA = a.distancia || Infinity;
                     const distB = b.distancia || Infinity;
                     return distA - distB;
                 });
             }
             
-            empresas.forEach(empresa => {
+            empresasAgrupadas.forEach(empresa => {
                 const empresaElement = createEmpresaElement(empresa);
                 empresaElement.dataset.id = empresa.id || JSON.stringify(empresa);
                 empresaElement.setAttribute('role', 'listitem');
