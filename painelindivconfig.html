@@ -598,26 +598,23 @@
         // Função para carregar dados existentes
         async function loadExistingData(userId) {
             try {
-                // Referência para o documento do painel individual do usuário
-                const painelRef = db.collection('painel_individual').doc(userId);
+                // Referência para o documento da empresa do usuário
+                const empresaRef = db.collection('empresas').doc(userId);
                 
                 // Tenta carregar as informações
-                const docSnapshot = await painelRef.get();
+                const docSnapshot = await empresaRef.get();
                 
                 if (docSnapshot.exists) {
                     const data = docSnapshot.data();
                     
                     // Preenche informações da empresa
-                    if (data.empresa) {
-                        const empresa = data.empresa;
-                        document.getElementById('empresaId').value = empresa.id || '';
-                        document.getElementById('empresaNome').value = empresa.nome || '';
-                        document.getElementById('empresaServicos').value = empresa.servicos ? empresa.servicos.join('/') : '';
-                        document.getElementById('empresaTelefone').value = empresa.telefone || '';
-                        document.getElementById('empresaEmail').value = empresa.email || '';
-                    }
+                    document.getElementById('empresaId').value = data.id || '';
+                    document.getElementById('empresaNome').value = data.nome || '';
+                    document.getElementById('empresaServicos').value = data.servicos ? data.servicos.join('/') : '';
+                    document.getElementById('empresaTelefone').value = data.telefone || '';
+                    document.getElementById('empresaEmail').value = data.email || '';
                     
-                    // Preenche configurações de horários
+                    // Preenche configurações de horários se existirem
                     if (data.horarios) {
                         const horarios = data.horarios;
                         
@@ -705,20 +702,17 @@
                     return;
                 }
                 
-                // Referência para o documento do painel individual do usuário
-                const painelRef = db.collection('painel_individual').doc(userId);
+                // Referência para o documento da empresa do usuário
+                const empresaRef = db.collection('empresas').doc(userId);
                 
                 // Objeto com todos os dados a serem salvos
                 const dataToSave = {
-                    userId: userId,
-                    empresa: {
-                        id: empresaId,
-                        nome: empresaNome,
-                        servicos: empresaServicos.split('/').map(s => s.trim()),
-                        telefone: empresaTelefone,
-                        email: empresaEmail,
-                        dataAtualizacao: new Date().toISOString()
-                    },
+                    id: empresaId,
+                    nome: empresaNome,
+                    servicos: empresaServicos.split('/').map(s => s.trim()),
+                    telefone: empresaTelefone,
+                    email: empresaEmail,
+                    dataAtualizacao: new Date().toISOString(),
                     horarios: {
                         diasFuncionamento: diasSelecionados,
                         horarioAbertura: horarioAbertura,
@@ -735,8 +729,8 @@
                     dataToSave.horarios.almocoFim = almocoFim;
                 }
                 
-                // Salva todos os dados no Firestore
-                await painelRef.set(dataToSave, { merge: true });
+                // Salva todos os dados no Firestore no documento da empresa
+                await empresaRef.set(dataToSave, { merge: true });
                 
                 // Mostra mensagem de sucesso
                 showMessage('success', 'Todas as configurações foram salvas com sucesso!');
