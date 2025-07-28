@@ -204,6 +204,174 @@
             color: #4CAF50;
             text-decoration: none;
         }
+
+        /* Estilos para a configuração de horários */
+        .horarios-config {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .horarios-config h3 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .dias-semana {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dia-checkbox {
+            display: flex;
+            align-items: center;
+            background: #f5f5f5;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .dia-checkbox:hover {
+            background: #e9e9e9;
+        }
+
+        .dia-checkbox input {
+            margin-right: 8px;
+        }
+
+        .horarios-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .horario-input {
+            flex: 1;
+        }
+
+        .btn-salvar {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-salvar:hover {
+            background-color: #45a049;
+        }
+
+        .horarios-exemplo {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        .horarios-exemplo h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .horarios-exemplo ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .horarios-exemplo li {
+            margin-bottom: 5px;
+        }
+
+        .success-message {
+            color: #4CAF50;
+            margin-top: 10px;
+            font-weight: bold;
+            display: none;
+        }
+
+        /* Seção de almoço */
+        .almoco-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .almoco-toggle {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        
+        .almoco-toggle input {
+            margin-right: 10px;
+        }
+        
+        .almoco-toggle label {
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .almoco-times {
+            display: none;
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .almoco-times.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .almoco-description {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        /* Seção de Relatório */
+        .relatorio-section {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        
+        .relatorio-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .relatorio-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -227,16 +395,129 @@
         
         <div id="message" class="message"></div>
         
-        <div class="section">
-            <h2>Configuração de Horários de Atendimento</h2>
-            <p>Configure os horários de atendimento da sua empresa.</p>
-            <button id="configHorariosBtn" class="btn-secondary">Configurar Horários</button>
+        <!-- Seção de Configuração de Horários atualizada -->
+        <div class="horarios-config">
+            <h3>CONFIGURAÇÃO DE HORÁRIOS DE ATENDIMENTO</h3>
+            
+            <form id="horariosForm">
+                <div class="form-group">
+                    <label>Dias de funcionamento:</label>
+                    <div class="dias-semana" id="diasSemana">
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="1"> Segunda</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="2"> Terça</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="3"> Quarta</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="4"> Quinta</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="5"> Sexta</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="6"> Sábado</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="0"> Domingo</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Horário de funcionamento:</label>
+                    <div class="horarios-container">
+                        <div class="horario-input">
+                            <label>Abertura</label>
+                            <input type="time" id="horarioAbertura" required>
+                        </div>
+                        <div class="horario-input">
+                            <label>Fechamento</label>
+                            <input type="time" id="horarioFechamento" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seção de almoço -->
+                <div class="almoco-section">
+                    <div class="almoco-toggle">
+                        <input type="checkbox" id="temAlmoco">
+                        <label for="temAlmoco">Definir horário de almoço</label>
+                    </div>
+                    
+                    <p class="almoco-description">
+                        Marque esta opção se seu estabelecimento fecha para almoço. Isso criará um intervalo no meio do dia onde não serão permitidos agendamentos.
+                    </p>
+                    
+                    <div class="almoco-times" id="almocoTimes">
+                        <div class="horarios-container">
+                            <div class="horario-input">
+                                <label>Início do almoço</label>
+                                <input type="time" id="almocoInicio">
+                            </div>
+                            <div class="horario-input">
+                                <label>Fim do almoço</label>
+                                <input type="time" id="almocoFim">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="duracaoAtendimento">Duração de cada atendimento (minutos):</label>
+                    <select id="duracaoAtendimento" required>
+                        <option value="15">15 minutos</option>
+                        <option value="30" selected>30 minutos</option>
+                        <option value="45">45 minutos</option>
+                        <option value="60">60 minutos</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="intervaloAtendimento">Intervalo entre atendimentos (minutos):</label>
+                    <select id="intervaloAtendimento" required>
+                        <option value="0">Sem intervalo</option>
+                        <option value="5">5 minutos</option>
+                        <option value="10">10 minutos</option>
+                        <option value="15" selected>15 minutos</option>
+                        <option value="20">20 minutos</option>
+                        <option value="30">30 minutos</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-salvar">Salvar Configurações</button>
+                <div class="success-message" id="successMessageHorarios">Configurações salvas com sucesso!</div>
+            </form>
+
+            <div class="horarios-exemplo">
+                <h4>Como funciona:</h4>
+                <ul>
+                    <li>Selecione os dias da semana em que seu estabelecimento está aberto</li>
+                    <li>Defina o horário de abertura e fechamento</li>
+                    <li>Marque a opção "Definir horário de almoço" se necessário</li>
+                    <li>Escolha quanto tempo dura cada atendimento</li>
+                    <li>Defina um intervalo entre os atendimentos (opcional)</li>
+                </ul>
+                <p>O sistema calculará automaticamente os horários disponíveis para agendamento.</p>
+            </div>
         </div>
         
-        <div class="section">
-            <h2>Solicitar Relatório</h2>
-            <p>Gere relatórios de agendamentos e atendimentos.</p>
-            <button id="solicitarRelatorioBtn" class="btn-secondary">Solicitar Relatório</button>
+        <!-- Seção de Solicitação de Relatório atualizada -->
+        <div class="relatorio-section">
+            <h3>SOLICITAR RELATÓRIO</h3>
+            <p>Solicite um relatório completo dos seus agendamentos.</p>
+            
+            <form id="relatorioForm">
+                <div class="form-group">
+                    <label for="periodoRelatorio">Período do relatório:</label>
+                    <select id="periodoRelatorio" required>
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="15">Últimos 15 dias</option>
+                        <option value="30" selected>Últimos 30 dias</option>
+                        <option value="90">Últimos 3 meses</option>
+                        <option value="180">Últimos 6 meses</option>
+                        <option value="365">Últimos 12 meses</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn-salvar">Solicitar Relatório</button>
+                <div class="success-message" id="successMessageRelatorio">Solicitação enviada com sucesso!</div>
+            </form>
+            
+            <div class="relatorio-info">
+                <p><strong>Como funciona:</strong> Ao solicitar o relatório, nossa equipe irá preparar um arquivo com todos os dados dos seus agendamentos no período selecionado.</p>
+                <p>O relatório será enviado para o e-mail cadastrado no prazo máximo de 24 horas.</p>
+                <p>Para dúvidas ou solicitações específicas, (por favor, colocar no assunto do e-mail: CNPJ/CPF - RELATÓRIO - DATA XX/XX/XXXX A XX/XX/XXXX) entre em contato: <strong>suportehorario@gmail.com</strong></p>
+            </div>
         </div>
         
         <div class="section">
@@ -310,6 +591,19 @@
                 } else {
                     // Esconde o loader
                     document.getElementById('loaderOverlay').style.display = 'none';
+                    
+                    // Carrega as configurações de horários se existirem
+                    loadHorariosConfig(user.uid);
+                }
+            });
+            
+            // Toggle para mostrar/ocultar horário de almoço
+            document.getElementById('temAlmoco').addEventListener('change', function() {
+                const almocoTimes = document.getElementById('almocoTimes');
+                if (this.checked) {
+                    almocoTimes.classList.add('active');
+                } else {
+                    almocoTimes.classList.remove('active');
                 }
             });
         });
@@ -325,6 +619,44 @@
             }, 5000);
         }
 
+        // Carrega as configurações de horários do Firestore
+        async function loadHorariosConfig(userId) {
+            try {
+                const docRef = db.collection('usuarios').doc(userId).collection('Painel Individual').doc('horarios');
+                const doc = await docRef.get();
+                
+                if (doc.exists) {
+                    const data = doc.data();
+                    
+                    // Marca os dias selecionados
+                    if (data.diasFuncionamento) {
+                        data.diasFuncionamento.forEach(dia => {
+                            const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                    
+                    // Preenche os horários
+                    if (data.horarioAbertura) document.getElementById('horarioAbertura').value = data.horarioAbertura;
+                    if (data.horarioFechamento) document.getElementById('horarioFechamento').value = data.horarioFechamento;
+                    
+                    // Preenche horário de almoço se existir
+                    if (data.almocoInicio && data.almocoFim) {
+                        document.getElementById('temAlmoco').checked = true;
+                        document.getElementById('almocoTimes').classList.add('active');
+                        document.getElementById('almocoInicio').value = data.almocoInicio;
+                        document.getElementById('almocoFim').value = data.almocoFim;
+                    }
+                    
+                    // Preenche duração e intervalo
+                    if (data.duracaoAtendimento) document.getElementById('duracaoAtendimento').value = data.duracaoAtendimento;
+                    if (data.intervaloAtendimento) document.getElementById('intervaloAtendimento').value = data.intervaloAtendimento;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações de horários:', error);
+            }
+        }
+
         // Formulário de cadastro
         document.getElementById('empresaForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -337,7 +669,7 @@
             
             try {
                 // Referência para o documento do usuário específico
-                const userId = 'rluUgTA0OeShylKBt3Tf73sdU952';
+                const userId = auth.currentUser.uid;
                 const empresaRef = db.collection('usuarios').doc(userId)
                     .collection('Painel Individual').doc(empresaId);
                 
@@ -358,16 +690,104 @@
             }
         });
 
-        // Botão de Configurar Horários
-        document.getElementById('configHorariosBtn').addEventListener('click', function() {
-            alert('Redirecionando para a configuração de horários...');
-            // Aqui você pode redirecionar para outra página ou abrir um modal
+        // Formulário de Configuração de Horários
+        document.getElementById('horariosForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userId = auth.currentUser.uid;
+            if (!userId) return;
+            
+            try {
+                // Coletar dados do formulário
+                const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
+                const horarioAbertura = document.getElementById('horarioAbertura').value;
+                const horarioFechamento = document.getElementById('horarioFechamento').value;
+                const temAlmoco = document.getElementById('temAlmoco').checked;
+                const almocoInicio = temAlmoco ? document.getElementById('almocoInicio').value : null;
+                const almocoFim = temAlmoco ? document.getElementById('almocoFim').value : null;
+                const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
+                const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
+                
+                // Validação básica
+                if (diasSelecionados.length === 0) {
+                    alert('Selecione pelo menos um dia de funcionamento');
+                    return;
+                }
+                
+                if (!horarioAbertura || !horarioFechamento) {
+                    alert('Preencha os horários de abertura e fechamento');
+                    return;
+                }
+                
+                if (temAlmoco && (!almocoInicio || !almocoFim)) {
+                    alert('Preencha os horários de início e fim do almoço');
+                    return;
+                }
+                
+                // Criar objeto de configuração
+                const config = {
+                    diasFuncionamento: diasSelecionados,
+                    horarioAbertura,
+                    horarioFechamento,
+                    duracaoAtendimento: parseInt(duracaoAtendimento),
+                    intervaloAtendimento: parseInt(intervaloAtendimento),
+                    ultimaAtualizacao: new Date().toISOString()
+                };
+                
+                // Adiciona horário de almoço se necessário
+                if (temAlmoco) {
+                    config.almocoInicio = almocoInicio;
+                    config.almocoFim = almocoFim;
+                }
+                
+                // Salvar no Firebase
+                const docRef = db.collection('usuarios').doc(userId).collection('Painel Individual').doc('horarios');
+                await docRef.set(config);
+                
+                // Mostra mensagem de sucesso
+                const successMessage = document.getElementById('successMessageHorarios');
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                alert('Erro ao salvar configurações. Tente novamente.');
+            }
         });
-
-        // Botão de Solicitar Relatório
-        document.getElementById('solicitarRelatorioBtn').addEventListener('click', function() {
-            alert('Solicitação de relatório enviada. Você receberá por e-mail.');
-            // Implemente a lógica para gerar o relatório
+        
+        // Formulário de Solicitação de Relatório
+        document.getElementById('relatorioForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userId = auth.currentUser.uid;
+            if (!userId) return;
+            
+            const periodo = document.getElementById('periodoRelatorio').value;
+            
+            try {
+                // Salva a solicitação no Firestore
+                const relatorioRef = db.collection('usuarios').doc(userId).collection('solicitacoes').doc();
+                await relatorioRef.set({
+                    tipo: 'relatorio',
+                    periodo: periodo,
+                    dataSolicitacao: new Date().toISOString(),
+                    status: 'pendente'
+                });
+                
+                // Mostra mensagem de sucesso
+                const successMessage = document.getElementById('successMessageRelatorio');
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+                
+                // Mostra alerta
+                alert(`Relatório solicitado com sucesso! Você receberá um e-mail com o relatório dos últimos ${periodo} dias em até 24 horas.`);
+            } catch (error) {
+                console.error('Erro ao solicitar relatório:', error);
+                alert('Erro ao solicitar relatório. Tente novamente.');
+            }
         });
 
         // Logout
