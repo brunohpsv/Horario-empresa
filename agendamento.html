@@ -277,18 +277,23 @@
             const servicoSelect = document.getElementById('servico');
             servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
             
-            // Verifica se a empresa tem serviços definidos
-            if (empresaSelecionada.servico) {
-                let servicos = [];
+            let servicos = [];
+            
+            // Verifica se a empresa tem serviços no array servicoAtendente
+            if (empresaSelecionada.servicoAtendente && Array.isArray(empresaSelecionada.servicoAtendente)) {
+                servicos = [...new Set(empresaSelecionada.servicoAtendente)]; // Remove duplicatas
+            }
+            
+            // Verifica se a empresa tem serviços na string servicos
+            if (empresaSelecionada.servicos && typeof empresaSelecionada.servicos === 'string') {
+                const servicosString = empresaSelecionada.servicos.split('\n')
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0);
                 
-                if (typeof empresaSelecionada.servico === 'string') {
-                    servicos = empresaSelecionada.servico.split('\n')
-                        .map(s => s.trim())
-                        .filter(s => s.length > 0);
-                } else if (Array.isArray(empresaSelecionada.servico)) {
-                    servicos = empresaSelecionada.servico;
-                }
-                
+                servicos = [...new Set([...servicos, ...servicosString])]; // Combina e remove duplicatas
+            }
+            
+            if (servicos.length > 0) {
                 servicos.forEach(servico => {
                     const option = document.createElement('option');
                     option.value = servico;
