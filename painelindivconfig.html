@@ -372,6 +372,22 @@
             margin-top: 20px;
             border-radius: 4px;
         }
+        
+        .empresa-info {
+            background-color: #e9f7ef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .empresa-info p {
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .empresa-info strong {
+            color: #2e7d32;
+        }
     </style>
 </head>
 <body>
@@ -401,14 +417,27 @@
             <div class="section">
                 <h2>INFORMAÇÕES DA EMPRESA</h2>
                 
+                <div id="empresaInfo" class="empresa-info">
+                    <p><strong>Informações da empresa carregadas automaticamente:</strong></p>
+                    <p><strong>Nome:</strong> <span id="empresaNomeFantasia"></span></p>
+                    <p><strong>Endereço:</strong> <span id="empresaEndereco"></span>, <span id="empresaBairro"></span></p>
+                    <p><strong>Cidade:</strong> <span id="empresaCidade"></span> - <span id="empresaEstado"></span></p>
+                    <p><strong>CEP:</strong> <span id="empresaCep"></span></p>
+                </div>
+                
                 <div class="form-group">
                     <label for="empresaId">ID do Documento da Empresa:</label>
                     <input type="text" id="empresaId" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="empresaNome">Nome da Empresa:</label>
-                    <input type="text" id="empresaNome" required>
+                    <label for="profissionalNome">Seu nome completo:</label>
+                    <input type="text" id="profissionalNome" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="profissionalCpf">Seu CPF:</label>
+                    <input type="text" id="profissionalCpf" placeholder="000.000.000-00" required>
                 </div>
                 
                 <div class="form-group">
@@ -607,12 +636,30 @@
                 if (docSnapshot.exists) {
                     const data = docSnapshot.data();
                     
-                    // Preenche informações da empresa
+                    // Preenche informações da empresa (dados básicos)
                     document.getElementById('empresaId').value = data.id || '';
-                    document.getElementById('empresaNome').value = data.nome || '';
+                    
+                    // Preenche informações do profissional (novos campos)
+                    if (data.profissional) {
+                        document.getElementById('profissionalNome').value = data.profissional.nome || '';
+                        document.getElementById('profissionalCpf').value = data.profissional.cpf || '';
+                    }
+                    
+                    // Preenche informações de serviços e contato
                     document.getElementById('empresaServicos').value = data.servicos ? data.servicos.join('/') : '';
                     document.getElementById('empresaTelefone').value = data.telefone || '';
                     document.getElementById('empresaEmail').value = data.email || '';
+                    
+                    // Preenche informações de endereço da empresa (se existirem)
+                    if (data.nomeFantasia) {
+                        document.getElementById('empresaNomeFantasia').textContent = data.nomeFantasia;
+                        document.getElementById('empresaInfo').style.display = 'block';
+                    }
+                    if (data.endereco) document.getElementById('empresaEndereco').textContent = data.endereco;
+                    if (data.bairro) document.getElementById('empresaBairro').textContent = data.bairro;
+                    if (data.cidade) document.getElementById('empresaCidade').textContent = data.cidade;
+                    if (data.estado) document.getElementById('empresaEstado').textContent = data.estado;
+                    if (data.cep) document.getElementById('empresaCep').textContent = data.cep;
                     
                     // Preenche configurações de horários se existirem
                     if (data.horarios) {
@@ -670,14 +717,21 @@
             try {
                 // Coletar dados da empresa
                 const empresaId = document.getElementById('empresaId').value;
-                const empresaNome = document.getElementById('empresaNome').value;
+                const profissionalNome = document.getElementById('profissionalNome').value;
+                const profissionalCpf = document.getElementById('profissionalCpf').value;
                 const empresaServicos = document.getElementById('empresaServicos').value;
                 const empresaTelefone = document.getElementById('empresaTelefone').value;
                 const empresaEmail = document.getElementById('empresaEmail').value;
                 
-                // Validar dados da empresa
-                if (!empresaId || !empresaNome || !empresaServicos || !empresaTelefone || !empresaEmail) {
-                    showMessage('error', 'Preencha todas as informações da empresa');
+                // Validar dados
+                if (!empresaId || !profissionalNome || !profissionalCpf || !empresaServicos || !empresaTelefone || !empresaEmail) {
+                    showMessage('error', 'Preencha todas as informações obrigatórias');
+                    return;
+                }
+                
+                // Validar CPF (formato básico)
+                if (!/^[0-9]{3}\.?[0-9]{3}\.?[0-9]{3}\-?[0-9]{2}$/.test(profissionalCpf)) {
+                    showMessage('error', 'CPF inválido. Use o formato 000.000.000-00');
                     return;
                 }
                 
@@ -702,17 +756,38 @@
                     return;
                 }
                 
-                // Referência para o documento da empresa do usuário
-                const empresaRef = db.collection('empresas').doc(userId);
+                // Primeiro, buscar os dados da empresa original para pegar as informações de endereço
+                const empresaOriginalRef = db.collection('empresas').doc(empresaId);
+                const empresaOriginalDoc = await empresaOriginalRef.get();
                 
-                // Objeto com todos os dados a serem salvos
+                if (!empresaOriginalDoc.exists) {
+                    showMessage('error', 'ID da empresa não encontrado. Verifique o ID informado.');
+                    return;
+                }
+                
+                const empresaOriginalData = empresaOriginalDoc.data();
+                
+                // Objeto com todos os dados a serem salvos na coleção "Painel Individual"
                 const dataToSave = {
-                    id: empresaId,
-                    nome: empresaNome,
+                    empresaId: empresaId,
+                    profissional: {
+                        nome: profissionalNome,
+                        cpf: profissionalCpf
+                    },
                     servicos: empresaServicos.split('/').map(s => s.trim()),
                     telefone: empresaTelefone,
                     email: empresaEmail,
                     dataAtualizacao: new Date().toISOString(),
+                    
+                    // Informações da empresa original (endereço, etc)
+                    nomeFantasia: empresaOriginalData.nomeFantasia || '',
+                    endereco: empresaOriginalData.endereco || '',
+                    bairro: empresaOriginalData.bairro || '',
+                    cidade: empresaOriginalData.cidade || '',
+                    estado: empresaOriginalData.estado || '',
+                    cep: empresaOriginalData.cep || '',
+                    
+                    // Configurações de horários
                     horarios: {
                         diasFuncionamento: diasSelecionados,
                         horarioAbertura: horarioAbertura,
@@ -729,8 +804,9 @@
                     dataToSave.horarios.almocoFim = almocoFim;
                 }
                 
-                // Salva todos os dados no Firestore no documento da empresa
-                await empresaRef.set(dataToSave, { merge: true });
+                // Salva todos os dados na nova coleção "Painel Individual" usando o mesmo ID do documento
+                const painelIndividualRef = db.collection('Painel Individual').doc(empresaId);
+                await painelIndividualRef.set(dataToSave);
                 
                 // Mostra mensagem de sucesso
                 showMessage('success', 'Todas as configurações foram salvas com sucesso!');
