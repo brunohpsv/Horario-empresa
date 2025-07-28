@@ -440,73 +440,44 @@
         
         function carregarServicosEAtendentes() {
             if (!empresaSelecionada) return;
-            
-            if (empresaSelecionada.servicoAtendente) {
-                processarServicosAtendentes(empresaSelecionada.servicoAtendente);
-            } else if (empresaSelecionada.atendentes) {
-                processarAtendentes(empresaSelecionada.atendentes);
-            } else if (empresaSelecionada.servico) {
-                processarServicos(empresaSelecionada.servico);
-            } else {
-                mostrarErro("Esta empresa ainda não configurou seus serviços.");
-                document.getElementById('servico').innerHTML = '<option value="">Nenhum serviço disponível</option>';
-                return;
-            }
-            
-            carregarSelectServicos();
-        }
-        
-        function processarServicosAtendentes(dados) {
-            if (typeof dados === 'string') {
-                dados.split('\n').filter(linha => linha.trim() !== '').forEach(linha => {
-                    const partes = linha.split('-').map(p => p.trim());
-                    if (partes.length === 2) {
-                        const servico = partes[0];
-                        const nomesAtendentes = partes[1].split(',').map(n => n.trim());
-                        
-                        if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
-                        
-                        nomesAtendentes.forEach(nome => {
-                            atendentes.push({ nome, servico });
-                        });
-                    }
+
+            // Carrega serviços da subcoleção
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("servicos")
+                .get()
+                .then(querySnapshot => {
+                    servicosDisponiveis = [];
+                    querySnapshot.forEach(doc => {
+                        servicosDisponiveis.push(doc.data().nome || doc.id);
+                    });
+                    servicosDisponiveis.sort((a, b) => a.localeCompare(b));
+                    
+                    // Carrega atendentes da subcoleção
+                    return db.collection("usuarios").doc(empresaSelecionada.id)
+                        .collection("atendentes")
+                        .get();
+                })
+                .then(querySnapshot => {
+                    atendentes = [];
+                    querySnapshot.forEach(doc => {
+                        const atendente = doc.data();
+                        if (atendente.nomeCompleto && atendente.servicos) {
+                            atendente.servicos.forEach(servico => {
+                                atendentes.push({
+                                    nome: atendente.nomeCompleto,
+                                    servico: servico,
+                                    id: doc.id
+                                });
+                            });
+                        }
+                    });
+                    
+                    carregarSelectServicos();
+                })
+                .catch(err => {
+                    console.error("Erro ao carregar serviços/atendentes:", err);
+                    mostrarErro("Erro ao carregar serviços e prestadores.");
                 });
-            } else if (Array.isArray(dados)) {
-                dados.forEach(item => {
-                    if (item.servico && item.atendentes) {
-                        if (!servicosDisponiveis.includes(item.servico)) servicosDisponiveis.push(item.servico);
-                        
-                        item.atendentes.forEach(nome => {
-                            atendentes.push({ nome, servico: item.servico });
-                        });
-                    }
-                });
-            }
-            
-            servicosDisponiveis.sort((a, b) => a.localeCompare(b));
-        }
-        
-        function processarAtendentes(dados) {
-            const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
-            let match;
-            
-            while ((match = regex.exec(dados)) !== null) {
-                const nomePrestador = match[1].trim();
-                const servicos = match[2].match(/\[([^\]]+)\]/g).map(s => s.replace(/[\[\]]/g, '').trim());
-                
-                servicos.forEach(servico => {
-                    atendentes.push({ nome: nomePrestador, servico });
-                    if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
-                });
-            }
-        }
-        
-        function processarServicos(dados) {
-            servicosDisponiveis = typeof dados === 'string' 
-                ? dados.split(/[\n,]/).map(s => s.trim()).filter(s => s.length > 0)
-                : [...dados];
-            
-            servicosDisponiveis.sort((a, b) => a.localeCompare(b));
         }
         
         function carregarSelectServicos() {
@@ -794,14 +765,28 @@
                 dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
             };
             
-            if (prestadorSelecionado) agendamento.prestador = prestadorSelecionado;
+            if (prestadorSelecionado) {
+                agendamento.prestador = prestadorSelecionado;
+                
+                // Encontra o ID do prestador selecionado
+                const prestadorObj = atendentes.find(a => a.nome === prestadorSelecionado);
+                if (prestadorObj) {
+                    agendamento.prestadorId = prestadorObj.id;
+                }
+            }
             
-            db.collection("usuarios").doc(empresaSelecionada.id)
-                .collection("agendamentos")
+            // Cria o agendamento na subcoleção agendamentos2
+            const agendamentoRef = db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("agendamentos2")
                 .add(agendamento)
-                .then(() => {
+                .then(docRef => {
                     agendamentoConfirmado = true;
                     preencherResumoAgendamento();
+                    
+                    // Opcional: também salva na coleção original para compatibilidade
+                    db.collection("usuarios").doc(empresaSelecionada.id)
+                        .collection("agendamentos")
+                        .add(agendamento);
                 })
                 .catch(err => {
                     console.error("Erro ao confirmar:", err);
