@@ -50,6 +50,7 @@ header {
     font-size: clamp(1.2rem, 4vw, 2rem);
     font-weight: bold;
     white-space: nowrap;
+    margin-right: auto; /* Isso empurra o nav para a direita */
 }
 
 nav ul {
@@ -157,6 +158,21 @@ nav ul li a {
     margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
     font-size: clamp(0.9rem, 2vw, 1.15rem);
     width: 100%;
+    white-space: nowrap; /* Isso evita que o horário quebre em várias linhas */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ajuste adicional para telas muito pequenas */
+@media (max-width: 400px) {
+    #horarios-container {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+    
+    .time-slot {
+        padding: 0.5rem 0.3rem;
+        font-size: 0.9rem;
+    }
 }
 
 .time-slot:hover, .time-slot.selected {
@@ -242,8 +258,10 @@ nav ul li a {
     }
     
     #horarios-container {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    }
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
     
     .summary-label {
         display: block;
@@ -275,14 +293,14 @@ nav ul li a {
 </head>
 <body>
     <header>
-        <div class="logo">HORÁRIO</div>
-        <nav>
-            <ul>
-                <li><a href="https://horario.site">Início</a></li>
-                <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização"><i class="fas fa-map-marker-alt"></i></a></li>
-            </ul>
-        </nav>
-    </header>
+    <div class="logo">HORÁRIO</div>
+    <nav>
+        <ul>
+            <li><a href="https://horario.site">Início</a></li>
+            <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização"><i class="fas fa-map-marker-alt"></i></a></li>
+        </ul>
+    </nav>
+</header>
 
     <div class="container p-0">
         <div class="card">
