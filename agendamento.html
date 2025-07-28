@@ -9,421 +9,268 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
         :root {
-            --primary: #4CAF50;
-            --primary-dark: #45a049;
-            --error: #d32f2f;
-            --error-bg: #fde8e8;
-            --info: #1976d2;
-            --info-bg: #e3f2fd;
-            --text: #333;
-            --text-light: #666;
-            --border: #ddd;
-            --bg: #f8f9fa;
-            --container-width: 800px; /* Default para mobile */
-        }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-        }
-        
-        header {
-            background: #000;
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        
-        nav ul {
-            display: flex;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-        
-        nav ul li {
-            margin-left: 1rem;
-        }
-        
-        nav ul li a {
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-        
-        .location-btn, .login-btn {
-            padding: 0.5rem;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-        
-        .location-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .container {
-            max-width: var(--container-width);
-            margin: 2rem auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .card {
-            border: none;
-            border-radius: 0;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .card-header {
-            background: white;
-            border-bottom: 1px solid var(--border);
-            font-weight: 600;
-            padding: 1.25rem;
-        }
-        
-        .card-body {
-            padding: 1.5rem;
-        }
-        
-        .btn {
-            padding: 0.75rem 1.25rem;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: all 0.2s;
-            font-size: 1rem;
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            border: none;
-        }
-        
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-        
-        .btn-danger {
-            background: var(--error);
-            border: none;
-        }
-        
-        .form-control, .form-select {
-            border-radius: 6px;
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            font-size: 1rem;
-            height: auto;
-        }
-        
-        .form-label {
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        
-        .time-slot {
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 0.75rem;
-            font-size: 1rem;
-            width: 100%;
-        }
-        
-        .time-slot:hover, .time-slot.selected {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .time-slot.disabled {
-            background: var(--bg);
-            color: var(--text-light);
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-        
-        .alert {
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1.5rem;
-            font-size: 1rem;
-        }
-        
-        .alert-error {
-            background: var(--error-bg);
-            color: var(--error);
-        }
-        
-        .alert-info {
-            background: var(--info-bg);
-            color: var(--info);
-        }
-        
-        .summary-item {
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-        }
-        
-        .summary-label {
-            font-weight: 600;
-            color: var(--text-light);
-            display: inline-block;
-            min-width: 120px;
-        }
-        
-        /* Responsividade */
-        @media (min-width: 576px) {
-            :root {
-                --container-width: 540px;
-            }
-            
-            .time-slot {
-                padding: 0.85rem;
-            }
-        }
-        
-        @media (min-width: 768px) {
-            :root {
-                --container-width: 720px;
-            }
-            
-            .card-header {
-                padding: 1.5rem;
-            }
-            
-            .card-body {
-                padding: 2rem;
-            }
-            
-            .btn {
-                padding: 0.85rem 1.5rem;
-                font-size: 1.05rem;
-            }
-            
-            .form-control, .form-select {
-                padding: 0.85rem;
-            }
-            
-            .summary-item {
-                font-size: 1.15rem;
-            }
-        }
-        
-        @media (min-width: 992px) {
-            :root {
-                --container-width: 960px;
-            }
-            
-            .logo {
-                font-size: 1.75rem;
-            }
-            
-            .card-header {
-                padding: 1.75rem;
-            }
-            
-            .card-body {
-                padding: 2.5rem;
-            }
-            
-            .btn {
-                padding: 1rem 1.75rem;
-                font-size: 1.1rem;
-            }
-            
-            .form-control, .form-select {
-                padding: 1rem;
-                font-size: 1.05rem;
-            }
-            
-            .form-label {
-                font-size: 1.05rem;
-            }
-            
-            .time-slot {
-                padding: 1rem;
-                font-size: 1.05rem;
-            }
-            
-            .summary-item {
-                font-size: 1.2rem;
-            }
-        }
-        
-        @media (min-width: 1200px) {
-            :root {
-                --container-width: 1140px;
-            }
-            
-            .logo {
-                font-size: 2rem;
-            }
-            
-            .card-header h5 {
-                font-size: 1.75rem;
-            }
-            
-            .card-body h4, .card-body h5 {
-                font-size: 1.5rem;
-            }
-            
-            .btn {
-                padding: 1.1rem 2rem;
-                font-size: 1.15rem;
-            }
-            
-            .form-control, .form-select {
-                padding: 1.1rem;
-                font-size: 1.1rem;
-            }
-            
-            .form-label {
-                font-size: 1.1rem;
-            }
-            
-            .time-slot {
-                padding: 1.1rem;
-                font-size: 1.1rem;
-            }
-            
-            .alert {
-                padding: 1.25rem;
-                font-size: 1.1rem;
-            }
-            
-            .summary-item {
-                font-size: 1.25rem;
-                margin-bottom: 1.25rem;
-            }
-        }
-        
-        @media (min-width: 1400px) {
-            :root {
-                --container-width: 1320px;
-            }
-            
-            body {
-                font-size: 1.1rem;
-            }
-            
-            .logo {
-                font-size: 2.25rem;
-            }
-            
-            .card-header h5 {
-                font-size: 2rem;
-            }
-            
-            .card-body h4, .card-body h5 {
-                font-size: 1.75rem;
-            }
-            
-            .btn {
-                padding: 1.25rem 2.25rem;
-                font-size: 1.2rem;
-            }
-            
-            .form-control, .form-select {
-                padding: 1.25rem;
-                font-size: 1.15rem;
-            }
-            
-            .form-label {
-                font-size: 1.15rem;
-            }
-            
-            .time-slot {
-                padding: 1.25rem;
-                font-size: 1.15rem;
-            }
-            
-            .alert {
-                padding: 1.5rem;
-                font-size: 1.15rem;
-            }
-            
-            .summary-item {
-                font-size: 1.3rem;
-                margin-bottom: 1.5rem;
-            }
-            
-            .summary-label {
-                min-width: 150px;
-            }
-        }
-        
-        @media (max-width: 575.98px) {
-            header {
-                flex-direction: column;
-                padding: 0.75rem;
-            }
-            
-            .logo {
-                margin-bottom: 0.75rem;
-                font-size: 1.4rem;
-            }
-            
-            nav ul {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            nav ul li {
-                margin: 0;
-            }
-            
-            .container {
-                margin: 1rem;
-                border-radius: 0;
-            }
-            
-            .card-header, .card-body {
-                padding: 1rem;
-            }
-            
-            .btn {
-                padding: 0.65rem 1rem;
-                font-size: 0.95rem;
-            }
-            
-            .time-slot {
-                padding: 0.65rem;
-                font-size: 0.95rem;
-            }
-            
-            .summary-item {
-                font-size: 1rem;
-            }
-            
-            .summary-label {
-                min-width: 100px;
-                display: block;
-                margin-bottom: 0.25rem;
-            }
-        }
+    --primary: #4CAF50;
+    --primary-dark: #45a049;
+    --error: #d32f2f;
+    --error-bg: #fde8e8;
+    --info: #1976d2;
+    --info-bg: #e3f2fd;
+    --text: #333;
+    --text-light: #666;
+    --border: #ddd;
+    --bg: #f8f9fa;
+    --container-width: 95%;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+}
+
+header {
+    background: #000;
+    color: white;
+    padding: clamp(0.5rem, 2vw, 1rem);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    gap: 1rem;
+}
+
+.logo {
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+nav ul li {
+    margin-left: 0;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    font-size: clamp(0.8rem, 3vw, 1rem);
+}
+
+.location-btn, .login-btn {
+    padding: clamp(0.3rem, 1.5vw, 0.5rem);
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.location-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.container {
+    width: var(--container-width);
+    max-width: 1400px;
+    margin: clamp(1rem, 3vw, 2rem) auto;
+    background: white;
+    border-radius: clamp(4px, 1vw, 8px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.card {
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.card-header {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    padding: clamp(1rem, 2vw, 1.75rem);
+}
+
+.card-body {
+    padding: clamp(1rem, 3vw, 2.5rem);
+}
+
+.btn {
+    padding: clamp(0.6rem, 2vw, 1.25rem) clamp(1rem, 3vw, 2.25rem);
+    border-radius: clamp(4px, 0.5vw, 6px);
+    font-weight: 500;
+    transition: all 0.2s;
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+}
+
+.btn-primary {
+    background: var(--primary);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-danger {
+    background: var(--error);
+    border: none;
+}
+
+.form-control, .form-select {
+    border-radius: clamp(4px, 0.5vw, 6px);
+    padding: clamp(0.6rem, 2vw, 1.25rem);
+    border: 1px solid var(--border);
+    font-size: clamp(0.9rem, 2vw, 1.15rem);
+    height: auto;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: clamp(0.3rem, 1vw, 0.5rem);
+    display: block;
+    font-size: clamp(0.95rem, 2vw, 1.15rem);
+}
+
+.time-slot {
+    padding: clamp(0.5rem, 2vw, 1.25rem);
+    border: 1px solid var(--border);
+    border-radius: clamp(4px, 0.5vw, 6px);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
+    font-size: clamp(0.9rem, 2vw, 1.15rem);
+    width: 100%;
+}
+
+.time-slot:hover, .time-slot.selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.time-slot.disabled {
+    background: var(--bg);
+    color: var(--text-light);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.alert {
+    padding: clamp(0.8rem, 2vw, 1.5rem);
+    border-radius: clamp(4px, 0.5vw, 6px);
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+    font-size: clamp(0.9rem, 2vw, 1.15rem);
+}
+
+.alert-error {
+    background: var(--error-bg);
+    color: var(--error);
+}
+
+.alert-info {
+    background: var(--info-bg);
+    color: var(--info);
+}
+
+.summary-item {
+    margin-bottom: clamp(0.8rem, 2vw, 1.5rem);
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+}
+
+.summary-label {
+    font-weight: 600;
+    color: var(--text-light);
+    display: inline-block;
+    min-width: clamp(100px, 15vw, 150px);
+}
+
+/* Layout responsivo para slots de horário */
+#horarios-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+/* Ajustes para telas muito pequenas */
+@media (max-width: 400px) {
+    :root {
+        --container-width: 100%;
+    }
+    
+    header {
+        padding: 0.5rem;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .logo {
+        margin-bottom: 0.5rem;
+    }
+    
+    nav ul {
+        width: 100%;
+        justify-content: space-around;
+    }
+    
+    .container {
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    
+    .card-header, .card-body {
+        padding: 0.8rem;
+    }
+    
+    #horarios-container {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+    
+    .summary-label {
+        display: block;
+        min-width: 100%;
+        margin-bottom: 0.2rem;
+    }
+}
+
+/* Ajustes para telas médias */
+@media (min-width: 768px) {
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .row > * {
+        flex: 1 1 calc(50% - 0.5rem);
+    }
+}
+
+/* Ajustes para telas grandes */
+@media (min-width: 1200px) {
+    .row > * {
+        flex: 1 1 calc(33.333% - 0.67rem);
+    }
+}
     </style>
 </head>
 <body>
