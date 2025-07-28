@@ -434,6 +434,11 @@
                 <h2>INFORMAÇÕES PESSOAIS</h2>
                 
                 <div class="form-group">
+                    <label for="nomeFantasia">Nome Fantasia:</label>
+                    <input type="text" id="nomeFantasia" placeholder="Nome do seu estabelecimento ou como deseja ser identificado" required>
+                </div>
+                
+                <div class="form-group">
                     <label for="nomeCompleto">Seu nome completo:</label>
                     <input type="text" id="nomeCompleto" required>
                 </div>
@@ -643,6 +648,7 @@
                         const data = painelDoc.data();
                         
                         // Preenche informações pessoais
+                        document.getElementById('nomeFantasia').value = data.nomeFantasia || '';
                         document.getElementById('nomeCompleto').value = data.nomeCompleto || '';
                         document.getElementById('cpf').value = data.cpf || '';
                         document.getElementById('identificacao').value = data.identificacao || '';
@@ -723,13 +729,14 @@
                 }
                 
                 // Coletar dados pessoais
+                const nomeFantasia = document.getElementById('nomeFantasia').value;
                 const nomeCompleto = document.getElementById('nomeCompleto').value;
                 const cpf = document.getElementById('cpf').value;
                 const identificacao = document.getElementById('identificacao').value;
                 const servicos = document.getElementById('servicos').value;
                 
                 // Validar dados pessoais
-                if (!nomeCompleto || !cpf || !identificacao || !servicos) {
+                if (!nomeFantasia || !nomeCompleto || !cpf || !identificacao || !servicos) {
                     showMessage('error', 'Preencha todas as informações pessoais');
                     document.getElementById('loaderOverlay').style.display = 'none';
                     return;
@@ -766,6 +773,7 @@
                 
                 // Objeto com todos os dados a serem salvos
                 const dataToSave = {
+                    nomeFantasia: nomeFantasia,
                     nomeCompleto: nomeCompleto,
                     cpf: cpf,
                     identificacao: identificacao,
