@@ -387,6 +387,13 @@
         .buscar-container button {
             width: auto;
         }
+        
+        /* Estilo para o campo de serviços */
+        .services-description {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -439,6 +446,13 @@
                 <div class="form-group">
                     <label for="identificacao">Identificação:</label>
                     <input type="text" id="identificacao" placeholder="Sua identificação na empresa" required>
+                </div>
+                
+                <!-- Novo campo para serviços -->
+                <div class="form-group">
+                    <label for="servicos">Serviços oferecidos:</label>
+                    <input type="text" id="servicos" placeholder="Ex: Corte de cabelo / Barba / Sobrancelha" required>
+                    <p class="services-description">Separe os serviços com " / " (barra)</p>
                 </div>
             </div>
             
@@ -643,6 +657,7 @@
                         document.getElementById('nomeCompleto').value = data.nomeCompleto || '';
                         document.getElementById('cpf').value = data.cpf || '';
                         document.getElementById('identificacao').value = data.identificacao || '';
+                        document.getElementById('servicos').value = data.servicos || '';
                         
                         // Preenche configurações de horários se existirem
                         if (data.horarios) {
@@ -712,9 +727,10 @@
                 const nomeCompleto = document.getElementById('nomeCompleto').value;
                 const cpf = document.getElementById('cpf').value;
                 const identificacao = document.getElementById('identificacao').value;
+                const servicos = document.getElementById('servicos').value;
                 
                 // Validar dados pessoais
-                if (!nomeCompleto || !cpf || !identificacao) {
+                if (!nomeCompleto || !cpf || !identificacao || !servicos) {
                     showMessage('error', 'Preencha todas as informações pessoais');
                     document.getElementById('loaderOverlay').style.display = 'none';
                     return;
@@ -752,6 +768,7 @@
                     nomeCompleto: nomeCompleto,
                     cpf: cpf,
                     identificacao: identificacao,
+                    servicos: servicos,
                     empresaDocId: empresaDocId,
                     userId: userId,
                     dataAtualizacao: new Date().toISOString(),
