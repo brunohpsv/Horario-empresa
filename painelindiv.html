@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Profissional | HORÁRIO</title>
-    <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' rel='stylesheet' />
+    <title>Painel de Controle | CALENDÁRIO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
         * {
@@ -25,14 +25,14 @@
         header {
             background-color: #000000;
             color: white;
-            padding: 15px 20px;
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
         .logo {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
             letter-spacing: 1px;
         }
@@ -43,13 +43,13 @@
         }
         
         nav ul li {
-            margin-left: 15px;
+            margin-left: 30px;
         }
         
         nav ul li a {
             color: white;
             text-decoration: none;
-            font-size: 14px;
+            font-size: 16px;
             transition: color 0.3s;
         }
         
@@ -57,131 +57,94 @@
             color: #cccccc;
         }
         
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 10px 20px;
-            flex: 1;
-            width: 100%;
-        }
-        
-        #calendar {
-            background-color: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            width: 100%;
-            height: 500px;
-            margin-top: 10px;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .config-section {
-            background-color: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-top: 30px;
-            border-radius: 5px;
-        }
-        
-        .config-section h2 {
-            margin-bottom: 20px;
-            color: #333;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        
-        .form-group input, 
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
+        .nav-btn {
+            padding: 8px 16px;
             border-radius: 4px;
+            transition: background-color 0.3s;
         }
         
-        .form-row {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .form-row .form-group {
-            flex: 1;
-        }
-        
-        .dias-trabalho {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .dia-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .btn-salvar {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        
-        .btn-salvar:hover {
-            background-color: #45a049;
-        }
-
-        .btn-gerar-login {
+        .calendar-btn {
             background-color: #2196F3;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
         }
         
-        .btn-gerar-login:hover {
+        .calendar-btn:hover {
             background-color: #0b7dda;
         }
         
-        .login-section {
-            background-color: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        .logout-btn {
+            background-color: #f44336;
+        }
+        
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
-            margin-top: 30px;
-            border-radius: 5px;
+            flex: 1;
+            width: 100%;
         }
-
-        .login-info {
-            margin-top: 15px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            display: none;
-        }
-
-        .login-info p {
-            margin-bottom: 10px;
-        }
-
-        .login-info strong {
+        
+        .page-title {
+            font-size: 24px;
+            margin-bottom: 20px;
             color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        
+        #calendar {
+            margin-top: 20px;
+        }
+        
+        .fc-event {
+            cursor: pointer;
         }
         
         .loader-overlay {
@@ -211,13 +174,102 @@
             100% { transform: rotate(360deg); }
         }
         
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #777;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
         footer {
             background-color: #000000;
             color: white;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
             margin-top: 30px;
-            font-size: 14px;
+            width: 100%;
+        }
+        
+        .contato-rodape {
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .contato-rodape a {
+            color: #4CAF50;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -227,137 +279,92 @@
     </div>
 
     <header>
-        <div class="logo">PAINEL PROFISSIONAL</div>
+        <div class="logo">PAINEL DE CONTROLE</div>
         <nav>
             <ul>
-                <li><a href="#" class="active">CALENDÁRIO</a></li>
-                <li><a href="#" id="logoutBtn">SAIR</a></li>
+                <li><a href="painel.html" class="nav-btn calendar-btn active">CALENDÁRIO</a></li>
+                <li><a href="servicos.html">SERVIÇOS/ATEND.</a></li>
+                <li><a href="painelconfig.html">CONFIGURAÇÕES</a></li>
+                <li><a href="#" id="logoutBtn" class="nav-btn logout-btn">SAIR</a></li>
             </ul>
         </nav>
     </header>
 
     <div class="container">
-        <div id="calendar"></div>
+        <h1 class="page-title">Agendamentos</h1>
         
-        <div class="config-section">
-            <h2>Configurações do Profissional</h2>
-            
-            <form id="configForm">
-                <div class="form-group">
-                    <label for="empresaId">ID da Empresa</label>
-                    <input type="text" id="empresaId" required>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="nome">Nome Completo</label>
-                        <input type="text" id="nome" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="servicos">Serviços (separados por /)</label>
-                        <input type="text" id="servicos" required>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="email">E-mail</label>
-                        <input type="email" id="email" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="telefone">Telefone</label>
-                        <input type="tel" id="telefone" required>
-                    </div>
-                </div>
-                
-                <h3>Configurações de Agenda</h3>
-                
-                <div class="form-group">
-                    <label>Dias de Trabalho</label>
-                    <div class="dias-trabalho">
-                        <div class="dia-checkbox"><input type="checkbox" id="segunda" value="segunda"><label for="segunda">Segunda</label></div>
-                        <div class="dia-checkbox"><input type="checkbox" id="terca" value="terca"><label for="terca">Terça</label></div>
-                        <div class="dia-checkbox"><input type="checkbox" id="quarta" value="quarta"><label for="quarta">Quarta</label></div>
-                        <div class="dia-checkbox"><input type="checkbox" id="quinta" value="quinta"><label for="quinta">Quinta</label></div>
-                        <div class="dia-checkbox"><input type="checkbox" id="sexta" value="sexta"><label for="sexta">Sexta</label></div>
-                        <div class="dia-checkbox"><input type="checkbox" id="sabado" value="sabado"><label for="sabado">Sábado</label></div>
-                        <div class="dia-checkbox"><input type="checkbox" id="domingo" value="domingo"><label for="domingo">Domingo</label></div>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="horarioInicio">Horário de Início</label>
-                        <input type="time" id="horarioInicio" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="horarioFim">Horário de Término</label>
-                        <input type="time" id="horarioFim" required>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="almocoInicio">Início do Almoço</label>
-                        <input type="time" id="almocoInicio">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="almocoFim">Fim do Almoço</label>
-                        <input type="time" id="almocoFim">
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="duracaoConsulta">Duração da Consulta (minutos)</label>
-                        <input type="number" id="duracaoConsulta" min="5" max="240" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="intervaloConsultas">Intervalo entre Consultas (minutos)</label>
-                        <input type="number" id="intervaloConsultas" min="0" max="60" required>
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn-salvar">Salvar Configurações</button>
-            </form>
-        </div>
-
-        <div class="login-section">
-            <h2>Gerar Acesso para Profissional</h2>
-            <p>Crie um login e senha para que o profissional possa acessar este painel diretamente.</p>
-            <button id="gerarLoginBtn" class="btn-gerar-login">Gerar Login e Senha</button>
-            
-            <div id="loginInfo" class="login-info">
-                <h3>Credenciais Geradas:</h3>
-                <p><strong>Email:</strong> <span id="geradoEmail"></span></p>
-                <p><strong>Senha:</strong> <span id="geradoSenha"></span></p>
-                <p><strong>Link de Acesso:</strong> <span id="geradoLink"></span></p>
-                <p class="text-warning">Salve estas informações em um local seguro. A senha não poderá ser recuperada posteriormente.</p>
+        <div class="section">
+            <div class="section-title">
+                <span>Calendário de Agendamentos</span>
+                <button id="addAgendamentoBtn" class="btn btn-primary">Novo Agendamento</button>
             </div>
+            
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- Modal para agendamento -->
+    <div id="agendamentoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="agendamentoModalTitle">Novo Agendamento</h2>
+                <button class="close-btn" id="closeAgendamentoModal">&times;</button>
+            </div>
+            <form id="agendamentoForm">
+                <input type="hidden" id="agendamentoId">
+                <div class="form-group">
+                    <label for="clienteNome">Nome do Cliente</label>
+                    <input type="text" id="clienteNome" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="clienteTelefone">Telefone</label>
+                    <input type="tel" id="clienteTelefone" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="servicoAgendamento">Serviço</label>
+                    <select id="servicoAgendamento" class="form-select" required>
+                        <option value="">Selecione um serviço</option>
+                        <!-- Os serviços serão carregados aqui -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="atendenteAgendamento">Atendente</label>
+                    <select id="atendenteAgendamento" class="form-select" required>
+                        <option value="">Selecione um atendente</option>
+                        <!-- Os atendentes serão carregados aqui -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dataAgendamento">Data e Hora</label>
+                    <input type="datetime-local" id="dataAgendamento" class="form-control" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="cancelAgendamentoBtn" class="btn btn-danger">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <footer>
-        <p>Painel Profissional - Horário &copy; 2023</p>
+        <div class="contato-rodape">
+            <p>Precisa de ajuda? Entre em contato conosco:</p>
+            <p>E-mail: <a href="mailto:suportehorario@gmail.com">suportehorario@gmail.com</a> | Telefone: (62) 98159-6601</p>
+            <p>Horário de atendimento: Segunda a Domingo, 24 horas</p>
+        </div>
     </footer>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/pt-br.js'></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- FullCalendar e dependências -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
 
     <script>
-        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
             authDomain: "banco-de-dados-d253e.firebaseapp.com",
@@ -367,280 +374,390 @@
             appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
         };
 
-        // Inicializa o Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         
-        // Variáveis globais
         let currentUser = null;
-        let profissionalConfig = null;
+        let calendar = null;
+        let servicosAtendentes = [];
+        let agendamentos = [];
         
-        // Quando o DOM estiver carregado
         document.addEventListener('DOMContentLoaded', function() {
-            // Verifica autenticação
             auth.onAuthStateChanged(async (user) => {
                 if (!user) {
                     window.location.href = 'https://horario.site/login.html';
                 } else {
                     currentUser = user;
                     try {
-                        // Inicializa o calendário
-                        initializeCalendar();
-                        
-                        // Carrega as configurações do profissional
-                        await loadConfig();
-                        
-                        // Esconde o loader
+                        await loadServicosAtendentes();
+                        await loadAgendamentos();
+                        initCalendar();
+                        setupEventListeners();
                         document.getElementById('loaderOverlay').style.display = 'none';
                     } catch (error) {
-                        console.error('Erro:', error);
+                        console.error('Erro ao carregar dados:', error);
                         alert('Erro ao carregar dados. Por favor, faça login novamente.');
                         auth.signOut();
+                        window.location.href = 'https://horario.site/login.html';
                     }
                 }
             });
+        });
+
+        async function loadServicosAtendentes() {
+            try {
+                // Primeiro verifica se existe o campo 'servicoAtendente' no documento do usuário
+                const userDoc = await db.collection('usuarios').doc(currentUser.uid).get();
+                
+                if (!userDoc.exists) {
+                    throw new Error('Dados do usuário não encontrados');
+                }
+                
+                const userData = userDoc.data();
+                
+                // Verifica se existe a subcoleção servicoAtendente
+                const servicoAtendenteRef = db.collection('usuarios').doc(currentUser.uid).collection('servicoAtendente');
+                const querySnapshot = await servicoAtendenteRef.get();
+                
+                if (querySnapshot.empty) {
+                    // Se não houver subcoleção, verifica se existe o campo 'servicoAtendente' no documento principal
+                    if (userData.servicoAtendente) {
+                        // Processa os dados do campo servicoAtendente
+                        processarServicosAtendentes(userData.servicoAtendente);
+                    } else if (userData.atendentes) {
+                        // Processa os dados do campo atendentes (para compatibilidade com versões antigas)
+                        processarAtendentes(userData.atendentes);
+                    } else if (userData.servico) {
+                        // Processa os dados do campo servico
+                        processarServicos(userData.servico);
+                    } else {
+                        console.log('Nenhum serviço ou atendente cadastrado');
+                    }
+                } else {
+                    // Processa os dados da subcoleção servicoAtendente
+                    servicosAtendentes = [];
+                    querySnapshot.forEach(doc => {
+                        servicosAtendentes.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                }
+                
+                // Atualiza os selects no modal de agendamento
+                updateServicosSelect();
+                
+            } catch (error) {
+                console.error('Erro ao carregar serviços e atendentes:', error);
+                throw error;
+            }
+        }
+        
+        function processarServicosAtendentes(dados) {
+            servicosAtendentes = [];
             
-            // Configura o formulário
-            document.getElementById('configForm').addEventListener('submit', saveConfig);
+            if (typeof dados === 'string') {
+                // Processa como texto formatado
+                const linhas = dados.split('\n').filter(linha => linha.trim() !== '');
+                
+                linhas.forEach(linha => {
+                    const partes = linha.split('-').map(p => p.trim());
+                    if (partes.length === 2) {
+                        const servico = partes[0];
+                        const atendentes = partes[1].split(',').map(a => a.trim());
+                        
+                        servicosAtendentes.push({
+                            servico: servico,
+                            atendentes: atendentes
+                        });
+                    }
+                });
+            } else if (Array.isArray(dados)) {
+                // Processa como array de objetos
+                dados.forEach(item => {
+                    if (item.servico && item.atendentes) {
+                        servicosAtendentes.push({
+                            servico: item.servico,
+                            atendentes: item.atendentes
+                        });
+                    }
+                });
+            }
+        }
+        
+        function processarAtendentes(dados) {
+            servicosAtendentes = [];
             
-            // Configura logout
-            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            if (typeof dados === 'string') {
+                // Expressão regular para extrair nomes entre parênteses e serviços entre colchetes
+                const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
+                let match;
+                
+                while ((match = regex.exec(dados)) !== null) {
+                    const nomeAtendente = match[1].trim();
+                    const servicosStr = match[2];
+                    
+                    // Extrai todos os serviços entre colchetes
+                    const servicos = servicosStr.match(/\[([^\]]+)\]/g).map(s => 
+                        s.replace(/[\[\]]/g, '').trim()
+                    );
+                    
+                    // Para cada serviço, adicionamos um registro
+                    servicos.forEach(servico => {
+                        const existingService = servicosAtendentes.find(s => s.servico === servico);
+                        
+                        if (existingService) {
+                            existingService.atendentes.push(nomeAtendente);
+                        } else {
+                            servicosAtendentes.push({
+                                servico: servico,
+                                atendentes: [nomeAtendente]
+                            });
+                        }
+                    });
+                }
+            }
+        }
+        
+        function processarServicos(dados) {
+            servicosAtendentes = [];
+            
+            if (typeof dados === 'string') {
+                // Processa como string separada por vírgula ou quebra de linha
+                const servicos = dados.split(/[\n,]/)
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0);
+                
+                servicos.forEach(servico => {
+                    servicosAtendentes.push({
+                        servico: servico,
+                        atendentes: []
+                    });
+                });
+            } else if (Array.isArray(dados)) {
+                // Processa como array
+                dados.forEach(servico => {
+                    servicosAtendentes.push({
+                        servico: servico,
+                        atendentes: []
+                    });
+                });
+            }
+        }
+        
+        async function loadAgendamentos() {
+            try {
+                // Carrega os agendamentos da subcoleção 'painel-individual-01' (ou o número correspondente)
+                // Aqui você pode implementar a lógica para determinar qual painel individual carregar
+                const agendamentosRef = db.collection('usuarios').doc(currentUser.uid).collection('painel-individual-01');
+                const querySnapshot = await agendamentosRef.orderBy('start').get();
+                
+                agendamentos = [];
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    agendamentos.push({
+                        id: doc.id,
+                        title: `${data.clienteNome} - ${data.servico}`,
+                        start: data.start.toDate(),
+                        end: data.end.toDate(),
+                        extendedProps: {
+                            clienteNome: data.clienteNome,
+                            clienteTelefone: data.clienteTelefone,
+                            servico: data.servico,
+                            atendente: data.atendente,
+                            observacoes: data.observacoes || ''
+                        }
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar agendamentos:', error);
+                throw error;
+            }
+        }
+        
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: agendamentos,
+                eventClick: function(info) {
+                    showAgendamentoDetails(info.event);
+                },
+                dateClick: function(info) {
+                    openNewAgendamentoModal(info.date);
+                },
+                eventTimeFormat: { 
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                }
+            });
+            
+            calendar.render();
+        }
+        
+        function updateServicosSelect() {
+            const select = document.getElementById('servicoAgendamento');
+            select.innerHTML = '<option value="">Selecione um serviço</option>';
+            
+            // Obter serviços únicos
+            const servicosUnicos = [...new Set(servicosAtendentes.map(item => item.servico))];
+            
+            servicosUnicos.forEach(servico => {
+                const option = document.createElement('option');
+                option.value = servico;
+                option.textContent = servico;
+                select.appendChild(option);
+            });
+            
+            // Atualiza o select de atendentes quando o serviço é selecionado
+            select.addEventListener('change', function() {
+                updateAtendentesSelect(this.value);
+            });
+        }
+        
+        function updateAtendentesSelect(servicoSelecionado) {
+            const select = document.getElementById('atendenteAgendamento');
+            select.innerHTML = '<option value="">Selecione um atendente</option>';
+            
+            if (!servicoSelecionado) return;
+            
+            // Encontra os atendentes para o serviço selecionado
+            const servico = servicosAtendentes.find(s => s.servico === servicoSelecionado);
+            
+            if (servico && servico.atendentes.length > 0) {
+                servico.atendentes.forEach(atendente => {
+                    const option = document.createElement('option');
+                    option.value = atendente;
+                    option.textContent = atendente;
+                    select.appendChild(option);
+                });
+            }
+        }
+        
+        function setupEventListeners() {
+            // Botão adicionar agendamento
+            document.getElementById('addAgendamentoBtn').addEventListener('click', () => {
+                openNewAgendamentoModal();
+            });
+            
+            // Fechar modal
+            document.getElementById('closeAgendamentoModal').addEventListener('click', () => {
+                document.getElementById('agendamentoModal').style.display = 'none';
+            });
+            
+            // Cancelar agendamento
+            document.getElementById('cancelAgendamentoBtn').addEventListener('click', () => {
+                document.getElementById('agendamentoModal').style.display = 'none';
+            });
+            
+            // Formulário agendamento
+            document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await saveAgendamento();
+            });
+            
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
                 e.preventDefault();
                 auth.signOut().then(() => {
                     window.location.href = 'https://horario.site/login.html';
                 });
             });
-
-            // Configura botão de gerar login
-            document.getElementById('gerarLoginBtn').addEventListener('click', gerarLoginSenha);
-        });
-        
-        // Inicializa o calendário
-        function initializeCalendar() {
-            $('#calendar').fullCalendar({
-                header: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'month,agendaDay'
-                },
-                defaultView: 'month',
-                locale: 'pt-br',
-                navLinks: true,
-                selectable: false,
-                editable: false,
-                eventLimit: false,
-                height: 500,
-                aspectRatio: 1.5,
-                dayClick: function(date, jsEvent, view) {
-                    if (view.name === 'month') {
-                        $('#calendar').fullCalendar('changeView', 'agendaDay');
-                        $('#calendar').fullCalendar('gotoDate', date);
-                    }
-                }
-            });
         }
         
-        // Carrega as configurações do profissional
-        async function loadConfig() {
-            try {
-                // Verifica se o usuário já tem configurações salvas na subcoleção
-                const configSnapshot = await db.collection('profissionais')
-                    .doc(currentUser.uid)
-                    .collection('configuracoes')
-                    .doc('dadosProfissional')
-                    .get();
-                
-                if (configSnapshot.exists) {
-                    profissionalConfig = configSnapshot.data();
-                    preencherFormulario(profissionalConfig);
-                } else {
-                    // Se não existir na subcoleção, verifica no documento principal (para compatibilidade)
-                    const userDoc = await db.collection('profissionais').doc(currentUser.uid).get();
-                    if (userDoc.exists) {
-                        profissionalConfig = userDoc.data();
-                        preencherFormulario(profissionalConfig);
-                        // Migra os dados para a subcoleção
-                        await saveConfigToSubcollection(profissionalConfig);
-                    }
-                }
-            } catch (error) {
-                console.error('Erro ao carregar configurações:', error);
-                throw error;
-            }
-        }
-        
-        // Salva as configurações na subcoleção
-        async function saveConfigToSubcollection(config) {
-            try {
-                await db.collection('profissionais')
-                    .doc(currentUser.uid)
-                    .collection('configuracoes')
-                    .doc('dadosProfissional')
-                    .set(config);
-                
-                console.log('Configurações salvas na subcoleção com sucesso');
-            } catch (error) {
-                console.error('Erro ao salvar na subcoleção:', error);
-                throw error;
-            }
-        }
-        
-        // Preenche o formulário com os dados
-        function preencherFormulario(config) {
-            document.getElementById('empresaId').value = config.empresaId || '';
-            document.getElementById('nome').value = config.nome || '';
-            document.getElementById('servicos').value = config.servicos ? config.servicos.join('/') : '';
-            document.getElementById('email').value = config.email || '';
-            document.getElementById('telefone').value = config.telefone || '';
+        function openNewAgendamentoModal(date = null) {
+            document.getElementById('agendamentoModalTitle').textContent = 'Novo Agendamento';
+            document.getElementById('agendamentoId').value = '';
+            document.getElementById('agendamentoForm').reset();
             
-            // Dias de trabalho
-            if (config.diasTrabalho) {
-                config.diasTrabalho.forEach(dia => {
-                    const checkbox = document.getElementById(dia);
-                    if (checkbox) checkbox.checked = true;
-                });
+            if (date) {
+                const formattedDate = moment(date).format('YYYY-MM-DDTHH:mm');
+                document.getElementById('dataAgendamento').value = formattedDate;
+            } else {
+                // Define a data atual + 1 hora como padrão
+                const now = new Date();
+                now.setHours(now.getHours() + 1);
+                now.setMinutes(0);
+                document.getElementById('dataAgendamento').value = moment(now).format('YYYY-MM-DDTHH:mm');
             }
             
-            // Horários
-            document.getElementById('horarioInicio').value = config.horarioInicio || '08:00';
-            document.getElementById('horarioFim').value = config.horarioFim || '18:00';
-            document.getElementById('almocoInicio').value = config.almocoInicio || '12:00';
-            document.getElementById('almocoFim').value = config.almocoFim || '13:00';
-            document.getElementById('duracaoConsulta').value = config.duracaoConsulta || 30;
-            document.getElementById('intervaloConsultas').value = config.intervaloConsultas || 10;
+            document.getElementById('agendamentoModal').style.display = 'flex';
         }
         
-        // Salva as configurações
-        async function saveConfig(e) {
-            e.preventDefault();
+        function showAgendamentoDetails(event) {
+            document.getElementById('agendamentoModalTitle').textContent = 'Detalhes do Agendamento';
+            document.getElementById('agendamentoId').value = event.id;
+            document.getElementById('clienteNome').value = event.extendedProps.clienteNome;
+            document.getElementById('clienteTelefone').value = event.extendedProps.clienteTelefone;
+            document.getElementById('servicoAgendamento').value = event.extendedProps.servico;
+            document.getElementById('atendenteAgendamento').value = event.extendedProps.atendente;
+            document.getElementById('dataAgendamento').value = moment(event.start).format('YYYY-MM-DDTHH:mm');
+            
+            // Atualiza o select de atendentes para o serviço selecionado
+            updateAtendentesSelect(event.extendedProps.servico);
+            
+            document.getElementById('agendamentoModal').style.display = 'flex';
+        }
+        
+        async function saveAgendamento() {
+            const agendamentoId = document.getElementById('agendamentoId').value;
+            const clienteNome = document.getElementById('clienteNome').value.trim();
+            const clienteTelefone = document.getElementById('clienteTelefone').value.trim();
+            const servico = document.getElementById('servicoAgendamento').value;
+            const atendente = document.getElementById('atendenteAgendamento').value;
+            const dataHora = document.getElementById('dataAgendamento').value;
+            
+            if (!clienteNome || !clienteTelefone || !servico || !atendente || !dataHora) {
+                alert('Por favor, preencha todos os campos');
+                return;
+            }
             
             try {
-                // Mostra o loader
-                document.getElementById('loaderOverlay').style.display = 'flex';
+                const startDate = new Date(dataHora);
+                const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 hora
                 
-                // Coleta os dados do formulário
-                const empresaId = document.getElementById('empresaId').value.trim();
-                const nome = document.getElementById('nome').value.trim();
-                const servicos = document.getElementById('servicos').value.split('/').map(s => s.trim());
-                const email = document.getElementById('email').value.trim();
-                const telefone = document.getElementById('telefone').value.trim();
-                
-                // Dias de trabalho
-                const diasTrabalho = [];
-                ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].forEach(dia => {
-                    if (document.getElementById(dia).checked) {
-                        diasTrabalho.push(dia);
-                    }
-                });
-                
-                // Horários
-                const horarioInicio = document.getElementById('horarioInicio').value;
-                const horarioFim = document.getElementById('horarioFim').value;
-                const almocoInicio = document.getElementById('almocoInicio').value;
-                const almocoFim = document.getElementById('almocoFim').value;
-                const duracaoConsulta = parseInt(document.getElementById('duracaoConsulta').value);
-                const intervaloConsultas = parseInt(document.getElementById('intervaloConsultas').value);
-                
-                // Validações básicas
-                if (!empresaId || !nome || servicos.length === 0 || !email || !telefone) {
-                    throw new Error('Preencha todos os campos obrigatórios');
-                }
-                
-                if (diasTrabalho.length === 0) {
-                    throw new Error('Selecione pelo menos um dia de trabalho');
-                }
-                
-                // Cria o objeto de configuração
-                const config = {
-                    empresaId,
-                    nome,
-                    servicos,
-                    email,
-                    telefone,
-                    diasTrabalho,
-                    horarioInicio,
-                    horarioFim,
-                    almocoInicio,
-                    almocoFim,
-                    duracaoConsulta,
-                    intervaloConsultas,
-                    userId: currentUser.uid,
-                    updatedAt: new Date()
+                const agendamentoData = {
+                    clienteNome: clienteNome,
+                    clienteTelefone: clienteTelefone,
+                    servico: servico,
+                    atendente: atendente,
+                    start: firebase.firestore.Timestamp.fromDate(startDate),
+                    end: firebase.firestore.Timestamp.fromDate(endDate),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 
-                // Salva na subcoleção do Firestore
-                await saveConfigToSubcollection(config);
+                let eventId = agendamentoId;
                 
-                // Atualiza a variável global
-                profissionalConfig = config;
-                
-                // Esconde o loader
-                document.getElementById('loaderOverlay').style.display = 'none';
-                
-                alert('Configurações salvas com sucesso!');
-                
-            } catch (error) {
-                console.error('Erro ao salvar configurações:', error);
-                document.getElementById('loaderOverlay').style.display = 'none';
-                alert('Erro: ' + error.message);
-            }
-        }
-
-        // Gera login e senha para o profissional
-        async function gerarLoginSenha() {
-            try {
-                // Verifica se já tem configurações salvas
-                if (!profissionalConfig || !profissionalConfig.nome) {
-                    throw new Error('Salve as configurações do profissional antes de gerar o login');
+                if (agendamentoId) {
+                    // Atualizar agendamento existente
+                    await db.collection('usuarios').doc(currentUser.uid)
+                        .collection('painel-individual-01').doc(agendamentoId).update(agendamentoData);
+                } else {
+                    // Criar novo agendamento
+                    const docRef = await db.collection('usuarios').doc(currentUser.uid)
+                        .collection('painel-individual-01').add(agendamentoData);
+                    eventId = docRef.id;
                 }
-
-                // Gera um email e senha aleatórios
-                const nomeUsuario = profissionalConfig.nome.toLowerCase().replace(/\s+/g, '.');
-                const randomNum = Math.floor(1000 + Math.random() * 9000);
-                const emailProfissional = `${nomeUsuario}.${randomNum}@profissional.horario.site`;
-                const senhaProfissional = Math.random().toString(36).slice(-8);
-
-                // Mostra o loader
-                document.getElementById('loaderOverlay').style.display = 'flex';
-
-                // Cria o usuário no Firebase Auth
-                await auth.createUserWithEmailAndPassword(emailProfissional, senhaProfissional);
                 
-                // Atualiza o perfil do usuário
-                await auth.currentUser.updateProfile({
-                    displayName: profissionalConfig.nome
-                });
-
-                // Salva as informações do profissional na subcoleção 'acessos'
-                await db.collection('profissionais')
-                    .doc(currentUser.uid)
-                    .collection('acessos')
-                    .add({
-                        email: emailProfissional,
-                        senha: senhaProfissional, // Nota: Em produção, nunca armazene senhas em texto claro
-                        profissionalId: currentUser.uid,
-                        empresaId: profissionalConfig.empresaId,
-                        nomeProfissional: profissionalConfig.nome,
-                        criadoEm: new Date(),
-                        criadoPor: currentUser.uid
-                    });
-
-                // Esconde o loader
-                document.getElementById('loaderOverlay').style.display = 'none';
-
-                // Mostra as informações geradas
-                document.getElementById('geradoEmail').textContent = emailProfissional;
-                document.getElementById('geradoSenha').textContent = senhaProfissional;
-                document.getElementById('geradoLink').textContent = 'https://horario.site/login.html';
-                document.getElementById('loginInfo').style.display = 'block';
-
-                alert('Login e senha gerados com sucesso!');
-
+                // Atualiza o calendário
+                await loadAgendamentos();
+                calendar.refetchEvents();
+                
+                document.getElementById('agendamentoModal').style.display = 'none';
+                
             } catch (error) {
-                console.error('Erro ao gerar login:', error);
-                document.getElementById('loaderOverlay').style.display = 'none';
-                alert('Erro: ' + error.message);
+                console.error('Erro ao salvar agendamento:', error);
+                alert('Erro ao salvar agendamento');
             }
         }
     </script>
