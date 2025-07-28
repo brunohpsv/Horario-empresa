@@ -456,35 +456,69 @@
             carregarSelectServicos();
         }
         
-        function processarServicosAtendentes(dados) {
-            if (typeof dados === 'string') {
-                dados.split('\n').filter(linha => linha.trim() !== '').forEach(linha => {
-                    const partes = linha.split('-').map(p => p.trim());
-                    if (partes.length === 2) {
-                        const servico = partes[0];
-                        const nomesAtendentes = partes[1].split(',').map(n => n.trim());
-                        
-                        if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
-                        
-                        nomesAtendentes.forEach(nome => {
-                            atendentes.push({ nome, servico });
-                        });
+        function carregarServicosEAtendentes() {
+    if (!empresaSelecionada) return;
+
+    // Primeiro, verifica os dados diretamente no documento da empresa
+    if (empresaSelecionada.servicoAtendente) {
+        processarServicosAtendentes(empresaSelecionada.servicoAtendente);
+    } else if (empresaSelecionada.atendentes) {
+        processarAtendentes(empresaSelecionada.atendentes);
+    } else if (empresaSelecionada.servico) {
+        processarServicos(empresaSelecionada.servico);
+    }
+
+    // Agora busca na subcoleção painelIndividual
+    db.collection("usuarios").doc(empresaSelecionada.id)
+        .collection("painelIndividual")
+        .get()
+        .then(querySnapshot => {
+            querySnapshot.forEach(doc => {
+                const prestadorData = doc.data();
+                
+                // Processa nomeCompleto e servicos
+                if (prestadorData.nomeCompleto && prestadorData.servicos) {
+                    const nomePrestador = prestadorData.nomeCompleto;
+                    let servicosPrestador = [];
+                    
+                    // Processa serviços que podem vir como string ou array
+                    if (typeof prestadorData.servicos === 'string') {
+                        servicosPrestador = prestadorData.servicos.split(/[\n,]/).map(s => s.trim()).filter(s => s);
+                    } else if (Array.isArray(prestadorData.servicos)) {
+                        servicosPrestador = [...prestadorData.servicos];
                     }
-                });
-            } else if (Array.isArray(dados)) {
-                dados.forEach(item => {
-                    if (item.servico && item.atendentes) {
-                        if (!servicosDisponiveis.includes(item.servico)) servicosDisponiveis.push(item.servico);
-                        
-                        item.atendentes.forEach(nome => {
-                            atendentes.push({ nome, servico: item.servico });
-                        });
-                    }
-                });
-            }
+                    
+                    // Adiciona cada combinação de prestador-serviço
+                    servicosPrestador.forEach(servico => {
+                        atendentes.push({ nome: nomePrestador, servico });
+                        if (!servicosDisponiveis.includes(servico)) {
+                            servicosDisponiveis.push(servico);
+                        }
+                    });
+                }
+                
+                // Processa configurações de horários individuais se existirem
+                if (prestadorData.horariosConfig && prestadorSelecionado === prestadorData.nomeCompleto) {
+                    Object.assign(horariosConfig, prestadorData.horariosConfig);
+                }
+            });
             
+            // Ordena os serviços e carrega o select
             servicosDisponiveis.sort((a, b) => a.localeCompare(b));
-        }
+            carregarSelectServicos();
+        })
+        .catch(err => {
+            console.error("Erro ao carregar painel individual:", err);
+            // Continua mesmo com erro, usando apenas os dados do documento principal
+            servicosDisponiveis.sort((a, b) => a.localeCompare(b));
+            carregarSelectServicos();
+            
+            if (servicosDisponiveis.length === 0) {
+                mostrarErro("Esta empresa ainda não configurou seus serviços.");
+                document.getElementById('servico').innerHTML = '<option value="">Nenhum serviço disponível</option>';
+            }
+        });
+}
         
         function processarAtendentes(dados) {
             const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
@@ -535,35 +569,58 @@
         }
         
         function atualizarPrestadores() {
-            const prestadorSelect = document.getElementById('prestador');
-            prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
-            prestadorSelecionado = null;
+    const prestadorSelect = document.getElementById('prestador');
+    prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
+    prestadorSelecionado = null;
+    
+    if (!servicoSelecionado || atendentes.length === 0) {
+        document.getElementById('prestador-group').style.display = 'none';
+        return;
+    }
+    
+    const prestadores = [...new Set(
+        atendentes
+            .filter(a => a.servico === servicoSelecionado)
+            .map(a => a.nome)
+    )].sort((a, b) => a.localeCompare(b));
+    
+    if (prestadores.length > 0) {
+        prestadores.forEach(nome => {
+            prestadorSelect.innerHTML += `<option value="${nome}">${nome}</option>`;
+        });
+        
+        document.getElementById('prestador-group').style.display = 'block';
+        
+        // Adiciona evento para carregar horários específicos quando selecionar um prestador
+        prestadorSelect.addEventListener('change', function() {
+            prestadorSelecionado = this.value;
             
-            if (!servicoSelecionado || atendentes.length === 0) {
-                document.getElementById('prestador-group').style.display = 'none';
-                return;
-            }
-            
-            const prestadores = [...new Set(
-                atendentes
-                    .filter(a => a.servico === servicoSelecionado)
-                    .map(a => a.nome)
-            )].sort((a, b) => a.localeCompare(b));
-            
-            if (prestadores.length > 0) {
-                prestadores.forEach(nome => {
-                    prestadorSelect.innerHTML += `<option value="${nome}">${nome}</option>`;
+            // Busca configurações específicas do prestador na subcoleção
+            db.collection("usuarios").doc(empresaSelecionada.id)
+                .collection("painelIndividual")
+                .where("nomeCompleto", "==", prestadorSelecionado)
+                .limit(1)
+                .get()
+                .then(querySnapshot => {
+                    if (!querySnapshot.empty) {
+                        const prestadorDoc = querySnapshot.docs[0].data();
+                        if (prestadorDoc.horariosConfig) {
+                            Object.assign(horariosConfig, prestadorDoc.horariosConfig);
+                        }
+                    }
+                    
+                    if (dataSelecionada) carregarHorariosDisponiveis();
                 });
-                
-                document.getElementById('prestador-group').style.display = 'block';
-                if (prestadores.length === 1) {
-                    prestadorSelect.value = prestadores[0];
-                    prestadorSelecionado = prestadores[0];
-                }
-            } else {
-                document.getElementById('prestador-group').style.display = 'none';
-            }
+        });
+        
+        if (prestadores.length === 1) {
+            prestadorSelect.value = prestadores[0];
+            prestadorSelecionado = prestadores[0];
         }
+    } else {
+        document.getElementById('prestador-group').style.display = 'none';
+    }
+}
         
         function verificarAgendamentoExistente(documento) {
             const documentoLimpo = documento.replace(/\D/g, '');
