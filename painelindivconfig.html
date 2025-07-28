@@ -632,9 +632,11 @@
                 if (empresaDocId) {
                     document.getElementById('empresaDocId').value = empresaDocId;
                     
+                    // Cria o ID do documento do painel individual
+                    const painelDocId = `PI - ${userId}`;
+                    
                     // Carrega os dados do painel individual se existirem
-                    const painelRef = db.collection('usuarios').doc(empresaDocId)
-                                        .collection('painelIndividual').doc(userId);
+                    const painelRef = db.collection('usuarios').doc(painelDocId);
                     const painelDoc = await painelRef.get();
                     
                     if (painelDoc.exists) {
@@ -756,9 +758,11 @@
                     return;
                 }
                 
-                // Referência para o documento do painel individual dentro da subcoleção do documento da empresa
-                const painelRef = db.collection('usuarios').doc(empresaDocId)
-                                    .collection('painelIndividual').doc(userId);
+                // Cria o ID do documento do painel individual com prefixo "PI -"
+                const painelDocId = `PI - ${userId}`;
+                
+                // Referência para o documento do painel individual na coleção 'usuarios'
+                const painelRef = db.collection('usuarios').doc(painelDocId);
                 
                 // Objeto com todos os dados a serem salvos
                 const dataToSave = {
@@ -768,6 +772,7 @@
                     servicos: servicos,
                     empresaDocId: empresaDocId,
                     userId: userId,
+                    tipo: 'painel-individual',
                     dataAtualizacao: new Date().toISOString(),
                     horarios: {
                         diasFuncionamento: diasSelecionados,
@@ -827,8 +832,11 @@
                 // Mostra o loader enquanto envia a solicitação
                 document.getElementById('loaderOverlay').style.display = 'flex';
                 
+                // Cria o ID do documento do painel individual
+                const painelDocId = `PI - ${userId}`;
+                
                 // Salva a solicitação no Firestore
-                const relatorioRef = db.collection('usuarios').doc(empresaDocId)
+                const relatorioRef = db.collection('usuarios').doc(painelDocId)
                                     .collection('solicitacoes_relatorios').doc();
                 await relatorioRef.set({
                     userId: userId,
