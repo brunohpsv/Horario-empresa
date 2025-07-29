@@ -160,34 +160,36 @@ function carregarServicosEAtendentes() {
 }
 
 function processarServicosAtendentes(dados) {
-    // Criamos um objeto para agrupar atendentes por serviço
     const servicosMap = {};
-
-    if (typeof dados === 'string') {
-        dados.split('\n').filter(linha => linha.trim() !== '').forEach(linha => {
-            const partes = linha.split('-').map(p => p.trim());
-            if (partes.length === 2) {
-                const servico = partes[0];
-                const nomesAtendentes = partes[1].split(',').map(n => n.trim());
-
-                if (!servicosMap[servico]) {
-                    servicosMap[servico] = new Set(); // Usamos Set para evitar duplicatas
-                }
-
-                nomesAtendentes.forEach(nome => {
-                    servicosMap[servico].add(nome);
-                });
-            }
-        });
-    } else if (Array.isArray(dados)) {
+    
+    // Se os dados são um array (vindo do Firestore)
+    if (Array.isArray(dados)) {
         dados.forEach(item => {
-            if (item.servico && item.atendentes) {
-                if (!servicosMap[item.servico]) {
-                    servicosMap[item.servico] = new Set();
+            const servico = item.servico;
+            const atendente = item.atendente;
+            
+            if (!servicosMap[servico]) {
+                servicosMap[servico] = new Set();
+            }
+            servicosMap[servico].add(atendente);
+        });
+    } 
+    // Se os dados são uma string (formato antigo)
+    else if (typeof dados === 'string') {
+        const linhas = dados.split('\n').filter(linha => linha.trim() !== '');
+        
+        linhas.forEach(linha => {
+            const partes = linha.split('-').map(p => p.trim());
+            if (partes.length >= 2) {
+                const servico = partes[0];
+                const atendentes = partes[1].split(',').map(a => a.trim());
+                
+                if (!servicosMap[servico]) {
+                    servicosMap[servico] = new Set();
                 }
-
-                item.atendentes.forEach(nome => {
-                    servicosMap[item.servico].add(nome);
+                
+                atendentes.forEach(atendente => {
+                    servicosMap[servico].add(atendente);
                 });
             }
         });
