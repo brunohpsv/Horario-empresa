@@ -499,46 +499,40 @@
             servicosDisponiveis = [];
             atendentes = [];
             
-            // Processa serviços do PI - verifica se está no formato array servicoAtendente
-            if (empresaSelecionada.servicoAtendente && Array.isArray(empresaSelecionada.servicoAtendente)) {
-                // Processa como array de objetos com servico e atendentes
-                empresaSelecionada.servicoAtendente.forEach(item => {
-                    if (item.servico && item.atendentes) {
-                        if (!servicosDisponiveis.includes(item.servico)) {
-                            servicosDisponiveis.push(item.servico);
-                        }
-                        
-                        item.atendentes.forEach(nomeAtendente => {
-                            atendentes.push({
-                                nome: nomeAtendente,
-                                servico: item.servico,
-                                isPI: true
-                            });
-                        });
-                    }
-                });
-            } 
-            // Processa serviços do PI em formato string
-            else if (empresaSelecionada.servicos) {
-                servicosDisponiveis = empresaSelecionada.servicos.split('/')
+            // Primeiro verifica se há serviços definidos no campo 'servicos'
+            if (empresaSelecionada.servicos) {
+                // Processa como string separada por vírgulas ou barras
+                const servicosArray = empresaSelecionada.servicos.split(/[,\/]/)
                     .map(s => s.trim())
                     .filter(s => s.length > 0);
-            } else if (empresaSelecionada.servico) {
-                servicosDisponiveis = empresaSelecionada.servico.split(',')
-                    .map(s => s.trim())
-                    .filter(s => s.length > 0);
+                
+                servicosDisponiveis = [...new Set(servicosArray)];
             }
             
-            // Se não encontrou atendentes no servicoAtendente, adiciona o próprio PI como atendente
-            if (atendentes.length === 0 && empresaSelecionada.nomeCompleto) {
-                servicosDisponiveis.forEach(servico => {
-                    atendentes.push({
-                        nome: empresaSelecionada.nomeCompleto,
-                        servico: servico,
-                        isPI: true
-                    });
-                });
+            // Depois verifica o campo 'servico' (singular) como fallback
+            else if (empresaSelecionada.servico) {
+                const servicosArray = empresaSelecionada.servico.split(/[,\/]/)
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0);
+                
+                servicosDisponiveis = [...new Set(servicosArray)];
             }
+            
+            // Se não encontrou serviços, usa um padrão
+            if (servicosDisponiveis.length === 0) {
+                servicosDisponiveis = ["Serviço Geral"];
+            }
+            
+            // Adiciona o próprio PI como atendente para todos os serviços
+            const nomeAtendente = empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Prestador";
+            
+            servicosDisponiveis.forEach(servico => {
+                atendentes.push({
+                    nome: nomeAtendente,
+                    servico: servico,
+                    isPI: true
+                });
+            });
             
             carregarSelectServicos();
         }
