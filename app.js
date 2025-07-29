@@ -65,9 +65,28 @@ function inicializarCalendario() {
     const hoje = new Date();
     
     // Obtém a configuração correta com base na empresa selecionada
-    const configAtual = empresaSelecionada === empresaPI 
-        ? horariosConfig.empresaPI 
-        : horariosConfig.empresaPrincipal;
+    let configAtual;
+    
+    if (empresaSelecionada === empresaPI) {
+        // Para empresa PI, verifica se tem configuração em "horarios" ou usa o padrão
+        configAtual = empresaSelecionada.horarios 
+            ? (typeof empresaSelecionada.horarios === 'string' 
+                ? JSON.parse(empresaSelecionada.horarios) 
+                : empresaSelecionada.horarios)
+            : horariosConfig.empresaPI;
+    } else {
+        // Para empresa principal, verifica se tem configuração em "horariosConfig" ou usa o padrão
+        configAtual = empresaSelecionada.horariosConfig 
+            ? (typeof empresaSelecionada.horariosConfig === 'string' 
+                ? JSON.parse(empresaSelecionada.horariosConfig) 
+                : empresaSelecionada.horariosConfig)
+            : horariosConfig.empresaPrincipal;
+    }
+    
+    // Garante que diasFuncionamento é um array
+    if (!Array.isArray(configAtual.diasFuncionamento)) {
+        configAtual.diasFuncionamento = [1, 2, 3, 4, 5]; // Padrão: segunda a sexta
+    }
 
     const config = {
         locale: 'pt',
@@ -76,9 +95,7 @@ function inicializarCalendario() {
         disable: [
             function(date) {
                 // Desabilita dias que não são de funcionamento
-                // getDay() retorna 0 para domingo, 1 para segunda, etc
-                const diaSemana = date.getDay();
-                // Verifica se o dia da semana não está na lista de dias de funcionamento
+                const diaSemana = date.getDay(); // 0=domingo, 1=segunda, etc
                 return !configAtual.diasFuncionamento.includes(diaSemana);
             }
         ],
@@ -122,6 +139,19 @@ function carregarDadosEmpresa() {
                 id: docSemPI.id,
                 isPI: false
             };
+            
+            // Carrega configurações de horários da empresa principal
+            if (empresaPrincipal.horariosConfig) {
+                try {
+                    const horariosData = typeof empresaPrincipal.horariosConfig === 'string' 
+                        ? JSON.parse(empresaPrincipal.horariosConfig) 
+                        : empresaPrincipal.horariosConfig;
+                    
+                    Object.assign(horariosConfig.empresaPrincipal, horariosData);
+                } catch (e) {
+                    console.error("Erro ao processar horários principal:", e);
+                }
+            }
         }
         
         if (docComPI.exists) {
@@ -130,6 +160,19 @@ function carregarDadosEmpresa() {
                 id: docComPI.id,
                 isPI: true
             };
+            
+            // Carrega configurações de horários da empresa PI
+            if (empresaPI.horarios) {
+                try {
+                    const horariosData = typeof empresaPI.horarios === 'string' 
+                        ? JSON.parse(empresaPI.horarios) 
+                        : empresaPI.horarios;
+                    
+                    Object.assign(horariosConfig.empresaPI, horariosData);
+                } catch (e) {
+                    console.error("Erro ao processar horários PI:", e);
+                }
+            }
         }
         
         // Define a empresa selecionada como a principal (sem PI -) por padrão
@@ -140,13 +183,7 @@ function carregarDadosEmpresa() {
             return;
         }
         
-        // Usa nomeFantasia ou o ID como fallback
         document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || empresaSelecionada.id.replace("PI - ", "") || "Empresa";
-        
-        // Combina as configurações de horários
-        if (empresaSelecionada.horariosConfig) {
-            Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-        }
         
         // Carrega serviços e atendentes
         carregarServicosEAtendentes();
