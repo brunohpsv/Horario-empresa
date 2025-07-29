@@ -422,13 +422,13 @@
                 .then(doc => {
                     if (doc.exists) {
                         processarDadosEmpresa(doc);
-                    } else {
-                        // Se não encontrou sem o prefixo, tenta com o prefixo "PI -"
-                        return db.collection("usuarios").doc(`PI - ${empresaId}`).get();
                     }
+                    
+                    // Independente se encontrou ou não, tenta também com o prefixo "PI -"
+                    return db.collection("usuarios").doc(`PI - ${empresaId}`).get();
                 })
                 .then(doc => {
-                    if (doc && doc.exists) {
+                    if (doc.exists) {
                         processarDadosEmpresa(doc);
                     } else if (!empresaSelecionada) {
                         mostrarErro("Empresa não encontrada.");
@@ -441,6 +441,9 @@
         }
         
         function processarDadosEmpresa(doc) {
+            // Se já encontrou uma empresa, não sobrescreve (prioriza a sem PI -)
+            if (empresaSelecionada) return;
+            
             empresaSelecionada = { id: doc.id, ...doc.data() };
             document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
             
@@ -622,13 +625,12 @@
             
             if (!empresaSelecionada || !documentoLimpo) return;
             
-            // Verifica na coleção principal (sem PI -)
-            const empresaId = empresaSelecionada.id.startsWith("PI -") 
-                ? empresaSelecionada.id.replace("PI - ", "")
-                : empresaSelecionada.id;
+            // Verifica nas duas coleções (com e sem PI -)
+            const empresaId = empresaSelecionada.id;
+            const empresaIdSemPI = empresaId.startsWith("PI -") ? empresaId.replace("PI - ", "") : empresaId;
             
-            // Primeiro verifica na coleção sem PI -
-            db.collection("usuarios").doc(empresaId)
+            // Primeiro verifica sem PI -
+            db.collection("usuarios").doc(empresaIdSemPI)
                 .collection("agendamentos")
                 .where("clienteDocumento", "==", documentoLimpo)
                 .where("status", "==", "confirmado")
@@ -639,16 +641,15 @@
                             agendamentoExistente = { id: doc.id, ...doc.data() };
                             exibirAgendamentoExistente(agendamentoExistente);
                         });
-                    } else if (empresaSelecionada.id.startsWith("PI -")) {
-                        // Se não encontrou e é PI -, verifica na coleção com PI -
-                        return db.collection("usuarios").doc(empresaSelecionada.id)
+                    }
+                    
+                    // Depois verifica com PI - (se diferente)
+                    if (empresaId !== `PI - ${empresaIdSemPI}`) {
+                        return db.collection("usuarios").doc(`PI - ${empresaIdSemPI}`)
                             .collection("agendamentos")
                             .where("clienteDocumento", "==", documentoLimpo)
                             .where("status", "==", "confirmado")
                             .get();
-                    } else {
-                        document.getElementById('info-agendamento-existente').style.display = 'none';
-                        document.getElementById('formulario-agendamento').style.display = 'block';
                     }
                 })
                 .then(querySnapshot => {
@@ -657,7 +658,7 @@
                             agendamentoExistente = { id: doc.id, ...doc.data() };
                             exibirAgendamentoExistente(agendamentoExistente);
                         });
-                    } else {
+                    } else if (!agendamentoExistente) {
                         document.getElementById('info-agendamento-existente').style.display = 'none';
                         document.getElementById('formulario-agendamento').style.display = 'block';
                     }
@@ -695,11 +696,13 @@
         }
         
         function cancelarAgendamentoExistente(id) {
-            const empresaRef = empresaSelecionada.id.startsWith("PI -")
-                ? db.collection("usuarios").doc(empresaSelecionada.id)
-                : db.collection("usuarios").doc(empresaSelecionada.id.replace("PI - ", ""));
+            // Tenta cancelar nas duas coleções (com e sem PI -)
+            const empresaId = empresaSelecionada.id;
+            const empresaIdSemPI = empresaId.startsWith("PI -") ? empresaId.replace("PI - ", "") : empresaId;
             
-            empresaRef.collection("agendamentos")
+            // Primeiro tenta sem PI -
+            db.collection("usuarios").doc(empresaIdSemPI)
+                .collection("agendamentos")
                 .doc(id)
                 .update({ status: "cancelado" })
                 .then(() => {
@@ -707,6 +710,24 @@
                     document.getElementById('info-agendamento-existente').style.display = 'none';
                     document.getElementById('formulario-agendamento').style.display = 'block';
                     agendamentoExistente = null;
+                })
+                .catch(err => {
+                    // Se falhou, tenta com PI -
+                    if (empresaId !== `PI - ${empresaIdSemPI}`) {
+                        return db.collection("usuarios").doc(`PI - ${empresaIdSemPI}`)
+                            .collection("agendamentos")
+                            .doc(id)
+                            .update({ status: "cancelado" });
+                    }
+                    throw err;
+                })
+                .then(() => {
+                    if (empresaId !== `PI - ${empresaIdSemPI}`) {
+                        alert("Agendamento cancelado!");
+                        document.getElementById('info-agendamento-existente').style.display = 'none';
+                        document.getElementById('formulario-agendamento').style.display = 'block';
+                        agendamentoExistente = null;
+                    }
                 })
                 .catch(err => {
                     console.error("Erro ao cancelar:", err);
@@ -755,22 +776,43 @@
             const isHoje = dataFormatada === hojeFormatado;
             const agora = new Date();
             
-            const empresaRef = empresaSelecionada.id.startsWith("PI -")
-                ? db.collection("usuarios").doc(empresaSelecionada.id)
-                : db.collection("usuarios").doc(empresaSelecionada.id);
+            const empresaId = empresaSelecionada.id;
+            const empresaIdSemPI = empresaId.startsWith("PI -") ? empresaId.replace("PI - ", "") : empresaId;
             
-            let query = empresaRef.collection("agendamentos")
+            // Primeiro busca na coleção sem PI -
+            let querySemPI = db.collection("usuarios").doc(empresaIdSemPI)
+                .collection("agendamentos")
                 .where("data", "==", dataFormatada)
                 .where("servico", "==", servicoSelecionado)
                 .where("status", "==", "confirmado");
             
             if (prestadorSelecionado) {
-                query = query.where("prestador", "==", prestadorSelecionado);
+                querySemPI = querySemPI.where("prestador", "==", prestadorSelecionado);
             }
             
-            query.get()
+            querySemPI.get()
                 .then(querySnapshot => {
                     const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
+                    
+                    // Depois busca na coleção com PI - (se diferente)
+                    if (empresaId !== `PI - ${empresaIdSemPI}`) {
+                        return db.collection("usuarios").doc(`PI - ${empresaIdSemPI}`)
+                            .collection("agendamentos")
+                            .where("data", "==", dataFormatada)
+                            .where("servico", "==", servicoSelecionado)
+                            .where("status", "==", "confirmado")
+                            .where("prestador", "==", prestadorSelecionado)
+                            .get()
+                            .then(piQuerySnapshot => {
+                                piQuerySnapshot.docs.forEach(doc => {
+                                    horariosOcupados.push(doc.data().horario);
+                                });
+                                return horariosOcupados;
+                            });
+                    }
+                    return horariosOcupados;
+                })
+                .then(horariosOcupados => {
                     const horariosBase = calcularHorariosDisponiveis();
                     
                     const horariosDisponiveis = horariosBase.map(horario => {
@@ -878,15 +920,33 @@
             
             if (prestadorSelecionado) agendamento.prestador = prestadorSelecionado;
             
-            const empresaRef = empresaSelecionada.id.startsWith("PI -")
-                ? db.collection("usuarios").doc(empresaSelecionada.id)
-                : db.collection("usuarios").doc(empresaSelecionada.id);
+            const empresaId = empresaSelecionada.id;
+            const empresaIdSemPI = empresaId.startsWith("PI -") ? empresaId.replace("PI - ", "") : empresaId;
             
-            empresaRef.collection("agendamentos")
+            // Primeiro tenta salvar sem PI -
+            db.collection("usuarios").doc(empresaIdSemPI)
+                .collection("agendamentos")
                 .add(agendamento)
                 .then(() => {
                     agendamentoConfirmado = true;
                     preencherResumoAgendamento();
+                })
+                .catch(err => {
+                    console.error("Erro ao salvar sem PI -:", err);
+                    
+                    // Se falhou, tenta salvar com PI -
+                    if (empresaId !== `PI - ${empresaIdSemPI}`) {
+                        return db.collection("usuarios").doc(`PI - ${empresaIdSemPI}`)
+                            .collection("agendamentos")
+                            .add(agendamento);
+                    }
+                    throw err;
+                })
+                .then(() => {
+                    if (empresaId !== `PI - ${empresaIdSemPI}`) {
+                        agendamentoConfirmado = true;
+                        preencherResumoAgendamento();
+                    }
                 })
                 .catch(err => {
                     console.error("Erro ao confirmar:", err);
