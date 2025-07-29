@@ -1,3 +1,4 @@
+
 // Configuração e inicialização do Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
@@ -26,12 +27,24 @@ let empresaPrincipal = null;
 let empresaPI = null;
 let calendar = null;
 
-// Configurações padrão de horários
+// Substitua a configuração atual por:
 const horariosConfig = {
-    duracaoAtendimento: 30,
-    horarioAbertura: "08:00",
-    horarioFechamento: "18:00",
-    intervaloAtendimento: 15
+    empresaPrincipal: {
+        duracaoAtendimento: 30,
+        horarioAbertura: "08:00",
+        horarioFechamento: "18:00",
+        intervaloAtendimento: 15,
+        diasFuncionamento: [1, 2, 3, 4, 5], // Dias da semana (1=segunda, 7=domingo)
+        horarioAlmoco: null // Ou { inicio: "12:00", fim: "13:00" }
+    },
+    empresaPI: {
+        duracaoAtendimento: 30,
+        horarioAbertura: "08:00",
+        horarioFechamento: "18:00",
+        intervaloAtendimento: 15,
+        diasFuncionamento: [1, 2, 3, 4, 5],
+        horarioAlmoco: null
+    }
 };
 
 // Funções auxiliares
@@ -57,8 +70,13 @@ function inicializarCalendario() {
         minDate: hoje,
         disable: [
             function(date) {
-                // Desabilita fins de semana
-                return (date.getDay() === 0 || date.getDay() === 6);
+                // Verifica qual empresa está selecionada
+                const configAtual = empresaSelecionada === empresaPI 
+                    ? horariosConfig.empresaPI 
+                    : horariosConfig.empresaPrincipal;
+                
+                // Desabilita dias que não são de funcionamento
+                return !configAtual.diasFuncionamento.includes(date.getDay() || 7);
             }
         ],
         onChange: function(selectedDates, dateStr, instance) {
@@ -215,13 +233,18 @@ function processarDadosPI(empresa) {
     // Processa horários específicos se existirem
     if (empresa.horarios) {
         try {
-            const horariosData = JSON.parse(empresa.horarios);
-            if (horariosData.horarioAbertura) horariosConfig.horarioAbertura = horariosData.horarioAbertura;
-            if (horariosData.horarioFechamento) horariosConfig.horarioFechamento = horariosData.horarioFechamento;
-            if (horariosData.duracaoAtendimento) horariosConfig.duracaoAtendimento = horariosData.duracaoAtendimento;
-            if (horariosData.intervaloAtendimento) horariosConfig.intervaloAtendimento = horariosData.intervaloAtendimento;
+            const horariosData = typeof empresa.horarios === 'string' 
+                ? JSON.parse(empresa.horarios) 
+                : empresa.horarios;
+            
+            if (horariosData.horarioAbertura) horariosConfig.empresaPI.horarioAbertura = horariosData.horarioAbertura;
+            if (horariosData.horarioFechamento) horariosConfig.empresaPI.horarioFechamento = horariosData.horarioFechamento;
+            if (horariosData.duracaoAtendimento) horariosConfig.empresaPI.duracaoAtendimento = horariosData.duracaoAtendimento;
+            if (horariosData.intervaloAtendimento) horariosConfig.empresaPI.intervaloAtendimento = horariosData.intervaloAtendimento;
+            if (horariosData.diasFuncionamento) horariosConfig.empresaPI.diasFuncionamento = horariosData.diasFuncionamento;
+            if (horariosData.horarioAlmoco) horariosConfig.empresaPI.horarioAlmoco = horariosData.horarioAlmoco;
         } catch (e) {
-            console.error("Erro ao processar horários:", e);
+            console.error("Erro ao processar horários PI:", e);
         }
     }
 }
@@ -328,6 +351,24 @@ function processarDadosPrincipal(empresa) {
         
         servicosDisponiveis = [...new Set([...servicosDisponiveis, ...novosServicos])];
     }
+	
+    // Processa configurações de horários
+    if (empresa.horariosConfig) {
+        try {
+            const horariosData = typeof empresa.horariosConfig === 'string' 
+                ? JSON.parse(empresa.horariosConfig) 
+                : empresa.horariosConfig;
+            
+            if (horariosData.horarioAbertura) horariosConfig.empresaPrincipal.horarioAbertura = horariosData.horarioAbertura;
+            if (horariosData.horarioFechamento) horariosConfig.empresaPrincipal.horarioFechamento = horariosData.horarioFechamento;
+            if (horariosData.duracaoAtendimento) horariosConfig.empresaPrincipal.duracaoAtendimento = horariosData.duracaoAtendimento;
+            if (horariosData.intervaloAtendimento) horariosConfig.empresaPrincipal.intervaloAtendimento = horariosData.intervaloAtendimento;
+            if (horariosData.diasFuncionamento) horariosConfig.empresaPrincipal.diasFuncionamento = horariosData.diasFuncionamento;
+            if (horariosData.horarioAlmoco) horariosConfig.empresaPrincipal.horarioAlmoco = horariosData.horarioAlmoco;
+        } catch (e) {
+            console.error("Erro ao processar horários principal:", e);
+        }
+    }
 }
 
 function carregarSelectServicos() {
@@ -351,7 +392,6 @@ function carregarSelectServicos() {
     
     document.getElementById('prestador').addEventListener('change', function() {
         prestadorSelecionado = this.value;
-        if (servicoSelecionado && dataSelecionada) carregarHorariosDisponiveis();
         
         // Atualiza a empresa selecionada com base no prestador
         if (prestadorSelecionado) {
@@ -359,10 +399,11 @@ function carregarSelectServicos() {
             if (prestadorInfo) {
                 empresaSelecionada = prestadorInfo.isPI ? empresaPI : empresaPrincipal;
                 
-                // Atualiza as configurações de horário
-                if (empresaSelecionada.horariosConfig) {
-                    Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
+                // Recria o calendário com os novos dias de funcionamento
+                if (calendar) {
+                    calendar.destroy();
                 }
+                inicializarCalendario();
                 
                 // Recarrega os horários se já tiver uma data selecionada
                 if (dataSelecionada) {
@@ -515,6 +556,11 @@ function cancelarAgendamentoExistente(agendamento) {
 }
 
 function calcularHorariosDisponiveis() {
+    // Obtém a configuração correta com base na empresa selecionada
+    const configAtual = empresaSelecionada === empresaPI 
+        ? horariosConfig.empresaPI 
+        : horariosConfig.empresaPrincipal;
+
     const horarios = [];
     const toMinutes = timeStr => {
         const [h, m] = timeStr.split(':').map(Number);
@@ -527,13 +573,23 @@ function calcularHorariosDisponiveis() {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     };
     
-    const inicio = toMinutes(horariosConfig.horarioAbertura);
-    const fim = toMinutes(horariosConfig.horarioFechamento);
-    const duracao = horariosConfig.duracaoAtendimento;
-    const intervalo = horariosConfig.intervaloAtendimento;
+    const inicio = toMinutes(configAtual.horarioAbertura);
+    const fim = toMinutes(configAtual.horarioFechamento);
+    const duracao = configAtual.duracaoAtendimento;
+    const intervalo = configAtual.intervaloAtendimento;
     const totalPorAtendimento = duracao + intervalo;
     
+    // Verifica se tem horário de almoço
+    const almocoInicio = configAtual.horarioAlmoco ? toMinutes(configAtual.horarioAlmoco.inicio) : null;
+    const almocoFim = configAtual.horarioAlmoco ? toMinutes(configAtual.horarioAlmoco.fim) : null;
+    
     for (let time = inicio; time + duracao <= fim; time += totalPorAtendimento) {
+        // Pula horários durante o almoço
+        if (almocoInicio && almocoFim && time >= almocoInicio && time < almocoFim) {
+            time = almocoFim - totalPorAtendimento; // Ajusta para pular o almoço
+            continue;
+        }
+        
         horarios.push(toTimeStr(time));
     }
     
