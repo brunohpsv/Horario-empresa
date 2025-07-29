@@ -144,13 +144,20 @@ function processarDadosPrestadorIndividual() {
 function carregarServicosEAtendentes() {
     if (!empresaSelecionada) return;
 
-    if (empresaSelecionada.servicoAtendente) {
-        processarServicosAtendentes(empresaSelecionada.servicoAtendente);
-    } else if (empresaSelecionada.atendentes) {
-        processarAtendentes(empresaSelecionada.atendentes);
+    // Primeiro verifica se há serviços diretamente no documento
+    if (empresaSelecionada.servicos) {
+        servicosDisponiveis = empresaSelecionada.servicos.split('/').map(s => s.trim()).filter(s => s.length > 0);
     } else if (empresaSelecionada.servico) {
-        processarServicos(empresaSelecionada.servico);
-    } else {
+        servicosDisponiveis = empresaSelecionada.servico.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    }
+
+    // Verifica se há atendentes específicos
+    if (empresaSelecionada.atendentes) {
+        processarAtendentes(empresaSelecionada.atendentes);
+    }
+
+    // Se não encontrou serviços, mostra mensagem de erro
+    if (servicosDisponiveis.length === 0) {
         mostrarErro("Esta empresa ainda não configurou seus serviços.");
         document.getElementById('servico').innerHTML = '<option value="">Nenhum serviço disponível</option>';
         return;
@@ -159,19 +166,16 @@ function carregarServicosEAtendentes() {
     carregarSelectServicos();
 }
 
-function processarServicosAtendentes(dados) {
-    const servicosMap = {};
-    
+function processarAtendentes(dados) {
     // Se os dados são um array (vindo do Firestore)
     if (Array.isArray(dados)) {
         dados.forEach(item => {
-            const servico = item.servico;
-            const atendente = item.atendente;
-            
-            if (!servicosMap[servico]) {
-                servicosMap[servico] = new Set();
+            if (item.servico && item.atendente) {
+                atendentes.push({
+                    nome: item.atendente,
+                    servico: item.servico
+                });
             }
-            servicosMap[servico].add(atendente);
         });
     } 
     // Se os dados são uma string (formato antigo)
@@ -182,65 +186,17 @@ function processarServicosAtendentes(dados) {
             const partes = linha.split('-').map(p => p.trim());
             if (partes.length >= 2) {
                 const servico = partes[0];
-                const atendentes = partes[1].split(',').map(a => a.trim());
+                const atendentesLista = partes[1].split(',').map(a => a.trim());
                 
-                if (!servicosMap[servico]) {
-                    servicosMap[servico] = new Set();
-                }
-                
-                atendentes.forEach(atendente => {
-                    servicosMap[servico].add(atendente);
+                atendentesLista.forEach(atendente => {
+                    atendentes.push({
+                        nome: atendente,
+                        servico: servico
+                    });
                 });
             }
         });
     }
-
-    // Convertemos o mapa em arrays para servicosDisponiveis e atendentes
-    servicosDisponiveis = Object.keys(servicosMap).sort((a, b) => a.localeCompare(b));
-    
-    atendentes = [];
-    servicosDisponiveis.forEach(servico => {
-        Array.from(servicosMap[servico]).forEach(nome => {
-            atendentes.push({ nome, servico });
-        });
-    });
-}
-
-function processarAtendentes(dados) {
-    const servicosMap = {};
-    const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
-    let match;
-
-    while ((match = regex.exec(dados)) !== null) {
-        const nomePrestador = match[1].trim();
-        const servicos = match[2].match(/\[([^\]]+)\]/g).map(s => s.replace(/[\[\]]/g, '').trim());
-
-        servicos.forEach(servico => {
-            if (!servicosMap[servico]) {
-                servicosMap[servico] = new Set();
-            }
-            servicosMap[servico].add(nomePrestador);
-        });
-    }
-
-    // Convertemos o mapa em arrays para servicosDisponiveis e atendentes
-    servicosDisponiveis = Object.keys(servicosMap).sort((a, b) => a.localeCompare(b));
-    
-    atendentes = [];
-    servicosDisponiveis.forEach(servico => {
-        Array.from(servicosMap[servico]).forEach(nome => {
-            atendentes.push({ nome, servico });
-        });
-    });
-}
-
-function processarServicos(dados) {
-    // Para serviços sem atendentes específicos, apenas listamos os serviços únicos
-    servicosDisponiveis = typeof dados === 'string' 
-        ? [...new Set(dados.split(/[\n,]/).map(s => s.trim()).filter(s => s.length > 0))]
-        : [...new Set(dados)];
-
-    servicosDisponiveis.sort((a, b) => a.localeCompare(b));
 }
 
 function carregarSelectServicos() {
