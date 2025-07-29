@@ -668,7 +668,7 @@ function confirmarAgendamento() {
     const telefone = document.getElementById('telefone').value.trim();
     const email = document.getElementById('email').value.trim();
     
-    if (!nome || !telefone) {
+    if (!nome || !telefone || !documentoCliente) {
         mostrarErro("Preencha todos os campos obrigatórios.");
         return;
     }
@@ -700,6 +700,11 @@ function confirmarAgendamento() {
         return;
     }
     
+    // Mostra loading
+    const btnConfirmar = document.getElementById('btn-confirmar');
+    btnConfirmar.disabled = true;
+    btnConfirmar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Confirmando...';
+    
     db.collection("usuarios").doc(empresaSelecionada.id)
         .collection("agendamentos")
         .add(agendamento)
@@ -709,7 +714,11 @@ function confirmarAgendamento() {
         })
         .catch(err => {
             console.error("Erro ao confirmar:", err);
-            mostrarErro("Erro ao confirmar agendamento.");
+            mostrarErro("Erro ao confirmar agendamento. Tente novamente.");
+            
+            // Restaura o botão
+            btnConfirmar.disabled = false;
+            btnConfirmar.textContent = 'Confirmar Agendamento';
         });
 }
 
