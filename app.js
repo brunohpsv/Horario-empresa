@@ -143,12 +143,15 @@ function processarDadosPI(empresa) {
                     servicosDisponiveis.push(servico);
                     
                     nomesAtendentes.forEach(nome => {
-                        atendentes.push({ 
-                            nome, 
-                            servico, 
-                            isPI: true,
-                            empresaId: empresa.id
-                        });
+                        // Verifica se o nome não é o nomeFantasia da empresa
+                        if (nome !== empresa.nomeFantasia) {
+                            atendentes.push({ 
+                                nome, 
+                                servico, 
+                                isPI: true,
+                                empresaId: empresa.id
+                            });
+                        }
                     });
                 }
             });
@@ -159,12 +162,15 @@ function processarDadosPI(empresa) {
                     servicosDisponiveis.push(item.servico);
                     
                     item.atendentes.forEach(nome => {
-                        atendentes.push({ 
-                            nome, 
-                            servico: item.servico, 
-                            isPI: true,
-                            empresaId: empresa.id
-                        });
+                        // Verifica se o nome não é o nomeFantasia da empresa
+                        if (nome !== empresa.nomeFantasia) {
+                            atendentes.push({ 
+                                nome, 
+                                servico: item.servico, 
+                                isPI: true,
+                                empresaId: empresa.id
+                            });
+                        }
                     });
                 }
             });
@@ -178,18 +184,6 @@ function processarDadosPI(empresa) {
     } else if (empresa.servico) {
         const novosServicos = empresa.servico.split(',').map(s => s.trim()).filter(s => s.length > 0);
         servicosDisponiveis = [...new Set([...servicosDisponiveis, ...novosServicos])];
-    }
-    
-    // Adiciona o próprio prestador como atendente para todos os serviços
-    if (empresa.nomeFantasia) {
-        servicosDisponiveis.forEach(servico => {
-            atendentes.push({
-                nome: empresa.nomeFantasia,
-                servico: servico,
-                isPI: true,
-                empresaId: empresa.id
-            });
-        });
     }
     
     // Processa horários específicos se existirem
@@ -222,12 +216,15 @@ function processarDadosPrincipal(empresa) {
                     servicosDisponiveis.push(servico);
                     
                     nomesAtendentes.forEach(nome => {
-                        atendentes.push({ 
-                            nome, 
-                            servico, 
-                            isPI: false,
-                            empresaId: empresa.id
-                        });
+                        // Verifica se o nome não é o nomeFantasia da empresa
+                        if (nome !== empresa.nomeFantasia) {
+                            atendentes.push({ 
+                                nome, 
+                                servico, 
+                                isPI: false,
+                                empresaId: empresa.id
+                            });
+                        }
                     });
                 }
             });
@@ -238,12 +235,15 @@ function processarDadosPrincipal(empresa) {
                     servicosDisponiveis.push(item.servico);
                     
                     item.atendentes.forEach(nome => {
-                        atendentes.push({ 
-                            nome, 
-                            servico: item.servico, 
-                            isPI: false,
-                            empresaId: empresa.id
-                        });
+                        // Verifica se o nome não é o nomeFantasia da empresa
+                        if (nome !== empresa.nomeFantasia) {
+                            atendentes.push({ 
+                                nome, 
+                                servico: item.servico, 
+                                isPI: false,
+                                empresaId: empresa.id
+                            });
+                        }
                     });
                 }
             });
@@ -261,28 +261,34 @@ function processarDadosPrincipal(empresa) {
                 const nomePrestador = match[1].trim();
                 const servicos = match[2].match(/\[([^\]]+)\]/g).map(s => s.replace(/[\[\]]/g, '').trim());
                 
-                servicos.forEach(servico => {
-                    atendentes.push({ 
-                        nome: nomePrestador, 
-                        servico, 
-                        isPI: false,
-                        empresaId: empresa.id
-                    });
-                    servicosDisponiveis.push(servico);
-                });
-            }
-        } else if (Array.isArray(empresa.atendentes)) {
-            empresa.atendentes.forEach(item => {
-                if (item.nome && item.servicos) {
-                    item.servicos.forEach(servico => {
+                // Verifica se o nome não é o nomeFantasia da empresa
+                if (nomePrestador !== empresa.nomeFantasia) {
+                    servicos.forEach(servico => {
                         atendentes.push({ 
-                            nome: item.nome, 
+                            nome: nomePrestador, 
                             servico, 
                             isPI: false,
                             empresaId: empresa.id
                         });
                         servicosDisponiveis.push(servico);
                     });
+                }
+            }
+        } else if (Array.isArray(empresa.atendentes)) {
+            empresa.atendentes.forEach(item => {
+                if (item.nome && item.servicos) {
+                    // Verifica se o nome não é o nomeFantasia da empresa
+                    if (item.nome !== empresa.nomeFantasia) {
+                        item.servicos.forEach(servico => {
+                            atendentes.push({ 
+                                nome: item.nome, 
+                                servico, 
+                                isPI: false,
+                                empresaId: empresa.id
+                            });
+                            servicosDisponiveis.push(servico);
+                        });
+                    }
                 }
             });
         }
