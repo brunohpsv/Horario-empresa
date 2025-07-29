@@ -394,6 +394,95 @@
             color: #666;
             margin-top: 5px;
         }
+
+        /* Estilos para a seção de serviços e atendentes */
+        .servicos-container {
+            margin-top: 20px;
+        }
+
+        .servico-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .servico-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .servico-title {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .remove-servico {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .atendentes-list {
+            margin-top: 10px;
+        }
+
+        .atendente-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .atendente-item input {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .remove-atendente {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-atendente {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .add-servico {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .add-servico i {
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -452,13 +541,19 @@
                     <label for="identificacao">Identificação:</label>
                     <input type="text" id="identificacao" placeholder="Sua identificação na empresa" required>
                 </div>
+            </div>
+            
+            <!-- Seção de Serviços e Atendentes -->
+            <div class="section">
+                <h2>SERVIÇOS E ATENDENTES</h2>
                 
-                <!-- Novo campo para serviços -->
-                <div class="form-group">
-                    <label for="servicos">Serviços oferecidos:</label>
-                    <input type="text" id="servicos" placeholder="Ex: Corte de cabelo / Barba / Sobrancelha" required>
-                    <p class="services-description">Separe os serviços com " / " (barra)</p>
+                <div id="servicosContainer" class="servicos-container">
+                    <!-- Os itens de serviço serão adicionados dinamicamente aqui -->
                 </div>
+                
+                <button type="button" id="addServicoBtn" class="add-servico">
+                    <i class="fas fa-plus"></i> Adicionar Serviço
+                </button>
             </div>
             
             <!-- Seção de Configuração de Horários -->
@@ -615,6 +710,12 @@
                     
                     // Carrega as configurações existentes do painel individual
                     loadExistingData(user.uid);
+                    
+                    // Adiciona evento para adicionar serviço
+                    document.getElementById('addServicoBtn').addEventListener('click', addServico);
+                    
+                    // Carrega o primeiro serviço por padrão
+                    addServico();
                 }
             });
             
@@ -628,6 +729,78 @@
                 }
             });
         });
+
+        // Função para adicionar um novo serviço
+        function addServico(servicoData = { servico: '', atendentes: [''] }) {
+            const servicosContainer = document.getElementById('servicosContainer');
+            const servicoId = Date.now(); // ID único para o serviço
+            
+            const servicoItem = document.createElement('div');
+            servicoItem.className = 'servico-item';
+            servicoItem.dataset.id = servicoId;
+            
+            servicoItem.innerHTML = `
+                <div class="servico-header">
+                    <div class="servico-title">Serviço</div>
+                    <button type="button" class="remove-servico">Remover</button>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="servico-input" placeholder="Nome do serviço (ex: Oftalmologista)" value="${servicoData.servico}" required>
+                </div>
+                <div class="atendentes-list">
+                    <label>Atendentes:</label>
+                    ${servicoData.atendentes.map(atendente => `
+                        <div class="atendente-item">
+                            <input type="text" class="atendente-input" placeholder="Nome do atendente" value="${atendente}" required>
+                            <button type="button" class="remove-atendente">×</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <button type="button" class="add-atendente">Adicionar Atendente</button>
+            `;
+            
+            servicosContainer.appendChild(servicoItem);
+            
+            // Adiciona eventos aos botões
+            servicoItem.querySelector('.remove-servico').addEventListener('click', function() {
+                if (document.querySelectorAll('.servico-item').length > 1) {
+                    servicoItem.remove();
+                } else {
+                    showMessage('error', 'Você deve ter pelo menos um serviço cadastrado');
+                }
+            });
+            
+            servicoItem.querySelector('.add-atendente').addEventListener('click', function() {
+                const atendentesList = servicoItem.querySelector('.atendentes-list');
+                const atendenteItem = document.createElement('div');
+                atendenteItem.className = 'atendente-item';
+                atendenteItem.innerHTML = `
+                    <input type="text" class="atendente-input" placeholder="Nome do atendente" required>
+                    <button type="button" class="remove-atendente">×</button>
+                `;
+                atendentesList.appendChild(atendenteItem);
+                
+                // Adiciona evento ao botão de remover atendente
+                atendenteItem.querySelector('.remove-atendente').addEventListener('click', function() {
+                    if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
+                        atendenteItem.remove();
+                    } else {
+                        showMessage('error', 'Cada serviço deve ter pelo menos um atendente');
+                    }
+                });
+            });
+            
+            // Adiciona eventos aos botões de remover atendente existentes
+            servicoItem.querySelectorAll('.remove-atendente').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
+                        this.closest('.atendente-item').remove();
+                    } else {
+                        showMessage('error', 'Cada serviço deve ter pelo menos um atendente');
+                    }
+                });
+            });
+        }
 
         // Função para carregar dados existentes do painel individual
         async function loadExistingData(userId) {
@@ -652,7 +825,6 @@
                         document.getElementById('nomeCompleto').value = data.nomeCompleto || '';
                         document.getElementById('cpf').value = data.cpf || '';
                         document.getElementById('identificacao').value = data.identificacao || '';
-                        document.getElementById('servicos').value = data.servicos || '';
                         
                         // Preenche configurações de horários se existirem
                         if (data.horarios) {
@@ -681,6 +853,20 @@
                             // Preenche duração e intervalo
                             if (horarios.duracaoAtendimento) document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento;
                             if (horarios.intervaloAtendimento) document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento;
+                        }
+                        
+                        // Preenche serviços e atendentes se existirem
+                        if (data.servicoAtendente && data.servicoAtendente.length > 0) {
+                            // Limpa os serviços existentes
+                            document.getElementById('servicosContainer').innerHTML = '';
+                            
+                            // Adiciona cada serviço com seus atendentes
+                            data.servicoAtendente.forEach(servicoAtendente => {
+                                addServico({
+                                    servico: servicoAtendente.servico || '',
+                                    atendentes: servicoAtendente.atendentes || ['']
+                                });
+                            });
                         }
                     }
                 }
@@ -733,13 +919,32 @@
                 const nomeCompleto = document.getElementById('nomeCompleto').value;
                 const cpf = document.getElementById('cpf').value;
                 const identificacao = document.getElementById('identificacao').value;
-                const servicos = document.getElementById('servicos').value;
                 
                 // Validar dados pessoais
-                if (!nomeFantasia || !nomeCompleto || !cpf || !identificacao || !servicos) {
+                if (!nomeFantasia || !nomeCompleto || !cpf || !identificacao) {
                     showMessage('error', 'Preencha todas as informações pessoais');
                     document.getElementById('loaderOverlay').style.display = 'none';
                     return;
+                }
+                
+                // Coletar dados de serviços e atendentes
+                const servicoAtendente = [];
+                const servicoItems = document.querySelectorAll('.servico-item');
+                
+                for (const item of servicoItems) {
+                    const servico = item.querySelector('.servico-input').value.trim();
+                    const atendentes = Array.from(item.querySelectorAll('.atendente-input')).map(input => input.value.trim()).filter(a => a);
+                    
+                    if (!servico || atendentes.length === 0) {
+                        showMessage('error', 'Preencha todos os campos de serviços e atendentes');
+                        document.getElementById('loaderOverlay').style.display = 'none';
+                        return;
+                    }
+                    
+                    servicoAtendente.push({
+                        servico: servico,
+                        atendentes: atendentes
+                    });
                 }
                 
                 // Coletar dados de horários
@@ -777,16 +982,11 @@
                     nomeCompleto: nomeCompleto,
                     cpf: cpf,
                     identificacao: identificacao,
-                    servicos: servicos,
+                    servicoAtendente: servicoAtendente,
                     empresaDocId: empresaDocId,
                     userId: userId,
                     tipo: 'painel-individual',
-                    dataAtualizacao: new Date().toISOString(),
-                    horarios: {
-                        diasFuncionamento: diasSelecionados,
-                        horarioAbertura: horarioAbertura,
-                        horarioFechamento: horarioFechamento,
-                        duracaoAtendimento: parseInt(duracaoAtendimento),
+                    dataAtracaoAtendimento: parseInt(duracaoAtendimento),
                         intervaloAtendimento: parseInt(intervaloAtendimento),
                         ultimaAtualizacao: new Date().toISOString()
                     }
