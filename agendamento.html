@@ -371,6 +371,8 @@
         let agendamentoConfirmado = false;
         let atendentes = [];
         let servicosDisponiveis = [];
+        let empresaPrincipal = null;
+        let empresaPI = null;
         
         // Configurações padrão de horários
         const horariosConfig = {
@@ -416,122 +418,119 @@
                 return;
             }
             
-            // Carrega dados da empresa com e sem "PI -"
             const empresaIdComPI = `PI - ${empresaId}`;
             
-            // Primeiro tenta carregar com "PI -"
-            db.collection("usuarios").doc(empresaIdComPI).get()
-                .then(docComPI => {
-                    if (docComPI.exists) {
-                        processarDadosEmpresa(docComPI);
-                    }
-                    
-                    // Independente se encontrou ou não, tenta também sem "PI -"
-                    return db.collection("usuarios").doc(empresaId).get();
-                })
-                .then(docSemPI => {
-                    if (docSemPI.exists) {
-                        processarDadosEmpresa(docSemPI);
-                    }
-                    
-                    // Se não encontrou nenhum dos dois, mostra erro
-                    if (!empresaSelecionada) {
-                        mostrarErro("Empresa não encontrada.");
-                    } else {
-                        // Combina as configurações de horários
-                        if (empresaSelecionada.horariosConfig) {
-                            Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-                        }
-                        
-                        // Carrega serviços e atendentes
-                        carregarServicosEAtendentes();
-                    }
-                })
-                .catch(err => {
-                    console.error("Erro ao carregar empresa:", err);
-                    mostrarErro("Erro ao carregar dados da empresa.");
-                });
-        }
-        
-        function processarDadosEmpresa(doc) {
-            const dadosEmpresa = doc.data();
-            
-            // Se já temos dados da empresa, combinamos com os novos
-            if (empresaSelecionada) {
-                empresaSelecionada = {
-                    ...empresaSelecionada,
-                    ...dadosEmpresa,
-                    id: doc.id // Mantém o ID do documento
-                };
-            } else {
-                empresaSelecionada = {
-                    ...dadosEmpresa,
-                    id: doc.id
-                };
-            }
-            
-            document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
+            // Carrega os dois documentos (com e sem PI -)
+            Promise.all([
+                db.collection("usuarios").doc(empresaId).get(),
+                db.collection("usuarios").doc(empresaIdComPI).get()
+            ])
+            .then(([docSemPI, docComPI]) => {
+                if (docSemPI.exists) {
+                    empresaPrincipal = {
+                        ...docSemPI.data(),
+                        id: docSemPI.id,
+                        isPI: false
+                    };
+                }
+                
+                if (docComPI.exists) {
+                    empresaPI = {
+                        ...docComPI.data(),
+                        id: docComPI.id,
+                        isPI: true
+                    };
+                }
+                
+                // Define a empresa selecionada como a principal (sem PI -) por padrão
+                empresaSelecionada = empresaPrincipal || empresaPI;
+                
+                if (!empresaSelecionada) {
+                    mostrarErro("Empresa não encontrada.");
+                    return;
+                }
+                
+                document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
+                
+                // Combina as configurações de horários
+                if (empresaSelecionada.horariosConfig) {
+                    Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
+                }
+                
+                // Carrega serviços e atendentes combinando dados de ambos documentos
+                carregarServicosEAtendentes();
+            })
+            .catch(err => {
+                console.error("Erro ao carregar empresa:", err);
+                mostrarErro("Erro ao carregar dados da empresa.");
+            });
         }
         
         function carregarServicosEAtendentes() {
-            if (!empresaSelecionada) return;
-            
             // Limpa os arrays antes de recarregar
             servicosDisponiveis = [];
             atendentes = [];
             
-            // Processa serviços e atendentes de acordo com os dados disponíveis
-            if (empresaSelecionada.servicoAtendente) {
-                processarServicosAtendentes(empresaSelecionada.servicoAtendente);
-            } else if (empresaSelecionada.atendentes) {
-                processarAtendentes(empresaSelecionada.atendentes);
-            } else if (empresaSelecionada.servico) {
-                processarServicos(empresaSelecionada.servico);
+            // Processa dados da empresa principal (sem PI -)
+            if (empresaPrincipal) {
+                processarDadosEmpresa(empresaPrincipal);
             }
             
-            // Se for um prestador individual (PI -), adiciona seus serviços específicos
-            if (empresaSelecionada.id.startsWith("PI -")) {
-                processarDadosPrestadorIndividual();
+            // Processa dados da empresa PI (com PI -)
+            if (empresaPI) {
+                processarDadosEmpresa(empresaPI);
             }
             
             carregarSelectServicos();
         }
         
-        function processarDadosPrestadorIndividual() {
-            // Processa serviços do prestador individual
-            if (empresaSelecionada.servicos) {
-                const novosServicos = empresaSelecionada.servicos.split('/').map(s => s.trim()).filter(s => s.length > 0);
-                servicosDisponiveis = [...new Set([...servicosDisponiveis, ...novosServicos])];
-            } else if (empresaSelecionada.servico) {
-                const novosServicos = empresaSelecionada.servico.split(',').map(s => s.trim()).filter(s => s.length > 0);
-                servicosDisponiveis = [...new Set([...servicosDisponiveis, ...novosServicos])];
+        function processarDadosEmpresa(empresa) {
+            // Processa serviços e atendentes de acordo com os dados disponíveis
+            if (empresa.servicoAtendente) {
+                processarServicosAtendentes(empresa.servicoAtendente, empresa.isPI);
+            } else if (empresa.atendentes) {
+                processarAtendentes(empresa.atendentes, empresa.isPI);
+            } else if (empresa.servico) {
+                processarServicos(empresa.servico);
             }
             
-            // Adiciona o próprio prestador como atendente para todos os serviços
-            if (empresaSelecionada.nomeCompleto) {
-                servicosDisponiveis.forEach(servico => {
-                    atendentes.push({
-                        nome: empresaSelecionada.nomeCompleto,
-                        servico: servico
+            // Se for um prestador individual, adiciona seus serviços específicos
+            if (empresa.isPI) {
+                if (empresa.servicos) {
+                    const novosServicos = empresa.servicos.split('/').map(s => s.trim()).filter(s => s.length > 0);
+                    servicosDisponiveis = [...new Set([...servicosDisponiveis, ...novosServicos])];
+                } else if (empresa.servico) {
+                    const novosServicos = empresa.servico.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                    servicosDisponiveis = [...new Set([...servicosDisponiveis, ...novosServicos])];
+                }
+                
+                // Adiciona o próprio prestador como atendente para todos os serviços
+                if (empresa.nomeCompleto) {
+                    servicosDisponiveis.forEach(servico => {
+                        atendentes.push({
+                            nome: empresa.nomeCompleto,
+                            servico: servico,
+                            isPI: true
+                        });
                     });
-                });
-            }
-            
-            // Processa horários específicos se existirem
-            if (empresaSelecionada.horarios) {
-                try {
-                    const horariosData = JSON.parse(empresaSelecionada.horarios);
-                    if (horariosData.horarioAbertura) horariosConfig.horarioAbertura = horariosData.horarioAbertura;
-                    if (horariosData.horarioFechamento) horariosConfig.horarioFechamento = horariosData.horarioFechamento;
-                    if (horariosData.duracaoAtendimento) horariosConfig.duracaoAtendimento = horariosData.duracaoAtendimento;
-                    if (horariosData.intervaloAtendimento) horariosConfig.intervaloAtendimento = horariosData.intervaloAtendimento;
-                } catch (e) {
-                    console.error("Erro ao processar horários:", e);
+                }
+                
+                // Processa horários específicos se existirem
+                if (empresa.horarios) {
+                    try {
+                        const horariosData = JSON.parse(empresa.horarios);
+                        if (horariosData.horarioAbertura) horariosConfig.horarioAbertura = horariosData.horarioAbertura;
+                        if (horariosData.horarioFechamento) horariosConfig.horarioFechamento = horariosData.horarioFechamento;
+                        if (horariosData.duracaoAtendimento) horariosConfig.duracaoAtendimento = horariosData.duracaoAtendimento;
+                        if (horariosData.intervaloAtendimento) horariosConfig.intervaloAtendimento = horariosData.intervaloAtendimento;
+                    } catch (e) {
+                        console.error("Erro ao processar horários:", e);
+                    }
                 }
             }
         }
         
-        function processarServicosAtendentes(dados) {
+        function processarServicosAtendentes(dados, isPI = false) {
             if (typeof dados === 'string') {
                 dados.split('\n').filter(linha => linha.trim() !== '').forEach(linha => {
                     const partes = linha.split('-').map(p => p.trim());
@@ -542,7 +541,7 @@
                         if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
                         
                         nomesAtendentes.forEach(nome => {
-                            atendentes.push({ nome, servico });
+                            atendentes.push({ nome, servico, isPI });
                         });
                     }
                 });
@@ -552,7 +551,7 @@
                         if (!servicosDisponiveis.includes(item.servico)) servicosDisponiveis.push(item.servico);
                         
                         item.atendentes.forEach(nome => {
-                            atendentes.push({ nome, servico: item.servico });
+                            atendentes.push({ nome, servico: item.servico, isPI });
                         });
                     }
                 });
@@ -561,7 +560,7 @@
             servicosDisponiveis.sort((a, b) => a.localeCompare(b));
         }
         
-        function processarAtendentes(dados) {
+        function processarAtendentes(dados, isPI = false) {
             if (typeof dados === 'string') {
                 const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
                 let match;
@@ -571,7 +570,7 @@
                     const servicos = match[2].match(/\[([^\]]+)\]/g).map(s => s.replace(/[\[\]]/g, '').trim());
                     
                     servicos.forEach(servico => {
-                        atendentes.push({ nome: nomePrestador, servico });
+                        atendentes.push({ nome: nomePrestador, servico, isPI });
                         if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
                     });
                 }
@@ -579,7 +578,7 @@
                 dados.forEach(item => {
                     if (item.nome && item.servicos) {
                         item.servicos.forEach(servico => {
-                            atendentes.push({ nome: item.nome, servico });
+                            atendentes.push({ nome: item.nome, servico, isPI });
                             if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
                         });
                     }
@@ -618,6 +617,24 @@
             document.getElementById('prestador').addEventListener('change', function() {
                 prestadorSelecionado = this.value;
                 if (servicoSelecionado && dataSelecionada) carregarHorariosDisponiveis();
+                
+                // Atualiza a empresa selecionada com base no prestador
+                if (prestadorSelecionado) {
+                    const prestadorInfo = atendentes.find(a => a.nome === prestadorSelecionado && a.servico === servicoSelecionado);
+                    if (prestadorInfo) {
+                        empresaSelecionada = prestadorInfo.isPI ? empresaPI : empresaPrincipal;
+                        
+                        // Atualiza as configurações de horário
+                        if (empresaSelecionada.horariosConfig) {
+                            Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
+                        }
+                        
+                        // Recarrega os horários se já tiver uma data selecionada
+                        if (dataSelecionada) {
+                            carregarHorariosDisponiveis();
+                        }
+                    }
+                }
             });
         }
         
@@ -646,6 +663,17 @@
                 if (prestadores.length === 1) {
                     prestadorSelect.value = prestadores[0];
                     prestadorSelecionado = prestadores[0];
+                    
+                    // Atualiza a empresa selecionada para o prestador único
+                    const prestadorInfo = atendentes.find(a => a.nome === prestadorSelecionado && a.servico === servicoSelecionado);
+                    if (prestadorInfo) {
+                        empresaSelecionada = prestadorInfo.isPI ? empresaPI : empresaPrincipal;
+                        
+                        // Atualiza as configurações de horário
+                        if (empresaSelecionada.horariosConfig) {
+                            Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
+                        }
+                    }
                 }
             } else {
                 document.getElementById('prestador-group').style.display = 'none';
@@ -655,42 +683,44 @@
         function verificarAgendamentoExistente(documento) {
             const documentoLimpo = documento.replace(/\D/g, '');
             
-            if (!empresaSelecionada || !documentoLimpo) return;
+            if (!documentoLimpo) return;
             
-            // Verifica nas duas coleções (com e sem PI -)
-            const empresaId = empresaSelecionada.id;
-            const empresaIdSemPI = empresaId.startsWith("PI -") ? empresaId.replace("PI - ", "") : empresaId;
+            // Verifica nas duas empresas (principal e PI)
+            const promises = [];
             
-            // Primeiro verifica com PI -
-            db.collection("usuarios").doc(empresaId)
-                .collection("agendamentos")
-                .where("clienteDocumento", "==", documentoLimpo)
-                .where("status", "==", "confirmado")
-                .get()
-                .then(querySnapshot => {
-                    if (!querySnapshot.empty) {
-                        querySnapshot.forEach(doc => {
-                            agendamentoExistente = { id: doc.id, ...doc.data() };
-                            exibirAgendamentoExistente(agendamentoExistente);
-                        });
+            if (empresaPrincipal) {
+                promises.push(
+                    db.collection("usuarios").doc(empresaPrincipal.id)
+                        .collection("agendamentos")
+                        .where("clienteDocumento", "==", documentoLimpo)
+                        .where("status", "==", "confirmado")
+                        .get()
+                );
+            }
+            
+            if (empresaPI) {
+                promises.push(
+                    db.collection("usuarios").doc(empresaPI.id)
+                        .collection("agendamentos")
+                        .where("clienteDocumento", "==", documentoLimpo)
+                        .where("status", "==", "confirmado")
+                        .get()
+                );
+            }
+            
+            Promise.all(promises)
+                .then(results => {
+                    for (const querySnapshot of results) {
+                        if (!querySnapshot.empty) {
+                            querySnapshot.forEach(doc => {
+                                agendamentoExistente = { id: doc.id, ...doc.data() };
+                                exibirAgendamentoExistente(agendamentoExistente);
+                            });
+                            break; // Mostra apenas o primeiro agendamento encontrado
+                        }
                     }
                     
-                    // Depois verifica sem PI - (se diferente)
-                    if (empresaId !== empresaIdSemPI) {
-                        return db.collection("usuarios").doc(empresaIdSemPI)
-                            .collection("agendamentos")
-                            .where("clienteDocumento", "==", documentoLimpo)
-                            .where("status", "==", "confirmado")
-                            .get();
-                    }
-                })
-                .then(querySnapshot => {
-                    if (querySnapshot && !querySnapshot.empty) {
-                        querySnapshot.forEach(doc => {
-                            agendamentoExistente = { id: doc.id, ...doc.data() };
-                            exibirAgendamentoExistente(agendamentoExistente);
-                        });
-                    } else if (!agendamentoExistente) {
+                    if (!agendamentoExistente) {
                         document.getElementById('info-agendamento-existente').style.display = 'none';
                         document.getElementById('formulario-agendamento').style.display = 'block';
                     }
@@ -716,7 +746,7 @@
             
             document.getElementById('btn-cancelar-agendamento').onclick = () => {
                 if (confirm("Cancelar este agendamento?")) {
-                    cancelarAgendamentoExistente(agendamento.id);
+                    cancelarAgendamentoExistente(agendamento);
                 }
             };
             
@@ -727,39 +757,21 @@
             };
         }
         
-        function cancelarAgendamentoExistente(id) {
-            // Tenta cancelar nas duas coleções (com e sem PI -)
-            const empresaId = empresaSelecionada.id;
-            const empresaIdSemPI = empresaId.startsWith("PI -") ? empresaId.replace("PI - ", "") : empresaId;
+        function cancelarAgendamentoExistente(agendamento) {
+            // Determina em qual empresa está o agendamento
+            const empresaId = agendamento.prestador && atendentes.some(a => a.nome === agendamento.prestador && a.isPI) 
+                ? empresaPI.id 
+                : empresaPrincipal.id;
             
-            // Primeiro tenta com PI -
             db.collection("usuarios").doc(empresaId)
                 .collection("agendamentos")
-                .doc(id)
+                .doc(agendamento.id)
                 .update({ status: "cancelado" })
                 .then(() => {
                     alert("Agendamento cancelado!");
                     document.getElementById('info-agendamento-existente').style.display = 'none';
                     document.getElementById('formulario-agendamento').style.display = 'block';
                     agendamentoExistente = null;
-                })
-                .catch(err => {
-                    // Se falhou, tenta sem PI -
-                    if (empresaId !== empresaIdSemPI) {
-                        return db.collection("usuarios").doc(empresaIdSemPI)
-                            .collection("agendamentos")
-                            .doc(id)
-                            .update({ status: "cancelado" });
-                    }
-                    throw err;
-                })
-                .then(() => {
-                    if (empresaId !== empresaIdSemPI) {
-                        alert("Agendamento cancelado!");
-                        document.getElementById('info-agendamento-existente').style.display = 'none';
-                        document.getElementById('formulario-agendamento').style.display = 'block';
-                        agendamentoExistente = null;
-                    }
                 })
                 .catch(err => {
                     console.error("Erro ao cancelar:", err);
@@ -808,42 +820,19 @@
             const isHoje = dataFormatada === hojeFormatado;
             const agora = new Date();
             
-            const empresaId = empresaSelecionada.id;
-            const empresaIdSemPI = empresaId.startsWith("PI -") ? empresaId.replace("PI - ", "") : empresaId;
-            
-            // Primeiro busca na coleção com PI -
-            let queryComPI = db.collection("usuarios").doc(empresaId)
+            const query = db.collection("usuarios").doc(empresaSelecionada.id)
                 .collection("agendamentos")
                 .where("data", "==", dataFormatada)
                 .where("servico", "==", servicoSelecionado)
                 .where("status", "==", "confirmado");
             
             if (prestadorSelecionado) {
-                queryComPI = queryComPI.where("prestador", "==", prestadorSelecionado);
+                query.where("prestador", "==", prestadorSelecionado);
             }
             
-            queryComPI.get()
+            query.get()
                 .then(querySnapshot => {
                     const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
-                    
-                    // Depois busca na coleção sem PI - (se diferente)
-                    if (empresaId !== empresaIdSemPI) {
-                        return db.collection("usuarios").doc(empresaIdSemPI)
-                            .collection("agendamentos")
-                            .where("data", "==", dataFormatada)
-                            .where("servico", "==", servicoSelecionado)
-                            .where("status", "==", "confirmado")
-                            .get()
-                            .then(semPIQuerySnapshot => {
-                                semPIQuerySnapshot.docs.forEach(doc => {
-                                    horariosOcupados.push(doc.data().horario);
-                                });
-                                return horariosOcupados;
-                            });
-                    }
-                    return horariosOcupados;
-                })
-                .then(horariosOcupados => {
                     const horariosBase = calcularHorariosDisponiveis();
                     
                     const horariosDisponiveis = horariosBase.map(horario => {
@@ -949,35 +938,27 @@
                 dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
             };
             
-            if (prestadorSelecionado) agendamento.prestador = prestadorSelecionado;
+            if (prestadorSelecionado) {
+                agendamento.prestador = prestadorSelecionado;
+                
+                // Determina para qual empresa enviar o agendamento com base no prestador
+                const prestadorInfo = atendentes.find(a => a.nome === prestadorSelecionado && a.servico === servicoSelecionado);
+                if (prestadorInfo) {
+                    empresaSelecionada = prestadorInfo.isPI ? empresaPI : empresaPrincipal;
+                }
+            }
             
-            const empresaId = empresaSelecionada.id;
-            const empresaIdSemPI = empresaId.startsWith("PI -") ? empresaId.replace("PI - ", "") : empresaId;
+            if (!empresaSelecionada) {
+                mostrarErro("Erro ao determinar a empresa para o agendamento.");
+                return;
+            }
             
-            // Primeiro tenta salvar com PI -
-            db.collection("usuarios").doc(empresaId)
+            db.collection("usuarios").doc(empresaSelecionada.id)
                 .collection("agendamentos")
                 .add(agendamento)
                 .then(() => {
                     agendamentoConfirmado = true;
                     preencherResumoAgendamento();
-                })
-                .catch(err => {
-                    console.error("Erro ao salvar com PI -:", err);
-                    
-                    // Se falhou, tenta salvar sem PI -
-                    if (empresaId !== empresaIdSemPI) {
-                        return db.collection("usuarios").doc(empresaIdSemPI)
-                            .collection("agendamentos")
-                            .add(agendamento);
-                    }
-                    throw err;
-                })
-                .then(() => {
-                    if (empresaId !== empresaIdSemPI) {
-                        agendamentoConfirmado = true;
-                        preencherResumoAgendamento();
-                    }
                 })
                 .catch(err => {
                     console.error("Erro ao confirmar:", err);
