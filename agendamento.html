@@ -170,6 +170,22 @@
             text-decoration: line-through;
         }
 
+        /* Estilos para opções de serviço */
+        .service-option {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .service-name {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .atendente-name {
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+
         /* Estilos responsivos */
         @media (max-width: 576px) {
             .time-slots-container {
@@ -239,19 +255,11 @@
                         <input type="text" id="documento" class="form-control" placeholder="Digite seu CPF ou CNPJ" required>
                     </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3 mb-md-0" id="servico-group">
-                            <label class="form-label">Serviço</label>
-                            <select id="servico" class="form-select">
-                                <option value="">Carregando serviços...</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6" id="prestador-group" style="display:none">
-                            <label class="form-label">Prestador</label>
-                            <select id="prestador" class="form-select">
-                                <option value="">Selecione um prestador</option>
-                            </select>
-                        </div>
+                    <div class="mb-4" id="servico-atendente-group">
+                        <label class="form-label">Serviço</label>
+                        <select id="servico-atendente" class="form-select">
+                            <option value="">Carregando serviços...</option>
+                        </select>
                     </div>
 
                     <div class="mb-4">
@@ -300,9 +308,9 @@
                         <span class="fw-bold text-muted">Serviço:</span>
                         <span id="resumo-servico" class="ms-2"></span>
                     </div>
-                    <div class="mb-3" id="resumo-prestador-container" style="display:none">
-                        <span class="fw-bold text-muted">Prestador:</span>
-                        <span id="resumo-prestador" class="ms-2"></span>
+                    <div class="mb-3">
+                        <span class="fw-bold text-muted">Atendente:</span>
+                        <span id="resumo-atendente" class="ms-2"></span>
                     </div>
                     <div class="mb-3">
                         <span class="fw-bold text-muted">Data:</span>
@@ -366,8 +374,9 @@
         
         // Variáveis globais
         let empresaSelecionada = null;
+        let servicoAtendenteSelecionado = null;
         let servicoSelecionado = null;
-        let prestadorSelecionado = null;
+        let atendenteSelecionado = null;
         let dataSelecionada = null;
         let horarioSelecionado = null;
         let documentoCliente = null;
@@ -494,7 +503,7 @@
                 });
         }
         
-        // Carrega serviços e atendentes para um prestador individual - FUNÇÃO CORRIGIDA
+        // Carrega serviços e atendentes para um prestador individual
         function carregarServicosEAtendentesPI() {
             servicosDisponiveis = [];
             atendentes = [];
@@ -577,7 +586,7 @@
                 });
             }
             
-            carregarSelectServicos();
+            carregarSelectServicosAtendentes();
         }
         
         // Carrega serviços e atendentes para uma empresa regular
@@ -594,7 +603,7 @@
                 processarServicos(empresaSelecionada.servico);
             }
             
-            carregarSelectServicos();
+            carregarSelectServicosAtendentes();
         }
         
         function processarServicosAtendentes(dados) {
@@ -670,60 +679,67 @@
             servicosDisponiveis.sort((a, b) => a.localeCompare(b));
         }
         
-        function carregarSelectServicos() {
-            const servicoSelect = document.getElementById('servico');
-            servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
+        function carregarSelectServicosAtendentes() {
+            const select = document.getElementById('servico-atendente');
+            select.innerHTML = '<option value="">Selecione um serviço</option>';
             
-            if (servicosDisponiveis.length === 0) {
-                servicoSelect.innerHTML = '<option value="">Nenhum serviço disponível</option>';
+            if (atendentes.length === 0) {
+                select.innerHTML = '<option value="">Nenhum serviço disponível</option>';
                 return;
             }
             
-            servicosDisponiveis.forEach(servico => {
-                servicoSelect.innerHTML += `<option value="${servico}">${servico}</option>`;
+            // Agrupa atendentes por serviço
+            const servicosComAtendentes = {};
+            atendentes.forEach(atendente => {
+                if (!servicosComAtendentes[atendente.servico]) {
+                    servicosComAtendentes[atendente.servico] = [];
+                }
+                servicosComAtendentes[atendente.servico].push(atendente.nome);
             });
             
-            servicoSelect.addEventListener('change', function() {
-                servicoSelecionado = this.value;
-                atualizarPrestadores();
+            // Ordena serviços alfabeticamente
+            const servicosOrdenados = Object.keys(servicosComAtendentes).sort();
+            
+            // Adiciona opções ao select
+            servicosOrdenados.forEach(servico => {
+                const atendentesDoServico = servicosComAtendentes[servico];
+                
+                atendentesDoServico.forEach(atendente => {
+                    const option = document.createElement('option');
+                    option.value = `${servico}|${atendente}`;
+                    option.dataset.servico = servico;
+                    option.dataset.atendente = atendente;
+                    
+                    // Cria um elemento HTML mais elaborado para exibição
+                    const optionContent = document.createElement('div');
+                    optionContent.className = 'service-option';
+                    
+                    const serviceNameSpan = document.createElement('span');
+                    serviceNameSpan.className = 'service-name';
+                    serviceNameSpan.textContent = servico;
+                    
+                    const atendenteNameSpan = document.createElement('span');
+                    atendenteNameSpan.className = 'atendente-name';
+                    atendenteNameSpan.textContent = ` - ${atendente}`;
+                    
+                    optionContent.appendChild(serviceNameSpan);
+                    optionContent.appendChild(atendenteNameSpan);
+                    
+                    // Usamos innerHTML para o valor padrão e o conteúdo personalizado para exibição
+                    option.innerHTML = `${servico} - ${atendente}`;
+                    
+                    select.appendChild(option);
+                });
+            });
+            
+            select.addEventListener('change', function() {
+                const [servico, atendente] = this.value.split('|');
+                servicoAtendenteSelecionado = this.value;
+                servicoSelecionado = servico;
+                atendenteSelecionado = atendente;
+                
                 if (dataSelecionada) carregarHorariosDisponiveis();
             });
-            
-            document.getElementById('prestador').addEventListener('change', function() {
-                prestadorSelecionado = this.value;
-                if (servicoSelecionado && dataSelecionada) carregarHorariosDisponiveis();
-            });
-        }
-        
-        function atualizarPrestadores() {
-            const prestadorSelect = document.getElementById('prestador');
-            prestadorSelect.innerHTML = '<option value="">Selecione um prestador</option>';
-            prestadorSelecionado = null;
-            
-            if (!servicoSelecionado || atendentes.length === 0) {
-                document.getElementById('prestador-group').style.display = 'none';
-                return;
-            }
-            
-            const prestadores = [...new Set(
-                atendentes
-                    .filter(a => a.servico === servicoSelecionado)
-                    .map(a => a.nome)
-            )].sort((a, b) => a.localeCompare(b));
-            
-            if (prestadores.length > 0) {
-                prestadores.forEach(nome => {
-                    prestadorSelect.innerHTML += `<option value="${nome}">${nome}</option>`;
-                });
-                
-                document.getElementById('prestador-group').style.display = 'block';
-                if (prestadores.length === 1) {
-                    prestadorSelect.value = prestadores[0];
-                    prestadorSelecionado = prestadores[0];
-                }
-            } else {
-                document.getElementById('prestador-group').style.display = 'none';
-            }
         }
         
         function verificarAgendamentoExistente(documento) {
@@ -763,7 +779,7 @@
             const resumoDiv = document.getElementById('resumo-agendamento-existente');
             resumoDiv.innerHTML = `
                 <p class="mb-2"><strong>Serviço:</strong> ${agendamento.servico}</p>
-                ${agendamento.prestador ? `<p class="mb-2"><strong>Prestador:</strong> ${agendamento.prestador}</p>` : ''}
+                ${agendamento.prestador ? `<p class="mb-2"><strong>Atendente:</strong> ${agendamento.prestador}</p>` : ''}
                 <p class="mb-2"><strong>Data:</strong> ${formatarData(new Date(agendamento.data))}</p>
                 <p class="mb-3"><strong>Horário:</strong> ${agendamento.horario}</p>
             `;
@@ -832,7 +848,7 @@
         }
         
         function carregarHorariosDisponiveis() {
-            if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado) return;
+            if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado || !atendenteSelecionado) return;
             
             const container = document.getElementById('horarios-container');
             container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3">Carregando...</p></div>';
@@ -852,11 +868,8 @@
                 .collection("agendamentos")
                 .where("data", "==", dataFormatada)
                 .where("servico", "==", servicoSelecionado)
+                .where("prestador", "==", atendenteSelecionado)
                 .where("status", "==", "confirmado");
-            
-            if (prestadorSelecionado) {
-                query.where("prestador", "==", prestadorSelecionado);
-            }
             
             query.get()
                 .then(querySnapshot => {
@@ -924,15 +937,7 @@
             
             document.getElementById('resumo-empresa').textContent = empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
             document.getElementById('resumo-servico').textContent = servicoSelecionado;
-            
-            const resumoPrestadorContainer = document.getElementById('resumo-prestador-container');
-            if (prestadorSelecionado) {
-                document.getElementById('resumo-prestador').textContent = prestadorSelecionado;
-                resumoPrestadorContainer.style.display = 'block';
-            } else {
-                resumoPrestadorContainer.style.display = 'none';
-            }
-            
+            document.getElementById('resumo-atendente').textContent = atendenteSelecionado;
             document.getElementById('resumo-data').textContent = formatarData(dataSelecionada);
             document.getElementById('resumo-horario').textContent = horarioSelecionado;
             document.getElementById('resumo-cliente').textContent = nome;
@@ -964,6 +969,7 @@
             
             const agendamento = {
                 servico: servicoSelecionado,
+                prestador: atendenteSelecionado,
                 data: formatarDataFirestore(dataSelecionada),
                 horario: horarioSelecionado,
                 clienteNome: nome,
@@ -973,10 +979,6 @@
                 status: "confirmado",
                 dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
             };
-            
-            if (prestadorSelecionado) {
-                agendamento.prestador = prestadorSelecionado;
-            }
             
             // Determina o ID correto da empresa (remove "PI - " se necessário)
             const empresaId = empresaSelecionada.isPI 
