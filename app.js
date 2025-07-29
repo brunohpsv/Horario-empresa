@@ -144,14 +144,33 @@ function processarDadosPrestadorIndividual() {
 function carregarServicosEAtendentes() {
     if (!empresaSelecionada) return;
 
-    // Primeiro verifica se há serviços diretamente no documento
-    if (empresaSelecionada.servicos) {
+    // Processa a estrutura de servicoAtendente que você mostrou
+    if (empresaSelecionada.servicoAtendente && Array.isArray(empresaSelecionada.servicoAtendente)) {
+        empresaSelecionada.servicoAtendente.forEach(item => {
+            if (item.servico && item.atendentes && Array.isArray(item.atendentes)) {
+                // Adiciona o serviço à lista de serviços disponíveis
+                if (!servicosDisponiveis.includes(item.servico)) {
+                    servicosDisponiveis.push(item.servico);
+                }
+                
+                // Adiciona cada atendente para este serviço
+                item.atendentes.forEach(atendente => {
+                    atendentes.push({
+                        nome: atendente,
+                        servico: item.servico
+                    });
+                });
+            }
+        });
+    }
+    // Processa o formato antigo como fallback
+    else if (empresaSelecionada.servicos) {
         servicosDisponiveis = empresaSelecionada.servicos.split('/').map(s => s.trim()).filter(s => s.length > 0);
     } else if (empresaSelecionada.servico) {
         servicosDisponiveis = empresaSelecionada.servico.split(',').map(s => s.trim()).filter(s => s.length > 0);
     }
 
-    // Verifica se há atendentes específicos
+    // Processa atendentes específicos se existirem
     if (empresaSelecionada.atendentes) {
         processarAtendentes(empresaSelecionada.atendentes);
     }
