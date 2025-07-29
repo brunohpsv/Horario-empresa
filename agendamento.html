@@ -209,7 +209,7 @@
         <nav>
             <ul>
                 <li><a href="https://horario.site">Início</a></li>
-                <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização"><i class="fas fa-map-marker-alt"></i></a></li>
+                <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localización"><i class="fas fa-map-marker-alt"></i></a></li>
             </ul>
         </nav>
     </header>
@@ -357,7 +357,11 @@
             appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
         };
         
-        firebase.initializeApp(firebaseConfig);
+        // Inicializa o Firebase se ainda não foi inicializado
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
         const db = firebase.firestore();
         
         // Variáveis globais
@@ -371,8 +375,6 @@
         let agendamentoConfirmado = false;
         let atendentes = [];
         let servicosDisponiveis = [];
-        let empresaPrincipal = null;
-        let empresaPI = null;
         
         // Configurações padrão de horários
         const horariosConfig = {
@@ -410,144 +412,136 @@
             document.getElementById('error-message').style.display = 'none';
         }
         
+        // Função principal para carregar dados da empresa ou prestador individual
         function carregarDadosEmpresa() {
-    const empresaId = new URLSearchParams(window.location.search).get('id');
-    
-    if (!empresaId) {
-        mostrarErro("Nenhuma empresa selecionada. Volte e selecione uma empresa.");
-        return;
-    }
-    
-    // Verifica se é um prestador individual (ID começa com "PI - ")
-    if (empresaId.startsWith("PI - ")) {
-        const piId = empresaId.replace("PI - ", "");
-        
-        db.collection("usuarios").doc(piId).get()
-            .then(doc => {
-                if (!doc.exists) {
-                    mostrarErro("Prestador individual não encontrado.");
-                    return;
-                }
-                
-                empresaSelecionada = {
-                    ...doc.data(),
-                    id: empresaId,
-                    originalId: piId,
-                    isPI: true
-                };
-                
-                document.getElementById('empresa-nome').textContent = 
-                    empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Prestador Individual";
-                
-                // Configurações específicas do PI
-                if (empresaSelecionada.horariosConfig) {
-                    Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-                }
-                
-                // Carrega serviços e atendentes do PI
-                carregarServicosEAtendentes();
-            })
-            .catch(err => {
-                console.error("Erro ao carregar PI:", err);
-                mostrarErro("Erro ao carregar dados do prestador individual.");
-            });
-    } else {
-        // Busca empresa regular (sem "PI - ")
-        db.collection("usuarios").doc(empresaId).get()
-            .then(doc => {
-                if (!doc.exists) {
-                    mostrarErro("Empresa não encontrada.");
-                    return;
-                }
-                
-                empresaSelecionada = {
-                    ...doc.data(),
-                    id: doc.id,
-                    isPI: false
-                };
-                
-                document.getElementById('empresa-nome').textContent = 
-                    empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
-                
-                if (empresaSelecionada.horariosConfig) {
-                    Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-                }
-                
-                carregarServicosEAtendentes();
-            })
-            .catch(err => {
-                console.error("Erro ao carregar empresa:", err);
-                mostrarErro("Erro ao carregar dados da empresa.");
-            });
-    }
-}
-
-function carregarServicosEAtendentes() {
-    // Limpa os arrays antes de recarregar
-    servicosDisponiveis = [];
-    atendentes = [];
-    
-    // Processa dados apenas da empresa principal
-    if (empresaSelecionada) {
-        if (empresaSelecionada.servicoAtendente) {
-            processarServicosAtendentes(empresaSelecionada.servicoAtendente, false);
-        } else if (empresaSelecionada.atendentes) {
-            processarAtendentes(empresaSelecionada.atendentes, false);
-        } else if (empresaSelecionada.servico) {
-            processarServicos(empresaSelecionada.servico);
-        }
-    }
-    
-    carregarSelectServicos();
-}
-        
-        function processarDadosEmpresa(empresa) {
-            // Processa serviços e atendentes de acordo com os dados disponíveis
-            if (empresa.servicoAtendente) {
-                processarServicosAtendentes(empresa.servicoAtendente, empresa.isPI);
-            } else if (empresa.atendentes) {
-                processarAtendentes(empresa.atendentes, empresa.isPI);
-            } else if (empresa.servico) {
-                processarServicos(empresa.servico);
+            const empresaId = new URLSearchParams(window.location.search).get('id');
+            
+            if (!empresaId) {
+                mostrarErro("Nenhuma empresa selecionada. Volte e selecione uma empresa.");
+                return;
             }
             
-            // Se for um prestador individual, adiciona seus serviços específicos
-            if (empresa.isPI) {
-                if (empresa.servicos) {
-                    const novosServicos = empresa.servicos.split('/').map(s => s.trim()).filter(s => s.length > 0);
-                    servicosDisponiveis = [...new Set([...servicosDisponiveis, ...novosServicos])];
-                } else if (empresa.servico) {
-                    const novosServicos = empresa.servico.split(',').map(s => s.trim()).filter(s => s.length > 0);
-                    servicosDisponiveis = [...new Set([...servicosDisponiveis, ...novosServicos])];
-                }
-                
-                // Adiciona o próprio prestador como atendente para todos os serviços
-                if (empresa.nomeCompleto) {
-                    servicosDisponiveis.forEach(servico => {
-                        atendentes.push({
-                            nome: empresa.nomeCompleto,
-                            servico: servico,
-                            isPI: true
-                        });
-                    });
-                }
-                
-                // Processa horários específicos se existirem
-                if (empresa.horarios) {
-                    try {
-                        const horariosData = JSON.parse(empresa.horarios);
-                        if (horariosData.horarioAbertura) horariosConfig.horarioAbertura = horariosData.horarioAbertura;
-                        if (horariosData.horarioFechamento) horariosConfig.horarioFechamento = horariosData.horarioFechamento;
-                        if (horariosData.duracaoAtendimento) horariosConfig.duracaoAtendimento = horariosData.duracaoAtendimento;
-                        if (horariosData.intervaloAtendimento) horariosConfig.intervaloAtendimento = horariosData.intervaloAtendimento;
-                    } catch (e) {
-                        console.error("Erro ao processar horários:", e);
-                    }
-                }
+            // Verifica se é um prestador individual (ID começa com "PI - ")
+            if (empresaId.startsWith("PI - ")) {
+                carregarDadosPrestadorIndividual(empresaId);
+            } else {
+                carregarDadosEmpresaRegular(empresaId);
             }
         }
         
-        function processarServicosAtendentes(dados, isPI = false) {
+        // Carrega dados de um prestador individual
+        function carregarDadosPrestadorIndividual(empresaId) {
+            const piId = empresaId.replace("PI - ", "");
+            
+            db.collection("usuarios").doc(piId).get()
+                .then(doc => {
+                    if (!doc.exists) {
+                        mostrarErro("Prestador individual não encontrado.");
+                        return;
+                    }
+                    
+                    empresaSelecionada = {
+                        ...doc.data(),
+                        id: empresaId,
+                        originalId: piId,
+                        isPI: true
+                    };
+                    
+                    document.getElementById('empresa-nome').textContent = 
+                        empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Prestador Individual";
+                    
+                    // Configurações específicas do PI
+                    if (empresaSelecionada.horariosConfig) {
+                        Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
+                    }
+                    
+                    // Carrega serviços e atendentes do PI
+                    carregarServicosEAtendentesPI();
+                })
+                .catch(err => {
+                    console.error("Erro ao carregar PI:", err);
+                    mostrarErro("Erro ao carregar dados do prestador individual.");
+                });
+        }
+        
+        // Carrega dados de uma empresa regular
+        function carregarDadosEmpresaRegular(empresaId) {
+            db.collection("usuarios").doc(empresaId).get()
+                .then(doc => {
+                    if (!doc.exists) {
+                        mostrarErro("Empresa não encontrada.");
+                        return;
+                    }
+                    
+                    empresaSelecionada = {
+                        ...doc.data(),
+                        id: doc.id,
+                        isPI: false
+                    };
+                    
+                    document.getElementById('empresa-nome').textContent = 
+                        empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
+                    
+                    if (empresaSelecionada.horariosConfig) {
+                        Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
+                    }
+                    
+                    carregarServicosEAtendentes();
+                })
+                .catch(err => {
+                    console.error("Erro ao carregar empresa:", err);
+                    mostrarErro("Erro ao carregar dados da empresa.");
+                });
+        }
+        
+        // Carrega serviços e atendentes para um prestador individual
+        function carregarServicosEAtendentesPI() {
+            servicosDisponiveis = [];
+            atendentes = [];
+            
+            // Processa serviços do PI
+            if (empresaSelecionada.servicos) {
+                servicosDisponiveis = empresaSelecionada.servicos.split('/')
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0);
+            } else if (empresaSelecionada.servico) {
+                servicosDisponiveis = empresaSelecionada.servico.split(',')
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0);
+            }
+            
+            // Adiciona o próprio PI como atendente para todos os serviços
+            if (empresaSelecionada.nomeCompleto) {
+                servicosDisponiveis.forEach(servico => {
+                    atendentes.push({
+                        nome: empresaSelecionada.nomeCompleto,
+                        servico: servico,
+                        isPI: true
+                    });
+                });
+            }
+            
+            carregarSelectServicos();
+        }
+        
+        // Carrega serviços e atendentes para uma empresa regular
+        function carregarServicosEAtendentes() {
+            servicosDisponiveis = [];
+            atendentes = [];
+            
+            // Processa dados da empresa
+            if (empresaSelecionada.servicoAtendente) {
+                processarServicosAtendentes(empresaSelecionada.servicoAtendente);
+            } else if (empresaSelecionada.atendentes) {
+                processarAtendentes(empresaSelecionada.atendentes);
+            } else if (empresaSelecionada.servico) {
+                processarServicos(empresaSelecionada.servico);
+            }
+            
+            carregarSelectServicos();
+        }
+        
+        function processarServicosAtendentes(dados) {
             if (typeof dados === 'string') {
                 dados.split('\n').filter(linha => linha.trim() !== '').forEach(linha => {
                     const partes = linha.split('-').map(p => p.trim());
@@ -558,7 +552,7 @@ function carregarServicosEAtendentes() {
                         if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
                         
                         nomesAtendentes.forEach(nome => {
-                            atendentes.push({ nome, servico, isPI });
+                            atendentes.push({ nome, servico, isPI: false });
                         });
                     }
                 });
@@ -568,7 +562,7 @@ function carregarServicosEAtendentes() {
                         if (!servicosDisponiveis.includes(item.servico)) servicosDisponiveis.push(item.servico);
                         
                         item.atendentes.forEach(nome => {
-                            atendentes.push({ nome, servico: item.servico, isPI });
+                            atendentes.push({ nome, servico: item.servico, isPI: false });
                         });
                     }
                 });
@@ -577,7 +571,7 @@ function carregarServicosEAtendentes() {
             servicosDisponiveis.sort((a, b) => a.localeCompare(b));
         }
         
-        function processarAtendentes(dados, isPI = false) {
+        function processarAtendentes(dados) {
             if (typeof dados === 'string') {
                 const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
                 let match;
@@ -587,7 +581,7 @@ function carregarServicosEAtendentes() {
                     const servicos = match[2].match(/\[([^\]]+)\]/g).map(s => s.replace(/[\[\]]/g, '').trim());
                     
                     servicos.forEach(servico => {
-                        atendentes.push({ nome: nomePrestador, servico, isPI });
+                        atendentes.push({ nome: nomePrestador, servico, isPI: false });
                         if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
                     });
                 }
@@ -595,7 +589,7 @@ function carregarServicosEAtendentes() {
                 dados.forEach(item => {
                     if (item.nome && item.servicos) {
                         item.servicos.forEach(servico => {
-                            atendentes.push({ nome: item.nome, servico, isPI });
+                            atendentes.push({ nome: item.nome, servico, isPI: false });
                             if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
                         });
                     }
@@ -634,24 +628,6 @@ function carregarServicosEAtendentes() {
             document.getElementById('prestador').addEventListener('change', function() {
                 prestadorSelecionado = this.value;
                 if (servicoSelecionado && dataSelecionada) carregarHorariosDisponiveis();
-                
-                // Atualiza a empresa selecionada com base no prestador
-                if (prestadorSelecionado) {
-                    const prestadorInfo = atendentes.find(a => a.nome === prestadorSelecionado && a.servico === servicoSelecionado);
-                    if (prestadorInfo) {
-                        empresaSelecionada = prestadorInfo.isPI ? empresaPI : empresaPrincipal;
-                        
-                        // Atualiza as configurações de horário
-                        if (empresaSelecionada.horariosConfig) {
-                            Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-                        }
-                        
-                        // Recarrega os horários se já tiver uma data selecionada
-                        if (dataSelecionada) {
-                            carregarHorariosDisponiveis();
-                        }
-                    }
-                }
             });
         }
         
@@ -680,17 +656,6 @@ function carregarServicosEAtendentes() {
                 if (prestadores.length === 1) {
                     prestadorSelect.value = prestadores[0];
                     prestadorSelecionado = prestadores[0];
-                    
-                    // Atualiza a empresa selecionada para o prestador único
-                    const prestadorInfo = atendentes.find(a => a.nome === prestadorSelecionado && a.servico === servicoSelecionado);
-                    if (prestadorInfo) {
-                        empresaSelecionada = prestadorInfo.isPI ? empresaPI : empresaPrincipal;
-                        
-                        // Atualiza as configurações de horário
-                        if (empresaSelecionada.horariosConfig) {
-                            Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-                        }
-                    }
                 }
             } else {
                 document.getElementById('prestador-group').style.display = 'none';
@@ -698,44 +663,44 @@ function carregarServicosEAtendentes() {
         }
         
         function verificarAgendamentoExistente(documento) {
-    const documentoLimpo = documento.replace(/\D/g, '');
-    
-    if (!documentoLimpo || !empresaSelecionada) return;
-    
-    // Para PIs, usa o originalId (sem o "PI - ")
-    const empresaId = empresaSelecionada.isPI 
-        ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
-        : empresaSelecionada.id;
-    
-    db.collection("usuarios").doc(empresaId)
-        .collection("agendamentos")
-        .where("clienteDocumento", "==", documentoLimpo)
-        .where("status", "==", "confirmado")
-        .get()
-        .then(querySnapshot => {
-            if (!querySnapshot.empty) {
-                querySnapshot.forEach(doc => {
-                    agendamentoExistente = { id: doc.id, ...doc.data() };
-                    exibirAgendamentoExistente(agendamentoExistente);
+            const documentoLimpo = documento.replace(/\D/g, '');
+            
+            if (!documentoLimpo || !empresaSelecionada) return;
+            
+            // Para PIs, usa o originalId (sem o "PI - ")
+            const empresaId = empresaSelecionada.isPI 
+                ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
+                : empresaSelecionada.id;
+            
+            db.collection("usuarios").doc(empresaId)
+                .collection("agendamentos")
+                .where("clienteDocumento", "==", documentoLimpo)
+                .where("status", "==", "confirmado")
+                .get()
+                .then(querySnapshot => {
+                    if (!querySnapshot.empty) {
+                        querySnapshot.forEach(doc => {
+                            agendamentoExistente = { id: doc.id, ...doc.data() };
+                            exibirAgendamentoExistente(agendamentoExistente);
+                        });
+                    } else {
+                        document.getElementById('info-agendamento-existente').style.display = 'none';
+                        document.getElementById('formulario-agendamento').style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    console.error("Erro ao verificar agendamento:", err);
+                    document.getElementById('info-agendamento-existente').style.display = 'none';
+                    document.getElementById('formulario-agendamento').style.display = 'block';
                 });
-            } else {
-                document.getElementById('info-agendamento-existente').style.display = 'none';
-                document.getElementById('formulario-agendamento').style.display = 'block';
-            }
-        })
-        .catch(err => {
-            console.error("Erro ao verificar agendamento:", err);
-            document.getElementById('info-agendamento-existente').style.display = 'none';
-            document.getElementById('formulario-agendamento').style.display = 'block';
-        });
-}
+        }
         
         function exibirAgendamentoExistente(agendamento) {
             const resumoDiv = document.getElementById('resumo-agendamento-existente');
             resumoDiv.innerHTML = `
                 <p class="mb-2"><strong>Serviço:</strong> ${agendamento.servico}</p>
                 ${agendamento.prestador ? `<p class="mb-2"><strong>Prestador:</strong> ${agendamento.prestador}</p>` : ''}
-                <p class="mb-2"><strong>Data:</strong> ${formatarData(agendamento.data)}</p>
+                <p class="mb-2"><strong>Data:</strong> ${formatarData(new Date(agendamento.data))}</p>
                 <p class="mb-3"><strong>Horário:</strong> ${agendamento.horario}</p>
             `;
             
@@ -756,25 +721,25 @@ function carregarServicosEAtendentes() {
         }
         
         function cancelarAgendamentoExistente(agendamento) {
-    const empresaId = empresaSelecionada.isPI 
-        ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
-        : empresaSelecionada.id;
-    
-    db.collection("usuarios").doc(empresaId)
-        .collection("agendamentos")
-        .doc(agendamento.id)
-        .update({ status: "cancelado" })
-        .then(() => {
-            alert("Agendamento cancelado!");
-            document.getElementById('info-agendamento-existente').style.display = 'none';
-            document.getElementById('formulario-agendamento').style.display = 'block';
-            agendamentoExistente = null;
-        })
-        .catch(err => {
-            console.error("Erro ao cancelar:", err);
-            mostrarErro("Erro ao cancelar agendamento.");
-        });
-}
+            const empresaId = empresaSelecionada.isPI 
+                ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
+                : empresaSelecionada.id;
+            
+            db.collection("usuarios").doc(empresaId)
+                .collection("agendamentos")
+                .doc(agendamento.id)
+                .update({ status: "cancelado" })
+                .then(() => {
+                    alert("Agendamento cancelado!");
+                    document.getElementById('info-agendamento-existente').style.display = 'none';
+                    document.getElementById('formulario-agendamento').style.display = 'block';
+                    agendamentoExistente = null;
+                })
+                .catch(err => {
+                    console.error("Erro ao cancelar:", err);
+                    mostrarErro("Erro ao cancelar agendamento.");
+                });
+        }
         
         function calcularHorariosDisponiveis() {
             const horarios = [];
@@ -803,54 +768,54 @@ function carregarServicosEAtendentes() {
         }
         
         function carregarHorariosDisponiveis() {
-    if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado) return;
-    
-    const container = document.getElementById('horarios-container');
-    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3">Carregando...</p></div>';
-    
-    document.getElementById('horario-section').style.display = 'block';
-    document.getElementById('dados-section').style.display = 'none';
-    document.getElementById('btn-confirmar').style.display = 'none';
-    
-    const dataFormatada = formatarDataFirestore(dataSelecionada);
-    const hojeFormatado = formatarDataFirestore(new Date());
-    const isHoje = dataFormatada === hojeFormatado;
-    const agora = new Date();
-    
-    const query = db.collection("usuarios").doc(empresaSelecionada.isPI 
-        ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
-        : empresaSelecionada.id)
-        .collection("agendamentos")
-        .where("data", "==", dataFormatada)
-        .where("servico", "==", servicoSelecionado)
-        .where("status", "==", "confirmado");
-    
-    if (prestadorSelecionado) {
-        query.where("prestador", "==", prestadorSelecionado);
-    }
-    
-    query.get()
-        .then(querySnapshot => {
-            const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
-            const horariosBase = calcularHorariosDisponiveis();
+            if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado) return;
             
-            const horariosDisponiveis = horariosBase.map(horario => {
-                const [h, m] = horario.split(':').map(Number);
-                const horarioValido = !isHoje || (h > agora.getHours() || (h === agora.getHours() && m > agora.getMinutes()));
-                
-                return {
-                    horario,
-                    disponivel: horarioValido && !horariosOcupados.includes(horario)
-                };
-            });
+            const container = document.getElementById('horarios-container');
+            container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3">Carregando...</p></div>';
             
-            exibirHorariosDisponiveis(horariosDisponiveis);
-        })
-        .catch(err => {
-            console.error("Erro ao carregar horários:", err);
-            container.innerHTML = '<div class="alert alert-danger">Erro ao carregar horários.</div>';
-        });
-}
+            document.getElementById('horario-section').style.display = 'block';
+            document.getElementById('dados-section').style.display = 'none';
+            document.getElementById('btn-confirmar').style.display = 'none';
+            
+            const dataFormatada = formatarDataFirestore(dataSelecionada);
+            const hojeFormatado = formatarDataFirestore(new Date());
+            const isHoje = dataFormatada === hojeFormatado;
+            const agora = new Date();
+            
+            const query = db.collection("usuarios").doc(empresaSelecionada.isPI 
+                ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
+                : empresaSelecionada.id)
+                .collection("agendamentos")
+                .where("data", "==", dataFormatada)
+                .where("servico", "==", servicoSelecionado)
+                .where("status", "==", "confirmado");
+            
+            if (prestadorSelecionado) {
+                query.where("prestador", "==", prestadorSelecionado);
+            }
+            
+            query.get()
+                .then(querySnapshot => {
+                    const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
+                    const horariosBase = calcularHorariosDisponiveis();
+                    
+                    const horariosDisponiveis = horariosBase.map(horario => {
+                        const [h, m] = horario.split(':').map(Number);
+                        const horarioValido = !isHoje || (h > agora.getHours() || (h === agora.getHours() && m > agora.getMinutes()));
+                        
+                        return {
+                            horario,
+                            disponivel: horarioValido && !horariosOcupados.includes(horario)
+                        };
+                    });
+                    
+                    exibirHorariosDisponiveis(horariosDisponiveis);
+                })
+                .catch(err => {
+                    console.error("Erro ao carregar horários:", err);
+                    container.innerHTML = '<div class="alert alert-danger">Erro ao carregar horários.</div>';
+                });
+        }
         
         function exibirHorariosDisponiveis(horarios) {
             const container = document.getElementById('horarios-container');
@@ -896,7 +861,6 @@ function carregarServicosEAtendentes() {
             document.getElementById('resumo-empresa').textContent = empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
             document.getElementById('resumo-servico').textContent = servicoSelecionado;
             
-            // Atualiza a exibição do prestador apenas se existir
             const resumoPrestadorContainer = document.getElementById('resumo-prestador-container');
             if (prestadorSelecionado) {
                 document.getElementById('resumo-prestador').textContent = prestadorSelecionado;
@@ -921,63 +885,56 @@ function carregarServicosEAtendentes() {
                 });
             }, 100);
         }
-        function confirmarAgendamento() {
-    if (agendamentoConfirmado) return;
-    
-    const nome = document.getElementById('nome').value.trim();
-    const telefone = document.getElementById('telefone').value.trim();
-    const email = document.getElementById('email').value.trim();
-    
-    if (!nome || !telefone) {
-        mostrarErro("Preencha todos os campos obrigatórios.");
-        return;
-    }
-    
-    const agendamento = {
-        servico: servicoSelecionado,
-        data: formatarDataFirestore(dataSelecionada),
-        horario: horarioSelecionado,
-        clienteNome: nome,
-        clienteDocumento: documentoCliente.replace(/\D/g, ''),
-        clienteTelefone: telefone,
-        clienteEmail: email || '',
-        status: "confirmado",
-        dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    
-    if (prestadorSelecionado) {
-        agendamento.prestador = prestadorSelecionado;
-    }
-    
-    // Determina o ID correto da empresa (remove "PI - " se necessário)
-    const empresaId = empresaSelecionada.isPI 
-        ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
-        : empresaSelecionada.id;
-    
-    db.collection("usuarios").doc(empresaId)
-        .collection("agendamentos")
-        .add(agendamento)
-        .then(() => {
-            agendamentoConfirmado = true;
-            preencherResumoAgendamento();
-        })
-        .catch(err => {
-            console.error("Erro ao confirmar:", err);
-            mostrarErro("Erro ao confirmar agendamento.");
-        });
-}
         
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-        // Inicializa apenas as configurações básicas
-        const empresaId = new URLSearchParams(window.location.search).get('id');
-        if (empresaId && empresaId.startsWith("PI - ")) {
-            carregarDadosPrestadorIndividual(empresaId);
-        } else {
-            carregarDadosEmpresa();
-        }            
-            document.getElementById('btn-confirmar').addEventListener('click', confirmarAgendamento);
+        function confirmarAgendamento() {
+            if (agendamentoConfirmado) return;
             
+            const nome = document.getElementById('nome').value.trim();
+            const telefone = document.getElementById('telefone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!nome || !telefone) {
+                mostrarErro("Preencha todos os campos obrigatórios.");
+                return;
+            }
+            
+            const agendamento = {
+                servico: servicoSelecionado,
+                data: formatarDataFirestore(dataSelecionada),
+                horario: horarioSelecionado,
+                clienteNome: nome,
+                clienteDocumento: documentoCliente.replace(/\D/g, ''),
+                clienteTelefone: telefone,
+                clienteEmail: email || '',
+                status: "confirmado",
+                dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            if (prestadorSelecionado) {
+                agendamento.prestador = prestadorSelecionado;
+            }
+            
+            // Determina o ID correto da empresa (remove "PI - " se necessário)
+            const empresaId = empresaSelecionada.isPI 
+                ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
+                : empresaSelecionada.id;
+            
+            db.collection("usuarios").doc(empresaId)
+                .collection("agendamentos")
+                .add(agendamento)
+                .then(() => {
+                    agendamentoConfirmado = true;
+                    preencherResumoAgendamento();
+                })
+                .catch(err => {
+                    console.error("Erro ao confirmar:", err);
+                    mostrarErro("Erro ao confirmar agendamento.");
+                });
+        }
+        
+        // Inicialização dos event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configura o input de CPF/CNPJ
             document.getElementById('documento').addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
                 
@@ -995,13 +952,19 @@ function carregarServicosEAtendentes() {
                 }
             });
             
+            // Configura o input de telefone
             document.getElementById('telefone').addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
                 value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
                 e.target.value = value.substring(0, 15);
             });
+            
+            // Configura o botão de confirmar
+            document.getElementById('btn-confirmar').addEventListener('click', confirmarAgendamento);
+            
+            // Inicia o carregamento dos dados
+            carregarDadosEmpresa();
         });
     </script>
-    <script src="app.js"></script>
 </body>
 </html>
