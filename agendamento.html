@@ -6,7 +6,6 @@
     <title>Agendamento - HORÁRIO</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
         :root {
@@ -133,12 +132,6 @@
             font-size: clamp(0.95rem, 2vw, 1.15rem);
         }
 
-        /* Estilos para o calendário */
-        .flatpickr-input {
-            background-color: white;
-            cursor: pointer;
-        }
-
         /* Estilos melhorados para os horários */
         .time-slots-container {
             display: grid;
@@ -175,25 +168,6 @@
             color: #adb5bd;
             cursor: not-allowed;
             text-decoration: line-through;
-        }
-
-        /* Estilos para alertas */
-        .alert {
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-
-        .alert-danger {
-            background-color: var(--error-bg);
-            color: var(--error);
-            border: 1px solid var(--error);
-        }
-
-        .alert-info {
-            background-color: var(--info-bg);
-            color: var(--info);
-            border: 1px solid var(--info);
         }
 
         /* Estilos responsivos */
@@ -234,7 +208,7 @@
         <div class="logo">HORÁRIO</div>
         <nav>
             <ul>
-                <li><a href="https://horario.site"><i class="fas fa-home me-2"></i>Início</a></li>
+                <li><a href="https://horario.site">Início</a></li>
                 <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização"><i class="fas fa-map-marker-alt"></i></a></li>
             </ul>
         </nav>
@@ -254,8 +228,8 @@
                     <h5>Você já tem um agendamento!</h5>
                     <div id="resumo-agendamento-existente"></div>
                     <div class="d-grid gap-2 mt-3">
-                        <button class="btn btn-danger" id="btn-cancelar-agendamento"><i class="fas fa-times-circle me-2"></i>Cancelar Agendamento</button>
-                        <button class="btn btn-primary" id="btn-novo-agendamento"><i class="fas fa-calendar-plus me-2"></i>Fazer Novo Agendamento</button>
+                        <button class="btn btn-danger" id="btn-cancelar-agendamento">Cancelar Agendamento</button>
+                        <button class="btn btn-primary" id="btn-novo-agendamento">Fazer Novo Agendamento</button>
                     </div>
                 </div>
                 
@@ -282,7 +256,7 @@
                     
                     <div class="mb-4">
                         <label class="form-label">Data</label>
-                        <input type="text" id="calendar-input" class="form-control flatpickr-input" placeholder="Selecione uma data" readonly>
+                        <input type="text" id="calendar-input" class="form-control" placeholder="Selecione uma data">
                     </div>
                     
                     <div class="mb-4" id="horario-section" style="display:none">
@@ -312,14 +286,12 @@
                     </div>
                     
                     <div class="d-grid">
-                        <button class="btn btn-primary btn-lg" id="btn-confirmar" style="display:none">
-                            <i class="fas fa-check-circle me-2"></i>Confirmar Agendamento
-                        </button>
+                        <button class="btn btn-primary btn-lg" id="btn-confirmar" style="display:none">Confirmar Agendamento</button>
                     </div>
                 </div>
                 
                 <div id="resumo-agendamento" style="display:none">
-                    <h4 class="mb-4"><i class="fas fa-check-circle text-success me-2"></i>Agendamento confirmado!</h4>
+                    <h4 class="mb-4">Agendamento confirmado!</h4>
                     <div class="mb-3">
                         <span class="fw-bold text-muted">Empresa:</span>
                         <span id="resumo-empresa" class="ms-2"></span>
@@ -355,10 +327,10 @@
                     
                     <div class="d-grid gap-3">
                         <button class="btn btn-primary btn-lg" onclick="window.print()">
-                            <i class="fas fa-print me-2"></i> Imprimir
+                            <i class="fas fa-print"></i> Imprimir
                         </button>
                         <button class="btn btn-outline-secondary btn-lg" onclick="window.location.href='index.html'">
-                            <i class="fas fa-home me-2"></i> Voltar ao Início
+                            <i class="fas fa-home"></i> Voltar ao Início
                         </button>
                     </div>
                 </div>
@@ -368,175 +340,11 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    <script>
-        // Configuração e inicialização do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
-            authDomain: "banco-de-dados-d253e.firebaseapp.com",
-            projectId: "banco-de-dados-d253e",
-            storageBucket: "banco-de-dados-d253e.appspot.com",
-            messagingSenderId: "1005413315224",
-            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        // Variáveis globais
-        let empresaSelecionada = null;
-        let servicoSelecionado = null;
-        let prestadorSelecionado = null;
-        let dataSelecionada = null;
-        let horarioSelecionado = null;
-        let documentoCliente = null;
-        let agendamentoExistente = null;
-        let agendamentoConfirmado = false;
-        let atendentes = [];
-        let servicosDisponiveis = [];
-        let empresaPrincipal = null;
-        let empresaPI = null;
-
-        // Configurações padrão de horários
-        const horariosConfig = {
-            duracaoAtendimento: 30,
-            horarioAbertura: "08:00",
-            horarioFechamento: "18:00",
-            intervaloAtendimento: 15
-        };
-
-        // Inicialização do calendário
-        function initCalendar() {
-            flatpickr("#calendar-input", {
-                locale: "pt",
-                dateFormat: "d/m/Y",
-                minDate: "today",
-                disable: [
-                    function(date) {
-                        // Desabilita fins de semana
-                        return (date.getDay() === 0 || date.getDay() === 6);
-                    }
-                ],
-                onChange: function(selectedDates, dateStr, instance) {
-                    dataSelecionada = selectedDates[0];
-                    document.getElementById('selected-date').textContent = instance.formatDate(selectedDates[0], "d/m/Y");
-                    
-                    if (servicoSelecionado) {
-                        carregarHorariosDisponiveis();
-                    }
-                }
-            });
-        }
-
-        // Funções auxiliares
-        const formatarData = date => new Date(date).toLocaleDateString('pt-BR');
-        const formatarDataFirestore = date => new Date(date).toISOString().split('T')[0];
-
-        function mostrarErro(mensagem) {
-            const el = document.getElementById('error-message');
-            el.textContent = mensagem;
-            el.style.display = 'block';
-            setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-        }
-
-        function esconderErro() {
-            document.getElementById('error-message').style.display = 'none';
-        }
-
-        function carregarDadosEmpresa() {
-            const empresaId = new URLSearchParams(window.location.search).get('id');
-            
-            if (!empresaId) {
-                mostrarErro("Nenhuma empresa selecionada. Volte e selecione uma empresa.");
-                return;
-            }
-            
-            const empresaIdComPI = `PI - ${empresaId}`;
-            
-            // Carrega os dois documentos (com e sem PI -)
-            Promise.all([
-                db.collection("usuarios").doc(empresaId).get(),
-                db.collection("usuarios").doc(empresaIdComPI).get()
-            ])
-            .then(([docSemPI, docComPI]) => {
-                if (docSemPI.exists) {
-                    empresaPrincipal = {
-                        ...docSemPI.data(),
-                        id: docSemPI.id,
-                        isPI: false
-                    };
-                }
-                
-                if (docComPI.exists) {
-                    empresaPI = {
-                        ...docComPI.data(),
-                        id: docComPI.id,
-                        isPI: true
-                    };
-                }
-                
-                // Define a empresa selecionada como a principal (sem PI -) por padrão
-                empresaSelecionada = empresaPrincipal || empresaPI;
-                
-                if (!empresaSelecionada) {
-                    mostrarErro("Empresa não encontrada.");
-                    return;
-                }
-                
-                // Usa nomeFantasia ou o ID como fallback
-                document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || empresaSelecionada.id.replace("PI - ", "") || "Empresa";
-                
-                // Combina as configurações de horários
-                if (empresaSelecionada.horariosConfig) {
-                    Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-                }
-                
-                // Carrega serviços e atendentes
-                carregarServicosEAtendentes();
-                initCalendar();
-            })
-            .catch(err => {
-                console.error("Erro ao carregar empresa:", err);
-                mostrarErro("Erro ao carregar dados da empresa.");
-            });
-        }
-
-        // Restante do código JavaScript permanece o mesmo...
-        // (As outras funções podem ser mantidas como estão)
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', () => {
-            carregarDadosEmpresa();
-            
-            document.getElementById('btn-confirmar').addEventListener('click', confirmarAgendamento);
-            
-            document.getElementById('documento').addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                
-                if (value.length <= 11) {
-                    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-                } else {
-                    value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-                }
-                
-                e.target.value = value.substring(0, value.length > 14 ? 18 : 14);
-                documentoCliente = e.target.value;
-                
-                if (value.replace(/\D/g, '').length >= 11) {
-                    verificarAgendamentoExistente(documentoCliente);
-                }
-            });
-            
-            document.getElementById('telefone').addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                e.target.value = value.substring(0, 15);
-            });
-        });
-    </script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="app.js"></script>
 </body>
 </html>
