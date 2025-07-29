@@ -494,45 +494,88 @@
                 });
         }
         
-        // Carrega serviços e atendentes para um prestador individual
+        // Carrega serviços e atendentes para um prestador individual - FUNÇÃO CORRIGIDA
         function carregarServicosEAtendentesPI() {
             servicosDisponiveis = [];
             atendentes = [];
             
-            // Primeiro verifica se há serviços definidos no campo 'servicos'
-            if (empresaSelecionada.servicos) {
+            // Primeiro verifica se há serviços definidos no campo 'servicoAtendente'
+            if (empresaSelecionada.servicoAtendente) {
+                // Processa como string no formato "atendente - serviço"
+                const linhas = empresaSelecionada.servicoAtendente.split('\n')
+                    .map(linha => linha.trim())
+                    .filter(linha => linha.length > 0);
+                
+                linhas.forEach(linha => {
+                    // Divide cada linha no formato "atendente - serviço"
+                    const partes = linha.split('-').map(p => p.trim());
+                    if (partes.length >= 2) {
+                        const nomeAtendente = partes[0];
+                        const servico = partes.slice(1).join('-').trim(); // Pega todo o resto como serviço
+                        
+                        if (nomeAtendente && servico) {
+                            atendentes.push({
+                                nome: nomeAtendente,
+                                servico: servico,
+                                isPI: true
+                            });
+                            
+                            if (!servicosDisponiveis.includes(servico)) {
+                                servicosDisponiveis.push(servico);
+                            }
+                        }
+                    }
+                });
+            }
+            // Se não encontrou no formato "atendente - serviço", tenta outros formatos
+            else if (empresaSelecionada.servicos) {
                 // Processa como string separada por vírgulas ou barras
                 const servicosArray = empresaSelecionada.servicos.split(/[,\/]/)
                     .map(s => s.trim())
                     .filter(s => s.length > 0);
                 
                 servicosDisponiveis = [...new Set(servicosArray)];
+                
+                // Adiciona o próprio PI como atendente para todos os serviços
+                const nomeAtendente = empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Prestador";
+                
+                servicosDisponiveis.forEach(servico => {
+                    atendentes.push({
+                        nome: nomeAtendente,
+                        servico: servico,
+                        isPI: true
+                    });
+                });
             }
-            
-            // Depois verifica o campo 'servico' (singular) como fallback
             else if (empresaSelecionada.servico) {
+                // Processa como string separada por vírgulas ou barras
                 const servicosArray = empresaSelecionada.servico.split(/[,\/]/)
                     .map(s => s.trim())
                     .filter(s => s.length > 0);
                 
                 servicosDisponiveis = [...new Set(servicosArray)];
+                
+                // Adiciona o próprio PI como atendente para todos os serviços
+                const nomeAtendente = empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Prestador";
+                
+                servicosDisponiveis.forEach(servico => {
+                    atendentes.push({
+                        nome: nomeAtendente,
+                        servico: servico,
+                        isPI: true
+                    });
+                });
             }
             
             // Se não encontrou serviços, usa um padrão
             if (servicosDisponiveis.length === 0) {
                 servicosDisponiveis = ["Serviço Geral"];
-            }
-            
-            // Adiciona o próprio PI como atendente para todos os serviços
-            const nomeAtendente = empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Prestador";
-            
-            servicosDisponiveis.forEach(servico => {
                 atendentes.push({
-                    nome: nomeAtendente,
-                    servico: servico,
+                    nome: empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Prestador",
+                    servico: "Serviço Geral",
                     isPI: true
                 });
-            });
+            }
             
             carregarSelectServicos();
         }
