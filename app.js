@@ -78,8 +78,8 @@ function inicializarCalendario() {
                 // Desabilita dias que não são de funcionamento
                 // getDay() retorna 0 para domingo, 1 para segunda, etc
                 const diaSemana = date.getDay();
-                // Convertemos para o formato onde 0=domingo, 1=segunda, etc
-                return !configAtual.diasFuncionamento.includes(diaSemana === 0 ? 7 : diaSemana);
+                // Verifica se o dia da semana não está na lista de dias de funcionamento
+                return !configAtual.diasFuncionamento.includes(diaSemana);
             }
         ],
         onChange: function(selectedDates, dateStr, instance) {
@@ -92,6 +92,11 @@ function inicializarCalendario() {
         }
     };
 
+    // Destrói o calendário existente se houver
+    if (calendar) {
+        calendar.destroy();
+    }
+    
     calendar = flatpickr("#calendar-input", config);
 }
 
