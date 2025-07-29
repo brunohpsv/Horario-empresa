@@ -872,6 +872,7 @@
                 }
             } catch (error) {
                 console.error('Erro ao carregar dados existentes:', error);
+                showMessage('error', 'Erro ao carregar dados existentes. Tente recarregar a página.');
             }
         }
 
@@ -986,10 +987,14 @@
                     empresaDocId: empresaDocId,
                     userId: userId,
                     tipo: 'painel-individual',
-                    dataAtracaoAtendimento: parseInt(duracaoAtendimento),
-                        intervaloAtendimento: parseInt(intervaloAtendimento),
-                        ultimaAtualizacao: new Date().toISOString()
-                    }
+                    horarios: {
+                        diasFuncionamento: diasSelecionados,
+                        horarioAbertura: horarioAbertura,
+                        horarioFechamento: horarioFechamento,
+                        duracaoAtendimento: parseInt(duracaoAtendimento),
+                        intervaloAtendimento: parseInt(intervaloAtendimento)
+                    },
+                    ultimaAtualizacao: new Date().toISOString()
                 };
                 
                 // Adiciona horário de almoço se necessário
