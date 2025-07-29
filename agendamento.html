@@ -170,6 +170,26 @@
             text-decoration: line-through;
         }
 
+        /* Estilos para o calendário */
+        .flatpickr-calendar {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .flatpickr-day.selected, .flatpickr-day.selected:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .flatpickr-day.today {
+            border-color: var(--primary);
+        }
+
+        .flatpickr-day.today:hover {
+            background: #e9e9e9;
+        }
+
         /* Estilos responsivos */
         @media (max-width: 576px) {
             .time-slots-container {
@@ -256,7 +276,7 @@
                     
                     <div class="mb-4">
                         <label class="form-label">Data</label>
-                        <input type="text" id="calendar-input" class="form-control" placeholder="Selecione uma data">
+                        <input type="text" id="calendar-input" class="form-control" placeholder="Selecione uma data" readonly>
                     </div>
                     
                     <div class="mb-4" id="horario-section" style="display:none">
@@ -345,6 +365,82 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="app.js"></script>
+    <script>
+        // Configuração inicial do Flatpickr
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializa o calendário
+            flatpickr("#calendar-input", {
+                locale: "pt",
+                minDate: "today",
+                dateFormat: "d/m/Y",
+                disable: [
+                    function(date) {
+                        // Desabilita fins de semana (sábado e domingo)
+                        return (date.getDay() === 0 || date.getDay() === 6);
+                    }
+                ],
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Esta função será chamada quando uma data for selecionada
+                    console.log("Data selecionada:", dateStr);
+                    document.getElementById("selected-date").textContent = dateStr;
+                    document.getElementById("horario-section").style.display = "block";
+                    
+                    // Aqui você pode adicionar a lógica para carregar os horários disponíveis
+                    // Simulação de carregamento de horários
+                    setTimeout(function() {
+                        const horarios = [
+                            "08:00", "09:00", "10:00", "11:00", 
+                            "13:00", "14:00", "15:00", "16:00"
+                        ];
+                        
+                        const container = document.getElementById("horarios-container");
+                        container.innerHTML = "";
+                        
+                        horarios.forEach(hora => {
+                            const slot = document.createElement("div");
+                            slot.className = "time-slot";
+                            slot.textContent = hora;
+                            slot.addEventListener("click", function() {
+                                // Remove a seleção de todos os slots
+                                document.querySelectorAll(".time-slot").forEach(el => {
+                                    el.classList.remove("selected");
+                                });
+                                // Adiciona seleção ao slot clicado
+                                this.classList.add("selected");
+                                // Mostra a seção de dados
+                                document.getElementById("dados-section").style.display = "block";
+                                document.getElementById("btn-confirmar").style.display = "block";
+                            });
+                            container.appendChild(slot);
+                        });
+                    }, 1000);
+                }
+            });
+            
+            // Simulação de carregamento de serviços
+            setTimeout(function() {
+                const servicoSelect = document.getElementById("servico");
+                servicoSelect.innerHTML = "";
+                
+                const servicos = [
+                    {id: 1, nome: "Corte de Cabelo"},
+                    {id: 2, nome: "Barba"},
+                    {id: 3, nome: "Corte + Barba"},
+                    {id: 4, nome: "Coloração"}
+                ];
+                
+                servicos.forEach(servico => {
+                    const option = document.createElement("option");
+                    option.value = servico.id;
+                    option.textContent = servico.nome;
+                    servicoSelect.appendChild(option);
+                });
+                
+                // Simulação de empresa
+                document.getElementById("empresa-nome").textContent = "Barbearia Elite";
+                document.getElementById("empresa-servico").textContent = "Agendamento online";
+            }, 1500);
+        });
+    </script>
 </body>
 </html>
