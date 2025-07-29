@@ -499,8 +499,27 @@
             servicosDisponiveis = [];
             atendentes = [];
             
-            // Processa serviços do PI
-            if (empresaSelecionada.servicos) {
+            // Processa serviços do PI - verifica se está no formato array servicoAtendente
+            if (empresaSelecionada.servicoAtendente && Array.isArray(empresaSelecionada.servicoAtendente)) {
+                // Processa como array de objetos com servico e atendentes
+                empresaSelecionada.servicoAtendente.forEach(item => {
+                    if (item.servico && item.atendentes) {
+                        if (!servicosDisponiveis.includes(item.servico)) {
+                            servicosDisponiveis.push(item.servico);
+                        }
+                        
+                        item.atendentes.forEach(nomeAtendente => {
+                            atendentes.push({
+                                nome: nomeAtendente,
+                                servico: item.servico,
+                                isPI: true
+                            });
+                        });
+                    }
+                });
+            } 
+            // Processa serviços do PI em formato string
+            else if (empresaSelecionada.servicos) {
                 servicosDisponiveis = empresaSelecionada.servicos.split('/')
                     .map(s => s.trim())
                     .filter(s => s.length > 0);
@@ -510,8 +529,8 @@
                     .filter(s => s.length > 0);
             }
             
-            // Adiciona o próprio PI como atendente para todos os serviços
-            if (empresaSelecionada.nomeCompleto) {
+            // Se não encontrou atendentes no servicoAtendente, adiciona o próprio PI como atendente
+            if (atendentes.length === 0 && empresaSelecionada.nomeCompleto) {
                 servicosDisponiveis.forEach(servico => {
                     atendentes.push({
                         nome: empresaSelecionada.nomeCompleto,
@@ -542,7 +561,25 @@
         }
         
         function processarServicosAtendentes(dados) {
-            if (typeof dados === 'string') {
+            if (Array.isArray(dados)) {
+                // Processa como array de objetos com servico e atendentes
+                dados.forEach(item => {
+                    if (item.servico && item.atendentes) {
+                        if (!servicosDisponiveis.includes(item.servico)) {
+                            servicosDisponiveis.push(item.servico);
+                        }
+                        
+                        item.atendentes.forEach(nomeAtendente => {
+                            atendentes.push({
+                                nome: nomeAtendente,
+                                servico: item.servico,
+                                isPI: false
+                            });
+                        });
+                    }
+                });
+            }
+            else if (typeof dados === 'string') {
                 dados.split('\n').filter(linha => linha.trim() !== '').forEach(linha => {
                     const partes = linha.split('-').map(p => p.trim());
                     if (partes.length === 2) {
@@ -553,16 +590,6 @@
                         
                         nomesAtendentes.forEach(nome => {
                             atendentes.push({ nome, servico, isPI: false });
-                        });
-                    }
-                });
-            } else if (Array.isArray(dados)) {
-                dados.forEach(item => {
-                    if (item.servico && item.atendentes) {
-                        if (!servicosDisponiveis.includes(item.servico)) servicosDisponiveis.push(item.servico);
-                        
-                        item.atendentes.forEach(nome => {
-                            atendentes.push({ nome, servico: item.servico, isPI: false });
                         });
                     }
                 });
