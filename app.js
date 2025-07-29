@@ -24,6 +24,7 @@ let atendentes = [];
 let servicosDisponiveis = [];
 let empresaPrincipal = null;
 let empresaPI = null;
+let calendar = null;
 
 // Configurações padrão de horários
 const horariosConfig = {
@@ -46,6 +47,31 @@ function mostrarErro(mensagem) {
 
 function esconderErro() {
     document.getElementById('error-message').style.display = 'none';
+}
+
+function inicializarCalendario() {
+    const hoje = new Date();
+    const config = {
+        locale: 'pt',
+        dateFormat: 'd/m/Y',
+        minDate: hoje,
+        disable: [
+            function(date) {
+                // Desabilita fins de semana
+                return (date.getDay() === 0 || date.getDay() === 6);
+            }
+        ],
+        onChange: function(selectedDates, dateStr, instance) {
+            dataSelecionada = selectedDates[0];
+            document.getElementById('selected-date').textContent = formatarData(dataSelecionada);
+            
+            if (servicoSelecionado) {
+                carregarHorariosDisponiveis();
+            }
+        }
+    };
+
+    calendar = flatpickr("#calendar-input", config);
 }
 
 function carregarDadosEmpresa() {
@@ -689,10 +715,16 @@ function confirmarAgendamento() {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+    // Inicializa o calendário
+    inicializarCalendario();
+    
+    // Carrega os dados da empresa
     carregarDadosEmpresa();
     
+    // Configura o botão de confirmação
     document.getElementById('btn-confirmar').addEventListener('click', confirmarAgendamento);
     
+    // Configura a máscara do CPF/CNPJ
     document.getElementById('documento').addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
         
@@ -710,6 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // Configura a máscara do telefone
     document.getElementById('telefone').addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
         value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
