@@ -300,7 +300,7 @@
                         <span class="fw-bold text-muted">Serviço:</span>
                         <span id="resumo-servico" class="ms-2"></span>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3" id="resumo-prestador-container" style="display:none">
                         <span class="fw-bold text-muted">Prestador:</span>
                         <span id="resumo-prestador" class="ms-2"></span>
                     </div>
@@ -896,7 +896,16 @@
             
             document.getElementById('resumo-empresa').textContent = empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
             document.getElementById('resumo-servico').textContent = servicoSelecionado;
-            document.getElementById('resumo-prestador').textContent = prestadorSelecionado || "Não especificado";
+            
+            // Atualiza a exibição do prestador apenas se existir
+            const resumoPrestadorContainer = document.getElementById('resumo-prestador-container');
+            if (prestadorSelecionado) {
+                document.getElementById('resumo-prestador').textContent = prestadorSelecionado;
+                resumoPrestadorContainer.style.display = 'block';
+            } else {
+                resumoPrestadorContainer.style.display = 'none';
+            }
+            
             document.getElementById('resumo-data').textContent = formatarData(dataSelecionada);
             document.getElementById('resumo-horario').textContent = horarioSelecionado;
             document.getElementById('resumo-cliente').textContent = nome;
