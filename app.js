@@ -160,6 +160,9 @@ function carregarServicosEAtendentes() {
 }
 
 function processarServicosAtendentes(dados) {
+    // Criamos um objeto para agrupar atendentes por serviço
+    const servicosMap = {};
+
     if (typeof dados === 'string') {
         dados.split('\n').filter(linha => linha.trim() !== '').forEach(linha => {
             const partes = linha.split('-').map(p => p.trim());
@@ -167,29 +170,42 @@ function processarServicosAtendentes(dados) {
                 const servico = partes[0];
                 const nomesAtendentes = partes[1].split(',').map(n => n.trim());
 
-                if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
+                if (!servicosMap[servico]) {
+                    servicosMap[servico] = new Set(); // Usamos Set para evitar duplicatas
+                }
 
                 nomesAtendentes.forEach(nome => {
-                    atendentes.push({ nome, servico });
+                    servicosMap[servico].add(nome);
                 });
             }
         });
     } else if (Array.isArray(dados)) {
         dados.forEach(item => {
             if (item.servico && item.atendentes) {
-                if (!servicosDisponiveis.includes(item.servico)) servicosDisponiveis.push(item.servico);
+                if (!servicosMap[item.servico]) {
+                    servicosMap[item.servico] = new Set();
+                }
 
                 item.atendentes.forEach(nome => {
-                    atendentes.push({ nome, servico: item.servico });
+                    servicosMap[item.servico].add(nome);
                 });
             }
         });
     }
 
-    servicosDisponiveis.sort((a, b) => a.localeCompare(b));
+    // Convertemos o mapa em arrays para servicosDisponiveis e atendentes
+    servicosDisponiveis = Object.keys(servicosMap).sort((a, b) => a.localeCompare(b));
+    
+    atendentes = [];
+    servicosDisponiveis.forEach(servico => {
+        Array.from(servicosMap[servico]).forEach(nome => {
+            atendentes.push({ nome, servico });
+        });
+    });
 }
 
 function processarAtendentes(dados) {
+    const servicosMap = {};
     const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
     let match;
 
@@ -198,16 +214,29 @@ function processarAtendentes(dados) {
         const servicos = match[2].match(/\[([^\]]+)\]/g).map(s => s.replace(/[\[\]]/g, '').trim());
 
         servicos.forEach(servico => {
-            atendentes.push({ nome: nomePrestador, servico });
-            if (!servicosDisponiveis.includes(servico)) servicosDisponiveis.push(servico);
+            if (!servicosMap[servico]) {
+                servicosMap[servico] = new Set();
+            }
+            servicosMap[servico].add(nomePrestador);
         });
     }
+
+    // Convertemos o mapa em arrays para servicosDisponiveis e atendentes
+    servicosDisponiveis = Object.keys(servicosMap).sort((a, b) => a.localeCompare(b));
+    
+    atendentes = [];
+    servicosDisponiveis.forEach(servico => {
+        Array.from(servicosMap[servico]).forEach(nome => {
+            atendentes.push({ nome, servico });
+        });
+    });
 }
 
 function processarServicos(dados) {
+    // Para serviços sem atendentes específicos, apenas listamos os serviços únicos
     servicosDisponiveis = typeof dados === 'string' 
-        ? dados.split(/[\n,]/).map(s => s.trim()).filter(s => s.length > 0)
-        : [...dados];
+        ? [...new Set(dados.split(/[\n,]/).map(s => s.trim()).filter(s => s.length > 0))]
+        : [...new Set(dados)];
 
     servicosDisponiveis.sort((a, b) => a.localeCompare(b));
 }
@@ -221,6 +250,7 @@ function carregarSelectServicos() {
         return;
     }
 
+    // Adiciona cada serviço único ao select
     servicosDisponiveis.forEach(servico => {
         servicoSelect.innerHTML += `<option value="${servico}">${servico}</option>`;
     });
@@ -247,6 +277,7 @@ function atualizarPrestadores() {
         return;
     }
 
+    // Filtra atendentes para o serviço selecionado e remove duplicatas
     const prestadores = [...new Set(
         atendentes
             .filter(a => a.servico === servicoSelecionado)
