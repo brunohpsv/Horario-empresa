@@ -68,14 +68,12 @@ function inicializarCalendario() {
     let configAtual;
     
     if (empresaSelecionada === empresaPI) {
-        // Para empresa PI, verifica se tem configuração em "horarios" ou usa o padrão
         configAtual = empresaSelecionada.horarios 
             ? (typeof empresaSelecionada.horarios === 'string' 
                 ? JSON.parse(empresaSelecionada.horarios) 
                 : empresaSelecionada.horarios)
             : horariosConfig.empresaPI;
     } else {
-        // Para empresa principal, verifica se tem configuração em "horariosConfig" ou usa o padrão
         configAtual = empresaSelecionada.horariosConfig 
             ? (typeof empresaSelecionada.horariosConfig === 'string' 
                 ? JSON.parse(empresaSelecionada.horariosConfig) 
@@ -92,6 +90,8 @@ function inicializarCalendario() {
         locale: 'pt',
         dateFormat: 'd/m/Y',
         minDate: hoje,
+        inline: true, // Mostra o calendário permanentemente
+        static: true, // Mantém o calendário visível
         disable: [
             function(date) {
                 // Desabilita dias que não são de funcionamento
@@ -106,7 +106,11 @@ function inicializarCalendario() {
             if (servicoSelecionado) {
                 carregarHorariosDisponiveis();
             }
-        }
+        },
+        // Configurações para aumentar o tamanho do calendário
+        appendTo: document.getElementById('calendar-container'), // Container específico
+        showMonths: 1, // Mostra apenas 1 mês (pode aumentar se quiser)
+        monthSelectorType: 'static', // Evita o seletor de mês dropdown
     };
 
     // Destrói o calendário existente se houver
@@ -114,7 +118,18 @@ function inicializarCalendario() {
         calendar.destroy();
     }
     
+    // Cria um container específico para o calendário
+    const calendarContainer = document.getElementById('calendar-container');
+    calendarContainer.innerHTML = ''; // Limpa o container
+    calendarContainer.style.width = '100%'; // Ocupa toda a largura disponível
+    calendarContainer.style.maxWidth = '600px'; // Limita o tamanho máximo
+    calendarContainer.style.margin = '0 auto'; // Centraliza
+    calendarContainer.style.padding = '20px 0'; // Adiciona espaçamento
+    
     calendar = flatpickr("#calendar-input", config);
+    
+    // Força a exibição do calendário
+    calendar.open();
 }
 
 function carregarDadosEmpresa() {
