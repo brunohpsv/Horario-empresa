@@ -408,56 +408,74 @@
             document.getElementById('error-message').style.display = 'none';
         }
         
-        // Funções principais
         function carregarDadosEmpresa() {
-            const empresaId = new URLSearchParams(window.location.search).get('id');
-            
-            if (!empresaId) {
-                mostrarErro("Nenhuma empresa selecionada. Volte e selecione uma empresa.");
-                return;
+    const empresaId = new URLSearchParams(window.location.search).get('id');
+    
+    if (!empresaId) {
+        mostrarErro("Nenhuma empresa selecionada. Volte e selecione uma empresa.");
+        return;
+    }
+    
+    // Primeiro tenta carregar com o prefixo "PI -"
+    const promessaComPI = db.collection("usuarios").doc(`PI - ${empresaId}`).get()
+        .then(doc => {
+            if (doc.exists) {
+                processarDadosEmpresa(doc);
             }
-            
-            // Primeiro tenta carregar com o prefixo "PI -"
-            db.collection("usuarios").doc(`PI - ${empresaId}`).get()
-                .then(doc => {
-                    if (doc.exists) {
-                        processarDadosEmpresa(doc);
-                    }
-                    
-                    // Independente se encontrou ou não, tenta também sem o prefixo "PI -"
-                    return db.collection("usuarios").doc(empresaId).get();
-                })
-                .then(doc => {
-                    if (doc.exists) {
-                        processarDadosEmpresa(doc);
-                    } else if (!empresaSelecionada) {
-                        mostrarErro("Empresa não encontrada.");
-                    }
-                })
-                .catch(err => {
-                    console.error("Erro ao carregar empresa:", err);
-                    mostrarErro("Erro ao carregar dados da empresa.");
-                });
-        }
+            return doc.exists;
+        });
+    
+    // Independente se encontrou ou não, tenta também sem o prefixo "PI -"
+    const promessaSemPI = db.collection("usuarios").doc(empresaId).get()
+        .then(doc => {
+            if (doc.exists) {
+                processarDadosEmpresa(doc);
+            }
+            return doc.exists;
+        });
+    
+    // Verifica se pelo menos uma das consultas retornou dados
+    Promise.all([promessaComPI, promessaSemPI])
+        .then(([existeComPI, existeSemPI]) => {
+            if (!existeComPI && !existeSemPI) {
+                mostrarErro("Empresa não encontrada.");
+            }
+        })
+        .catch(err => {
+            console.error("Erro ao carregar empresa:", err);
+            mostrarErro("Erro ao carregar dados da empresa.");
+        });
+}
         
         function processarDadosEmpresa(doc) {
-            // Se já encontrou uma empresa, não sobrescreve (prioriza a com PI -)
-            if (empresaSelecionada) return;
-            
-            empresaSelecionada = { id: doc.id, ...doc.data() };
-            document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
-            
-            // Verifica se é um documento com prefixo "PI -" e processa os dados específicos
-            if (empresaSelecionada.id.startsWith("PI -")) {
-                processarDadosPrestadorIndividual();
-            } else {
-                carregarServicosEAtendentes();
-            }
-            
-            if (empresaSelecionada.horariosConfig) {
-                Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-            }
-        }
+    const dadosEmpresa = { id: doc.id, ...doc.data() };
+    
+    // Se já temos dados da empresa, combinamos com os novos
+    if (empresaSelecionada) {
+        // Combina os dados, mantendo os existentes se já estiverem definidos
+        empresaSelecionada = {
+            ...dadosEmpresa,
+            ...empresaSelecionada
+        };
+    } else {
+        empresaSelecionada = dadosEmpresa;
+    }
+    
+    document.getElementById('empresa-nome').textContent = empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
+    
+    // Verifica se é um documento com prefixo "PI -" e processa os dados específicos
+    if (doc.id.startsWith("PI -")) {
+        processarDadosPrestadorIndividual();
+    } else {
+        // Se não for PI -, processa os serviços e atendentes
+        carregarServicosEAtendentes();
+    }
+    
+    // Combina as configurações de horários
+    if (dadosEmpresa.horariosConfig) {
+        Object.assign(horariosConfig, dadosEmpresa.horariosConfig);
+    }
+}
         
         function processarDadosPrestadorIndividual() {
             // Processa serviços do prestador individual
@@ -494,22 +512,26 @@
         }
         
         function carregarServicosEAtendentes() {
-            if (!empresaSelecionada) return;
-            
-            if (empresaSelecionada.servicoAtendente) {
-                processarServicosAtendentes(empresaSelecionada.servicoAtendente);
-            } else if (empresaSelecionada.atendentes) {
-                processarAtendentes(empresaSelecionada.atendentes);
-            } else if (empresaSelecionada.servico) {
-                processarServicos(empresaSelecionada.servico);
-            } else {
-                mostrarErro("Esta empresa ainda não configurou seus serviços.");
-                document.getElementById('servico').innerHTML = '<option value="">Nenhum serviço disponível</option>';
-                return;
-            }
-            
-            carregarSelectServicos();
-        }
+    if (!empresaSelecionada) return;
+    
+    // Limpa os arrays antes de recarregar
+    servicosDisponiveis = [];
+    atendentes = [];
+    
+    if (empresaSelecionada.servicoAtendente) {
+        processarServicosAtendentes(empresaSelecionada.servicoAtendente);
+    } else if (empresaSelecionada.atendentes) {
+        processarAtendentes(empresaSelecionada.atendentes);
+    } else if (empresaSelecionada.servico) {
+        processarServicos(empresaSelecionada.servico);
+    } else {
+        mostrarErro("Esta empresa ainda não configurou seus serviços.");
+        document.getElementById('servico').innerHTML = '<option value="">Nenhum serviço disponível</option>';
+        return;
+    }
+    
+    carregarSelectServicos();
+}
         
         function processarServicosAtendentes(dados) {
             if (typeof dados === 'string') {
