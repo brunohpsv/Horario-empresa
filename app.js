@@ -1,4 +1,3 @@
-
 // Configuração e inicialização do Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
@@ -27,14 +26,14 @@ let empresaPrincipal = null;
 let empresaPI = null;
 let calendar = null;
 
-// Substitua a configuração atual por:
+// Configuração de horários padrão
 const horariosConfig = {
     empresaPrincipal: {
         duracaoAtendimento: 30,
         horarioAbertura: "08:00",
         horarioFechamento: "18:00",
         intervaloAtendimento: 15,
-        diasFuncionamento: [1, 2, 3, 4, 5], // Dias da semana (1=segunda, 7=domingo)
+        diasFuncionamento: [1, 2, 3, 4, 5], // Dias da semana (0=domingo, 1=segunda, etc)
         horarioAlmoco: null // Ou { inicio: "12:00", fim: "13:00" }
     },
     empresaPI: {
@@ -64,19 +63,23 @@ function esconderErro() {
 
 function inicializarCalendario() {
     const hoje = new Date();
+    
+    // Obtém a configuração correta com base na empresa selecionada
+    const configAtual = empresaSelecionada === empresaPI 
+        ? horariosConfig.empresaPI 
+        : horariosConfig.empresaPrincipal;
+
     const config = {
         locale: 'pt',
         dateFormat: 'd/m/Y',
         minDate: hoje,
         disable: [
             function(date) {
-                // Verifica qual empresa está selecionada
-                const configAtual = empresaSelecionada === empresaPI 
-                    ? horariosConfig.empresaPI 
-                    : horariosConfig.empresaPrincipal;
-                
                 // Desabilita dias que não são de funcionamento
-                return !configAtual.diasFuncionamento.includes(date.getDay() || 7);
+                // getDay() retorna 0 para domingo, 1 para segunda, etc
+                const diaSemana = date.getDay();
+                // Convertemos para o formato onde 0=domingo, 1=segunda, etc
+                return !configAtual.diasFuncionamento.includes(diaSemana === 0 ? 7 : diaSemana);
             }
         ],
         onChange: function(selectedDates, dateStr, instance) {
@@ -142,6 +145,9 @@ function carregarDadosEmpresa() {
         
         // Carrega serviços e atendentes
         carregarServicosEAtendentes();
+        
+        // Inicializa o calendário após carregar os dados da empresa
+        inicializarCalendario();
     })
     .catch(err => {
         console.error("Erro ao carregar empresa:", err);
@@ -351,7 +357,7 @@ function processarDadosPrincipal(empresa) {
         
         servicosDisponiveis = [...new Set([...servicosDisponiveis, ...novosServicos])];
     }
-	
+    
     // Processa configurações de horários
     if (empresa.horariosConfig) {
         try {
@@ -780,10 +786,7 @@ function confirmarAgendamento() {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
-    // Inicializa o calendário
-    inicializarCalendario();
-    
-    // Carrega os dados da empresa
+    // Carrega os dados da empresa (o calendário será inicializado após)
     carregarDadosEmpresa();
     
     // Configura o botão de confirmação
