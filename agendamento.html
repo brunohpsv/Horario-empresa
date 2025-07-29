@@ -175,7 +175,7 @@
             .time-slots-container {
                 grid-template-columns: repeat(3, 1fr);
             }
-            
+
             .time-slot {
                 padding: 0.6rem 0.3rem;
                 font-size: 0.85rem;
@@ -186,17 +186,17 @@
             :root {
                 --container-width: 100%;
             }
-            
+
             .container {
                 margin: 0;
                 border-radius: 0;
                 box-shadow: none;
             }
-            
+
             .card-header, .card-body {
                 padding: 0.8rem;
             }
-            
+
             .time-slots-container {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -220,10 +220,10 @@
                 <h5 class="mb-0" id="empresa-nome">Carregando...</h5>
                 <small class="text-muted" id="empresa-servico"></small>
             </div>
-            
+
             <div class="card-body">
                 <div id="error-message" class="alert alert-danger" style="display:none"></div>
-                
+
                 <div id="info-agendamento-existente" class="alert alert-info" style="display:none">
                     <h5>Você já tem um agendamento!</h5>
                     <div id="resumo-agendamento-existente"></div>
@@ -232,13 +232,13 @@
                         <button class="btn btn-primary" id="btn-novo-agendamento">Fazer Novo Agendamento</button>
                     </div>
                 </div>
-                
+
                 <div id="formulario-agendamento">
                     <div class="mb-4">
                         <label class="form-label">CPF/CNPJ</label>
                         <input type="text" id="documento" class="form-control" placeholder="Digite seu CPF ou CNPJ" required>
                     </div>
-                    
+
                     <div class="row mb-4">
                         <div class="col-md-6 mb-3 mb-md-0" id="servico-group">
                             <label class="form-label">Serviço</label>
@@ -253,12 +253,12 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="mb-4">
                         <label class="form-label">Data</label>
                         <input type="text" id="calendar-input" class="form-control" placeholder="Selecione uma data">
                     </div>
-                    
+
                     <div class="mb-4" id="horario-section" style="display:none">
                         <label class="form-label">Horários disponíveis para <span id="selected-date"></span></label>
                         <div class="time-slots-container" id="horarios-container">
@@ -268,7 +268,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div id="dados-section" style="display:none">
                         <h5 class="mb-4">Preencha seus dados</h5>
                         <div class="mb-4">
@@ -284,12 +284,12 @@
                             <input type="email" id="email" class="form-control">
                         </div>
                     </div>
-                    
+
                     <div class="d-grid">
                         <button class="btn btn-primary btn-lg" id="btn-confirmar" style="display:none">Confirmar Agendamento</button>
                     </div>
                 </div>
-                
+
                 <div id="resumo-agendamento" style="display:none">
                     <h4 class="mb-4">Agendamento confirmado!</h4>
                     <div class="mb-3">
@@ -300,7 +300,7 @@
                         <span class="fw-bold text-muted">Serviço:</span>
                         <span id="resumo-servico" class="ms-2"></span>
                     </div>
-                    <div class="mb-3" id="resumo-prestador-container" style="display:none">
+                    <div class="mb-3">
                         <span class="fw-bold text-muted">Prestador:</span>
                         <span id="resumo-prestador" class="ms-2"></span>
                     </div>
@@ -324,7 +324,7 @@
                         <span class="fw-bold text-muted">Contato:</span>
                         <span id="resumo-contato" class="ms-2"></span>
                     </div>
-                    
+
                     <div class="d-grid gap-3">
                         <button class="btn btn-primary btn-lg" onclick="window.print()">
                             <i class="fas fa-print"></i> Imprimir
