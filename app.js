@@ -1,3 +1,8 @@
+# Código Completo Atualizado para Agendamento Online
+
+Vou fornecer o código completo atualizado para resolver o problema "Erro ao carregar dados da empresa" e melhorar a funcionalidade geral:
+
+```javascript
 // Configuração e inicialização do Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
@@ -8,7 +13,10 @@ const firebaseConfig = {
     appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
 };
 
-firebase.initializeApp(firebaseConfig);
+// Inicializa o Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
 // Variáveis globais
@@ -34,7 +42,7 @@ const horariosConfig = {
         horarioFechamento: "18:00",
         intervaloAtendimento: 15,
         diasFuncionamento: [1, 2, 3, 4, 5], // Dias da semana (0=domingo, 1=segunda, etc)
-        horarioAlmoco: null // Ou { inicio: "12:00", fim: "13:00" }
+        horarioAlmoco: null
     },
     empresaPI: {
         duracaoAtendimento: 30,
@@ -67,14 +75,14 @@ function inicializarCalendario() {
     // Obtém a configuração correta com base na empresa selecionada
     let configAtual;
     
-    if (empresaSelecionada === empresaPI) {
+    if (empresaSelecionada && empresaSelecionada.isPI) {
         configAtual = empresaSelecionada.horarios 
             ? (typeof empresaSelecionada.horarios === 'string' 
                 ? JSON.parse(empresaSelecionada.horarios) 
                 : empresaSelecionada.horarios)
             : horariosConfig.empresaPI;
     } else {
-        configAtual = empresaSelecionada.horariosConfig 
+        configAtual = empresaSelecionada && empresaSelecionada.horariosConfig 
             ? (typeof empresaSelecionada.horariosConfig === 'string' 
                 ? JSON.parse(empresaSelecionada.horariosConfig) 
                 : empresaSelecionada.horariosConfig)
@@ -87,7 +95,7 @@ function inicializarCalendario() {
     }
 
     const config = {
-        locale: 'pt',
+        locale: 'pt-br',
         dateFormat: 'd/m/Y',
         minDate: hoje,
         inline: true,
@@ -101,23 +109,30 @@ function inicializarCalendario() {
                 }
                 
                 // Temporariamente desabilita todas as datas até verificar a disponibilidade
-                return true;
+                return false;
             }
         ],
         onChange: function(selectedDates, dateStr, instance) {
-            dataSelecionada = selectedDates[0];
-            document.getElementById('selected-date').textContent = formatarData(dataSelecionada);
-            
-            if (servicoSelecionado) {
-                calcularHorariosDisponiveisParaData(dataSelecionada)
-                    .then(horariosDisponiveis => {
-                        if (horariosDisponiveis.length > 0) {
-                            exibirHorariosDisponiveis(horariosDisponiveis.map(h => ({horario: h, disponivel: true})));
-                        } else {
+            if (selectedDates.length > 0) {
+                dataSelecionada = selectedDates[0];
+                document.getElementById('selected-date').textContent = formatarData(dataSelecionada);
+                
+                if (servicoSelecionado) {
+                    calcularHorariosDisponiveisParaData(dataSelecionada)
+                        .then(horariosDisponiveis => {
+                            if (horariosDisponiveis.length > 0) {
+                                exibirHorariosDisponiveis(horariosDisponiveis.map(h => ({horario: h, disponivel: true})));
+                            } else {
+                                document.getElementById('horarios-container').innerHTML = 
+                                    '<div class="alert alert-warning">Nenhum horário disponível para esta data.</div>';
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Erro ao calcular horários:", err);
                             document.getElementById('horarios-container').innerHTML = 
-                                '<div class="alert alert-warning">Nenhum horário disponível para esta data.</div>';
-                        }
-                    });
+                                '<div class="alert alert-danger">Erro ao carregar horários disponíveis.</div>';
+                        });
+                }
             }
         },
         onMonthChange: function(selectedDates, dateStr, instance) {
@@ -226,7 +241,7 @@ function carregarDadosEmpresa() {
     })
     .catch(err => {
         console.error("Erro ao carregar empresa:", err);
-        mostrarErro("Erro ao carregar dados da empresa.");
+        mostrarErro("Erro ao carregar dados da empresa. Por favor, recarregue a página.");
     });
 }
 
@@ -638,7 +653,7 @@ function cancelarAgendamentoExistente(agendamento) {
 
 function calcularHorariosDisponiveis() {
     // Obtém a configuração correta com base na empresa selecionada
-    const configAtual = empresaSelecionada === empresaPI 
+    const configAtual = empresaSelecionada && empresaSelecionada.isPI 
         ? horariosConfig.empresaPI 
         : horariosConfig.empresaPrincipal;
 
@@ -714,7 +729,7 @@ function carregarHorariosDisponiveis() {
                 calendar.set('disable', [
                     function(date) {
                         const dateStr = formatarDataFirestore(date);
-                        const configAtual = empresaSelecionada === empresaPI 
+                        const configAtual = empresaSelecionada && empresaSelecionada.isPI 
                             ? horariosConfig.empresaPI 
                             : horariosConfig.empresaPrincipal;
 
@@ -745,7 +760,7 @@ function carregarHorariosDisponiveis() {
 }
 
 function calcularHorariosDisponiveisParaData(date) {
-    const configAtual = empresaSelecionada === empresaPI 
+    const configAtual = empresaSelecionada && empresaSelecionada.isPI 
         ? horariosConfig.empresaPI 
         : horariosConfig.empresaPrincipal;
 
@@ -799,6 +814,48 @@ function exibirHorariosDisponiveis(horarios) {
                 
                 setTimeout(() => {
                     document.getElementById('dados-section').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }, 300);
+            });
+        }
+        
+        container.appendChild(btn);
+    });
+}
+
+function preencherResumoAgendamento() {
+    const nome = document.getElementById('nome').value.trim();
+    const telefone = document.getElementById('telefone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    
+    // Usa nomeFantasia ou o ID como fallback
+    const nomeEmpresa = empresaSelecionada.nomeFantasia || empresaSelecionada.id.replace("PI - ", "") || "Empresa";
+    
+    document.getElementById('resumo-empresa').textContent = nomeEmpresa;
+    document.getElementById('resumo-servico').textContent = servicoSelecionado;
+    
+    // Atualiza a exibição do prestador apenas se existir
+    const resumoPrestadorContainer = document.getElementById('resumo-prestador-container');
+    if (prestadorSelecionado) {
+        document.getElementById('resumo-prestador').textContent = prestadorSelecionado;
+        resumoPrestadorContainer.style.display = 'block';
+    } else {
+        resumoPrestadorContainer.style.display = 'none';
+    }
+    
+    document.getElementById('resumo-data').textContent = formatarData(dataSelecionada);
+    document.getElementById('resumo-horario').textContent = horarioSelecionado;
+    document.getElementById('resumo-cliente').textContent = nome;
+    document.getElementById('resumo-documento').textContent = documentoCliente;
+    document.getElementById('resumo-contato').textContent = telefone + (email ? ` (${email})` : '');
+    
+    document.getElementById('formulario-agendamento').style.display = 'none';
+    document.getElementById('resumo-agendamento').style.display = 'block';
+    
+    setTimeout(() => {
+	document.getElementById('dados-section').scrollIntoView({ 
                         behavior: 'smooth', 
                         block: 'start' 
                     });
