@@ -930,9 +930,14 @@ function carregarServicosEAtendentes() {
         }
         
         // Inicialização
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
+        // Inicializa apenas as configurações básicas
+        const empresaId = new URLSearchParams(window.location.search).get('id');
+        if (empresaId && empresaId.startsWith("PI - ")) {
+            carregarDadosPrestadorIndividual(empresaId);
+        } else {
             carregarDadosEmpresa();
-            
+        }            
             document.getElementById('btn-confirmar').addEventListener('click', confirmarAgendamento);
             
             document.getElementById('documento').addEventListener('input', function(e) {
