@@ -52,6 +52,21 @@
             color: #cccccc;
         }
         
+        .logout-btn {
+            background-color: #d32f2f;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background-color: #b71c1c;
+            color: white;
+        }
+        
         .main-container {
             max-width: 1200px;
             margin: 50px auto;
@@ -162,7 +177,7 @@
         <nav>
             <ul>
                 <li><a href="https://horario.site">Início</a></li>
-                <li><a href="#" id="logoutBtn">Sair</a></li>
+                <li><a href="#" id="logoutBtn" class="logout-btn">Sair</a></li>
             </ul>
         </nav>
     </header>
