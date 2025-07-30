@@ -311,6 +311,58 @@
             background: #e68a00;
         }
         
+        /* Configurações */
+        .config-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        
+        .config-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .btn-save {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-save:hover {
+            background-color: #45a049;
+        }
+        
         /* Loader */
         .loader-overlay {
             position: fixed;
@@ -359,6 +411,11 @@
             color: #4CAF50;
             text-decoration: none;
         }
+        
+        /* Esconder elementos */
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -371,9 +428,9 @@
         <div class="logo">PAINEL DE CONTROLE</div>
         <nav>
             <ul>
-                <li><a href="painel.html" class="active">CALENDÁRIO</a></li>
+                <li><a href="painel.html" class="active" id="calendarLink">CALENDÁRIO</a></li>
                 <li><a href="escolher-painel.html" class="active">Escolher Painel</a></li>
-                <li><a href="painelindivconfig.html">CONFIGURAÇÕES</a></li>
+                <li><a href="painelindivconfig.html" id="configLink">CONFIGURAÇÕES</a></li>
                 <li><a href="#" id="logoutBtn" class="nav-btn logout-btn">SAIR</a></li>
             </ul>
         </nav>
@@ -381,6 +438,30 @@
 
     <div class="container">
         <div id="calendar"></div>
+        <div id="configSection" class="hidden">
+            <div class="config-container">
+                <h2 class="config-title">Configurações do Prestador Individual</h2>
+                <form id="configForm">
+                    <div class="form-group">
+                        <label for="nomePrestador">Nome do Prestador</label>
+                        <input type="text" id="nomePrestador" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="servicos">Serviços Oferecidos (separados por vírgula)</label>
+                        <input type="text" id="servicos" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="horarioFuncionamento">Horário de Funcionamento</label>
+                        <input type="text" id="horarioFuncionamento" class="form-control" placeholder="Ex: 08:00-18:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tempoPadrao">Tempo Padrão por Atendimento (minutos)</label>
+                        <input type="number" id="tempoPadrao" class="form-control" min="15" value="30" required>
+                    </div>
+                    <button type="submit" class="btn-save">Salvar Configurações</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <footer>
@@ -419,9 +500,14 @@
         
         // Variável global para armazenar dados do usuário
         let currentUserData = null;
+        let isIndividualProvider = false;
         
         // Verificação de autenticação e carregamento de dados
         document.addEventListener('DOMContentLoaded', function() {
+            // Verifica se veio do painel.html (prestador individual)
+            const urlParams = new URLSearchParams(window.location.search);
+            isIndividualProvider = urlParams.has('individual');
+            
             auth.onAuthStateChanged(async (user) => {
                 if (!user) {
                     // Usuário não autenticado, redireciona para login
@@ -443,11 +529,25 @@
                         userData.id = doc.id;
                         currentUserData = userData;
                         
+                        // Se for prestador individual, ajusta o userId
+                        if (isIndividualProvider) {
+                            userData.id = "PI - " + userData.id;
+                        }
+                        
                         // Esconde o loader
                         document.getElementById('loaderOverlay').style.display = 'none';
                         
-                        // Inicializa o calendário com os agendamentos
-                        initializeCalendar(userData);
+                        // Se for prestador individual, mostra apenas configurações
+                        if (isIndividualProvider) {
+                            document.getElementById('calendar').classList.add('hidden');
+                            document.getElementById('configSection').classList.remove('hidden');
+                            document.getElementById('calendarLink').classList.remove('active');
+                            document.getElementById('configLink').classList.add('active');
+                            loadConfigurations(userData);
+                        } else {
+                            // Inicializa o calendário com os agendamentos
+                            initializeCalendar(userData);
+                        }
                     } catch (error) {
                         console.error('Erro ao carregar dados do usuário:', error);
                         alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
@@ -456,6 +556,52 @@
                     }
                 }
             });
+        });
+
+        // Função para carregar configurações do prestador individual
+        async function loadConfigurations(userData) {
+            try {
+                const docRef = db.collection('prestadoresIndividuais').doc(userData.id);
+                const doc = await docRef.get();
+                
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('nomePrestador').value = data.nome || '';
+                    document.getElementById('servicos').value = data.servicos ? data.servicos.join(', ') : '';
+                    document.getElementById('horarioFuncionamento').value = data.horarioFuncionamento || '';
+                    document.getElementById('tempoPadrao').value = data.tempoPadrao || 30;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+                alert('Erro ao carregar configurações. Tente novamente.');
+            }
+        }
+
+        // Função para salvar configurações do prestador individual
+        document.getElementById('configForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            try {
+                const nomePrestador = document.getElementById('nomePrestador').value;
+                const servicos = document.getElementById('servicos').value.split(',').map(s => s.trim());
+                const horarioFuncionamento = document.getElementById('horarioFuncionamento').value;
+                const tempoPadrao = parseInt(document.getElementById('tempoPadrao').value);
+                
+                await db.collection('prestadoresIndividuais').doc(currentUserData.id).set({
+                    nome: nomePrestador,
+                    servicos: servicos,
+                    horarioFuncionamento: horarioFuncionamento,
+                    tempoPadrao: tempoPadrao,
+                    userId: currentUserData.id.replace('PI - ', ''),
+                    email: currentUserData.email,
+                    lastUpdate: new Date()
+                }, { merge: true });
+                
+                alert('Configurações salvas com sucesso!');
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                alert('Erro ao salvar configurações. Tente novamente.');
+            }
         });
 
         // Função para inicializar o calendário com os agendamentos
