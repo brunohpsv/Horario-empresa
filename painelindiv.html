@@ -302,6 +302,41 @@
             opacity: 0.7;
             background-color: #f9f9f9;
         }
+        
+        /* Estilo para dias com agendamentos */
+        .has-agendamento {
+            background-color: #e8f5e9 !important;
+            position: relative;
+        }
+        
+        .has-agendamento:after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+        }
+        
+        .past-agendamento {
+            background-color: #f5f5f5 !important;
+            position: relative;
+        }
+        
+        .past-agendamento:after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background-color: #9e9e9e;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
@@ -385,6 +420,20 @@
                             <div class="horario-input">
                                 <label>Fechamento</label>
                                 <input type="time" id="horarioFechamento" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Horário de Almoço:</label>
+                        <div class="horarios-container">
+                            <div class="horario-input">
+                                <label>Início</label>
+                                <input type="time" id="almocoInicio">
+                            </div>
+                            <div class="horario-input">
+                                <label>Fim</label>
+                                <input type="time" id="almocoFim">
                             </div>
                         </div>
                     </div>
@@ -615,6 +664,8 @@
                 // Horários
                 document.getElementById('horarioAbertura').value = horarios.horarioAbertura || '';
                 document.getElementById('horarioFechamento').value = horarios.horarioFechamento || '';
+                document.getElementById('almocoInicio').value = horarios.almocoInicio || '';
+                document.getElementById('almocoFim').value = horarios.almocoFim || '';
                 document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento || '30';
                 document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento || '15';
             }
@@ -695,10 +746,11 @@
                 const querySnapshot = await agendamentosRef.get();
                 
                 if (!querySnapshot.empty) {
+                    const cellElement = $(cell);
                     if (isFutureOrToday) {
-                        cell.addClass('has-agendamento');
+                        cellElement.addClass('has-agendamento');
                     } else {
-                        cell.addClass('past-agendamento');
+                        cellElement.addClass('past-agendamento');
                     }
                 }
             } catch (error) {
@@ -956,6 +1008,8 @@
                 const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
                 const horarioAbertura = document.getElementById('horarioAbertura').value;
                 const horarioFechamento = document.getElementById('horarioFechamento').value;
+                const almocoInicio = document.getElementById('almocoInicio').value;
+                const almocoFim = document.getElementById('almocoFim').value;
                 const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
                 const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
                 
@@ -974,6 +1028,8 @@
                         diasFuncionamento: diasSelecionados,
                         horarioAbertura: horarioAbertura,
                         horarioFechamento: horarioFechamento,
+                        almocoInicio: almocoInicio,
+                        almocoFim: almocoFim,
                         duracaoAtendimento: parseInt(duracaoAtendimento),
                         intervaloAtendimento: parseInt(intervaloAtendimento)
                     },
