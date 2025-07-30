@@ -32,6 +32,7 @@
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             position: relative;
+            z-index: 1000;
         }
         
         .logo {
@@ -56,7 +57,7 @@
             background-color: white;
             min-width: 160px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            z-index: 1;
+            z-index: 1001;
             border-radius: 4px;
         }
         
@@ -264,6 +265,43 @@
         .nome-inicial input {
             flex: 1;
         }
+        
+        /* Agendamentos do dia */
+        .agendamentos-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 20px 0;
+        }
+        
+        .agendamentos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .agendamento-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .agendamento-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .agendamento-actions {
+            text-align: right;
+        }
+        
+        .concluido {
+            opacity: 0.7;
+            background-color: #f9f9f9;
+        }
     </style>
 </head>
 <body>
@@ -296,7 +334,7 @@
         <div id="mainContent" style="display: none;">
             <div id="calendar"></div>
             
-            <div class="config-section">
+            <div id="configSection" class="config-section" style="display: none;">
                 <h2>Configurações do Painel</h2>
                 
                 <div id="configMessage" class="message" style="display: none;"></div>
@@ -412,6 +450,7 @@
         // Variável para armazenar os dados do usuário
         let currentUserData = null;
         let selectedNomeCompleto = localStorage.getItem('selectedNomeCompleto');
+        let isDayView = false;
         
         // Verificação de autenticação
         document.addEventListener('DOMContentLoaded', function() {
@@ -586,6 +625,11 @@
             document.getElementById('nomeInicialSection').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             
+            // Mostra a seção de configurações apenas se não estiver na visualização de dia
+            if (!isDayView) {
+                document.getElementById('configSection').style.display = 'block';
+            }
+            
             // Inicializa o calendário
             initializeCalendar();
         }
@@ -621,11 +665,16 @@
                 },
                 viewRender: function(view, element) {
                     if (view.name === 'agendaDay') {
+                        isDayView = true;
+                        document.getElementById('configSection').style.display = 'none';
                         const date = view.intervalStart;
                         const dateStr = date.format('DD/MM/YYYY');
                         const dateKey = date.format('YYYY-MM-DD');
                         
                         loadAgendamentosForDay(dateKey, dateStr);
+                    } else {
+                        isDayView = false;
+                        document.getElementById('configSection').style.display = 'block';
                     }
                 }
             });
@@ -668,10 +717,11 @@
                 const querySnapshot = await agendamentosRef.get();
                 
                 let agendamentosHTML = `
-                    <div style="margin: 20px auto; max-width: 800px;">
-                        <button id="voltar-mes" class="btn">← Voltar para o Mês</button>
-                        <h2 style="text-align: center; margin: 15px 0;">Agendamentos - ${dateStr}</h2>
-                        <div style="background: white; border-radius: 8px;">
+                    <div class="agendamentos-container">
+                        <div class="agendamentos-header">
+                            <button id="voltar-mes" class="btn">← Voltar para o Mês</button>
+                            <h2>Agendamentos - ${dateStr}</h2>
+                        </div>
                 `;
                 
                 if (!querySnapshot.empty) {
@@ -691,17 +741,15 @@
                     
                     // Mostra primeiro os não concluídos
                     if (naoConcluidos.length > 0) {
-                        agendamentosHTML += `<h3 style="padding: 15px 15px 5px;">Agendamentos</h3>`;
-                        
                         naoConcluidos.forEach(agendamento => {
                             agendamentosHTML += `
-                                <div style="padding: 15px; border-bottom: 1px solid #eee;">
-                                    <div style="display: flex; justify-content: space-between;">
+                                <div class="agendamento-item">
+                                    <div class="agendamento-info">
                                         <span style="font-weight: bold;">${agendamento.horario}</span>
                                         <span style="font-weight: bold;">${agendamento.servico || 'Serviço'}</span>
                                         <span>${agendamento.clienteNome || 'Cliente'}</span>
                                     </div>
-                                    <div style="margin-top: 10px;">
+                                    <div class="agendamento-actions">
                                         <button class="btn" data-id="${agendamento.id}">Concluir</button>
                                     </div>
                                 </div>
@@ -711,17 +759,15 @@
                     
                     // Mostra os concluídos
                     if (concluidos.length > 0) {
-                        agendamentosHTML += `<h3 style="padding: 15px 15px 5px;">Concluídos</h3>`;
-                        
                         concluidos.forEach(agendamento => {
                             agendamentosHTML += `
-                                <div style="padding: 15px; border-bottom: 1px solid #eee;">
-                                    <div style="display: flex; justify-content: space-between;">
+                                <div class="agendamento-item concluido">
+                                    <div class="agendamento-info">
                                         <span style="font-weight: bold;">${agendamento.horario}</span>
                                         <span style="font-weight: bold;">${agendamento.servico || 'Serviço'}</span>
                                         <span>${agendamento.clienteNome || 'Cliente'}</span>
                                     </div>
-                                    <div style="margin-top: 10px;">
+                                    <div class="agendamento-actions">
                                         <button class="btn btn-secondary" data-id="${agendamento.id}">Desconcluir</button>
                                     </div>
                                 </div>
@@ -730,13 +776,13 @@
                     }
                 } else {
                     agendamentosHTML += `
-                        <div style="padding: 20px; text-align: center;">
+                        <div class="agendamento-item">
                             Nenhum agendamento encontrado para este dia.
                         </div>
                     `;
                 }
                 
-                agendamentosHTML += `</div></div>`;
+                agendamentosHTML += `</div>`;
                 $('#calendar').html(agendamentosHTML);
                 
                 // Adiciona eventos aos botões
@@ -766,9 +812,9 @@
             } catch (error) {
                 console.error("Erro ao carregar agendamentos:", error);
                 $('#calendar').html(`
-                    <div style="margin: 20px auto; max-width: 800px;">
+                    <div class="agendamentos-container">
                         <button id="voltar-mes" class="btn">← Voltar para o Mês</button>
-                        <div style="padding: 20px; text-align: center;">
+                        <div class="agendamento-item">
                             Ocorreu um erro ao carregar os agendamentos.
                         </div>
                     </div>
