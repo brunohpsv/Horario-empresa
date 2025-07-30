@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Prestador Individual | HORÁRIO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .logout-btn {
+            background-color: #f44336;
+        }
+        
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+        
+        .section h2 {
+            color: #444;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-secondary {
+            background-color: #2196F3;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #0b7dda;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+            display: block;
+        }
+        
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+            display: block;
+        }
+        
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            background-color: #000000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .contato-rodape {
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .contato-rodape a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        /* Estilos para a configuração de horários */
+        .horarios-config {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .horarios-config h3 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .dias-semana {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dia-checkbox {
+            display: flex;
+            align-items: center;
+            background: #f5f5f5;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .dia-checkbox:hover {
+            background: #e9e9e9;
+        }
+
+        .dia-checkbox input {
+            margin-right: 8px;
+        }
+
+        .horarios-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .horario-input {
+            flex: 1;
+        }
+
+        .btn-salvar {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-salvar:hover {
+            background-color: #45a049;
+        }
+
+        .horarios-exemplo {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        .horarios-exemplo h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .horarios-exemplo ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .horarios-exemplo li {
+            margin-bottom: 5px;
+        }
+
+        .success-message {
+            color: #4CAF50;
+            margin-top: 10px;
+            font-weight: bold;
+            display: none;
+        }
+
+        /* Seção de almoço */
+        .almoco-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .almoco-toggle {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        
+        .almoco-toggle input {
+            margin-right: 10px;
+        }
+        
+        .almoco-toggle label {
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .almoco-times {
+            display: none;
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .almoco-times.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .almoco-description {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        /* Seção de serviços e atendentes */
+        .servicos-container {
+            margin-top: 20px;
+        }
+
+        .servico-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .servico-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .servico-title {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .remove-servico {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .atendentes-list {
+            margin-top: 10px;
+        }
+
+        .atendente-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .atendente-item input {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .remove-atendente {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-atendente {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .add-servico {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .add-servico i {
+            font-size: 14px;
+        }
+
+        /* Estilo para o formulário de cadastro */
+        .cadastro-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .cadastro-section h2 {
+            color: #444;
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .password-info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader inicial -->
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader"></div>
+    </div>
+
+    <header>
+        <div class="logo">CADASTRO DE PRESTADOR INDIVIDUAL</div>
+        <nav>
+            <ul>
+                <li><a href="login.html">VOLTAR PARA LOGIN</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Cadastro de Prestador Individual</h1>
+        
+        <div id="message" class="message"></div>
+        
+        <!-- Formulário de configuração do prestador -->
+        <form id="prestadorForm">
+            <!-- Seção de Informações Pessoais -->
+            <div class="section">
+                <h2>INFORMAÇÕES PESSOAIS</h2>
+                
+                <div class="form-group">
+                    <label for="nomeFantasia">Nome Fantasia:</label>
+                    <input type="text" id="nomeFantasia" placeholder="Nome do seu estabelecimento ou como deseja ser identificado" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nomeCompleto">Nome completo:</label>
+                    <input type="text" id="nomeCompleto" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cpf">CPF:</label>
+                    <input type="text" id="cpf" placeholder="000.000.000-00" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="identificacao">Identificação:</label>
+                    <input type="text" id="identificacao" placeholder="Sua identificação na empresa" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="empresaDocId">Código do Documento da Empresa:</label>
+                    <input type="text" id="empresaDocId" placeholder="Digite o ID do documento da empresa" required>
+                    <p style="margin-top: 5px; font-size: 14px; color: #666;">Este é o ID do documento da empresa na coleção 'usuarios'</p>
+                </div>
+            </div>
+            
+            <!-- Seção de Serviços e Atendentes -->
+            <div class="section">
+                <h2>SERVIÇOS E ATENDENTES</h2>
+                
+                <div id="servicosContainer" class="servicos-container">
+                    <!-- Os itens de serviço serão adicionados dinamicamente aqui -->
+                </div>
+                
+                <button type="button" id="addServicoBtn" class="add-servico">
+                    <i class="fas fa-plus"></i> Adicionar Serviço
+                </button>
+            </div>
+            
+            <!-- Seção de Configuração de Horários -->
+            <div class="horarios-config">
+                <h3>CONFIGURAÇÃO DE HORÁRIOS DE ATENDIMENTO</h3>
+                
+                <div class="form-group">
+                    <label>Dias de funcionamento:</label>
+                    <div class="dias-semana" id="diasSemana">
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="1"> Segunda</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="2"> Terça</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="3"> Quarta</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="4"> Quinta</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="5"> Sexta</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="6"> Sábado</label>
+                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="0"> Domingo</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Horário de funcionamento:</label>
+                    <div class="horarios-container">
+                        <div class="horario-input">
+                            <label>Abertura</label>
+                            <input type="time" id="horarioAbertura" required>
+                        </div>
+                        <div class="horario-input">
+                            <label>Fechamento</label>
+                            <input type="time" id="horarioFechamento" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seção de almoço -->
+                <div class="almoco-section">
+                    <div class="almoco-toggle">
+                        <input type="checkbox" id="temAlmoco">
+                        <label for="temAlmoco">Definir horário de almoço</label>
+                    </div>
+                    
+                    <p class="almoco-description">
+                        Marque esta opção se seu estabelecimento fecha para almoço. Isso criará um intervalo no meio do dia onde não serão permitidos agendamentos.
+                    </p>
+                    
+                    <div class="almoco-times" id="almocoTimes">
+                        <div class="horarios-container">
+                            <div class="horario-input">
+                                <label>Início do almoço</label>
+                                <input type="time" id="almocoInicio">
+                            </div>
+                            <div class="horario-input">
+                                <label>Fim do almoço</label>
+                                <input type="time" id="almocoFim">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="duracaoAtendimento">Duração de cada atendimento (minutos):</label>
+                    <select id="duracaoAtendimento" required>
+                        <option value="15">15 minutos</option>
+                        <option value="30" selected>30 minutos</option>
+                        <option value="45">45 minutos</option>
+                        <option value="60">60 minutos</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="intervaloAtendimento">Intervalo entre atendimentos (minutos):</label>
+                    <select id="intervaloAtendimento" required>
+                        <option value="0">Sem intervalo</option>
+                        <option value="5">5 minutos</option>
+                        <option value="10">10 minutos</option>
+                        <option value="15" selected>15 minutos</option>
+                        <option value="20">20 minutos</option>
+                        <option value="30">30 minutos</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-salvar">Cadastrar Prestador</button>
+            <div class="success-message" id="successMessage">Prestador cadastrado com sucesso!</div>
+        </form>
+    </div>
+
+    <footer>
+        <div class="contato-rodape">
+            <p>Precisa de ajuda? Entre em contato conosco:</p>
+            <p>E-mail: <a href="mailto:suportehorario@gmail.com">suportehorario@gmail.com</a> | Telefone: (62) 98159-6601</p>
+            <p>Horário de atendimento: Segunda a Domingo, 24 horas</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+            authDomain: "banco-de-dados-d253e.firebaseapp.com",
+            projectId: "banco-de-dados-d253e",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
+            messagingSenderId: "1005413315224",
+            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+        };
+
+        // Inicializa o Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Função para mostrar mensagem
+        function showMessage(type, text) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message ' + type;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Função para adicionar um novo serviço
+        function addServico(servicoData = { servico: '', atendentes: [''] }) {
+            const servicosContainer = document.getElementById('servicosContainer');
+            const servicoId = Date.now(); // ID único para o serviço
+            
+            const servicoItem = document.createElement('div');
+            servicoItem.className = 'servico-item';
+            servicoItem.dataset.id = servicoId;
+            
+            servicoItem.innerHTML = `
+                <div class="servico-header">
+                    <div class="servico-title">Serviço</div>
+                    <button type="button" class="remove-servico">Remover</button>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="servico-input" placeholder="Nome do serviço (ex: Oftalmologista)" value="${servicoData.servico}" required>
+                </div>
+                <div class="atendentes-list">
+                    <label>Atendentes:</label>
+                    ${servicoData.atendentes.map(atendente => `
+                        <div class="atendente-item">
+                            <input type="text" class="atendente-input" placeholder="Nome do atendente" value="${atendente}" required>
+                            <button type="button" class="remove-atendente">×</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <button type="button" class="add-atendente">Adicionar Atendente</button>
+            `;
+            
+            servicosContainer.appendChild(servicoItem);
+            
+            // Adiciona eventos aos botões
+            servicoItem.querySelector('.remove-servico').addEventListener('click', function() {
+                if (document.querySelectorAll('.servico-item').length > 1) {
+                    servicoItem.remove();
+                } else {
+                    showMessage('error', 'Você deve ter pelo menos um serviço cadastrado');
+                }
+            });
+            
+            servicoItem.querySelector('.add-atendente').addEventListener('click', function() {
+                const atendentesList = servicoItem.querySelector('.atendentes-list');
+                const atendenteItem = document.createElement('div');
+                atendenteItem.className = 'atendente-item';
+                atendenteItem.innerHTML = `
+                    <input type="text" class="atendente-input" placeholder="Nome do atendente" required>
+                    <button type="button" class="remove-atendente">×</button>
+                `;
+                atendentesList.appendChild(atendenteItem);
+                
+                // Adiciona evento ao botão de remover atendente
+                atendenteItem.querySelector('.remove-atendente').addEventListener('click', function() {
+                    if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
+                        atendenteItem.remove();
+                    } else {
+                        showMessage('error', 'Cada serviço deve ter pelo menos um atendente');
+                    }
+                });
+            });
+            
+            // Adiciona eventos aos botões de remover atendente existentes
+            servicoItem.querySelectorAll('.remove-atendente').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
+                        this.closest('.atendente-item').remove();
+                    } else {
+                        showMessage('error', 'Cada serviço deve ter pelo menos um atendente');
+                    }
+                });
+            });
+        }
+
+        // Toggle para mostrar/ocultar horário de almoço
+        document.getElementById('temAlmoco').addEventListener('change', function() {
+            const almocoTimes = document.getElementById('almocoTimes');
+            if (this.checked) {
+                almocoTimes.classList.add('active');
+            } else {
+                almocoTimes.classList.remove('active');
+            }
+        });
+
+        // Função para limpar o formulário (exceto o campo empresaDocId)
+        function limparFormulario() {
+            // Limpa campos de informações pessoais
+            document.getElementById('nomeFantasia').value = '';
+            document.getElementById('nomeCompleto').value = '';
+            document.getElementById('cpf').value = '';
+            document.getElementById('identificacao').value = '';
+            
+            // Limpa serviços (mantém apenas um serviço vazio)
+            const servicosContainer = document.getElementById('servicosContainer');
+            servicosContainer.innerHTML = '';
+            addServico(); // Adiciona um serviço vazio
+            
+            // Limpa configuração de horários
+            document.querySelectorAll('.dias-semana input').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            document.getElementById('horarioAbertura').value = '';
+            document.getElementById('horarioFechamento').value = '';
+            document.getElementById('temAlmoco').checked = false;
+            document.getElementById('almocoInicio').value = '';
+            document.getElementById('almocoFim').value = '';
+            document.getElementById('almocoTimes').classList.remove('active');
+            document.getElementById('duracaoAtendimento').value = '30';
+            document.getElementById('intervaloAtendimento').value = '15';
+            
+            // Mostra mensagem de sucesso
+            showMessage('success', 'Prestador cadastrado com sucesso!');
+        }
+
+        // Adiciona o primeiro serviço quando a página carrega
+        document.addEventListener('DOMContentLoaded', function() {
+            // Esconde o loader
+            document.getElementById('loaderOverlay').style.display = 'none';
+            
+            // Adiciona evento para adicionar serviço
+            document.getElementById('addServicoBtn').addEventListener('click', addServico);
+            
+            // Carrega o primeiro serviço por padrão
+            addServico();
+        });
+
+        // Formulário de cadastro do prestador
+        document.getElementById('prestadorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validação dos dados do prestador
+            const nomeFantasia = document.getElementById('nomeFantasia').value;
+            const nomeCompleto = document.getElementById('nomeCompleto').value;
+            const cpf = document.getElementById('cpf').value;
+            const identificacao = document.getElementById('identificacao').value;
+            const empresaDocId = document.getElementById('empresaDocId').value.trim();
+            
+            if (!nomeFantasia || !nomeCompleto || !cpf || !identificacao || !empresaDocId) {
+                showMessage('error', 'Preencha todas as informações pessoais');
+                return;
+            }
+            
+            // Validação de serviços e atendentes
+            const servicoAtendente = [];
+            const servicoItems = document.querySelectorAll('.servico-item');
+            
+            for (const item of servicoItems) {
+                const servico = item.querySelector('.servico-input').value.trim();
+                const atendentes = Array.from(item.querySelectorAll('.atendente-input')).map(input => input.value.trim()).filter(a => a);
+                
+                if (!servico || atendentes.length === 0) {
+                    showMessage('error', 'Preencha todos os campos de serviços e atendentes');
+                    return;
+                }
+                
+                servicoAtendente.push({
+                    servico: servico,
+                    atendentes: atendentes
+                });
+            }
+            
+            // Validação de horários
+            const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
+            const horarioAbertura = document.getElementById('horarioAbertura').value;
+            const horarioFechamento = document.getElementById('horarioFechamento').value;
+            const temAlmoco = document.getElementById('temAlmoco').checked;
+            const almocoInicio = temAlmoco ? document.getElementById('almocoInicio').value : null;
+            const almocoFim = temAlmoco ? document.getElementById('almocoFim').value : null;
+            const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
+            const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
+            
+            if (diasSelecionados.length === 0 || !horarioAbertura || !horarioFechamento) {
+                showMessage('error', 'Preencha todos os campos de horários obrigatórios');
+                return;
+            }
+            
+            if (temAlmoco && (!almocoInicio || !almocoFim)) {
+                showMessage('error', 'Preencha os horários de almoço');
+                return;
+            }
+            
+            try {
+                // Mostra o loader enquanto cadastra
+                document.getElementById('loaderOverlay').style.display = 'flex';
+                
+                // Verifica se o documento da empresa existe
+                const empresaRef = db.collection('usuarios').doc(empresaDocId);
+                const empresaDoc = await empresaRef.get();
+                
+                if (!empresaDoc.exists) {
+                    showMessage('error', 'Documento da empresa não encontrado. Verifique o ID fornecido.');
+                    document.getElementById('loaderOverlay').style.display = 'none';
+                    return;
+                }
+                
+                // Gera um ID aleatório para o prestador
+                const userId = 'PI-' + Math.random().toString(36).substr(2, 9);
+                
+                // Cria o ID do documento do painel individual com prefixo "PI -"
+                const painelDocId = `PI - ${userId}`;
+                
+                // Referência para o documento do painel individual na coleção 'usuarios'
+                const painelRef = db.collection('usuarios').doc(painelDocId);
+                
+                // Objeto com todos os dados a serem salvos
+                const dataToSave = {
+                    nomeFantasia: nomeFantasia,
+                    nomeCompleto: nomeCompleto,
+                    cpf: cpf,
+                    identificacao: identificacao,
+                    empresaDocId: empresaDocId,
+                    userId: userId,
+                    tipo: 'painel-individual',
+                    horarios: {
+                        diasFuncionamento: diasSelecionados,
+                        horarioAbertura: horarioAbertura,
+                        horarioFechamento: horarioFechamento,
+                        duracaoAtendimento: parseInt(duracaoAtendimento),
+                        intervaloAtendimento: parseInt(intervaloAtendimento)
+                    },
+                    servicoAtendente: servicoAtendente,
+                    dataCadastro: new Date().toISOString()
+                };
+                
+                // Adiciona horário de almoço se necessário
+                if (temAlmoco) {
+                    dataToSave.horarios.almocoInicio = almocoInicio;
+                    dataToSave.horarios.almocoFim = almocoFim;
+                }
+                
+                // Salva todos os dados no Firestore
+                await painelRef.set(dataToSave);
+                
+                // Limpa o formulário (exceto o campo empresaDocId)
+                limparFormulario();
+                
+            } catch (error) {
+                console.error('Erro no cadastro:', error);
+                showMessage('error', 'Erro ao cadastrar prestador. Tente novamente.');
+            } finally {
+                // Esconde o loader
+                document.getElementById('loaderOverlay').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
