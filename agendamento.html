@@ -510,59 +510,75 @@
             
             // Primeiro verifica se há serviços definidos no campo 'servicoAtendente'
             if (empresaSelecionada.servicoAtendente) {
-                // Processa como string no formato "atendente - serviço"
+                // Processa como string no formato "atendente - serviço" ou "serviço - atendente"
                 const linhas = empresaSelecionada.servicoAtendente.split('\n')
                     .map(linha => linha.trim())
                     .filter(linha => linha.length > 0);
                 
                 linhas.forEach(linha => {
-                    // Divide cada linha no formato "atendente - serviço"
+                    // Tenta dividir no formato "atendente - serviço" ou "serviço - atendente"
                     const partes = linha.split('-').map(p => p.trim());
                     if (partes.length >= 2) {
-                        const nomeAtendente = partes[0];
-                        const servico = partes.slice(1).join('-').trim(); // Pega todo o resto como serviço
+                        // Verifica qual parte parece ser o serviço (normalmente a mais longa)
+                        const possivelServico = partes.find(p => p.length > 15 || p.split(' ').length > 2);
+                        const possivelAtendente = partes.find(p => p !== possivelServico);
                         
-                        if (nomeAtendente && servico) {
+                        if (possivelServico && possivelAtendente) {
                             atendentes.push({
-                                nome: nomeAtendente,
-                                servico: servico,
+                                nome: possivelAtendente,
+                                servico: possivelServico,
                                 isPI: true
                             });
                             
-                            if (!servicosDisponiveis.includes(servico)) {
-                                servicosDisponiveis.push(servico);
+                            if (!servicosDisponiveis.includes(possivelServico)) {
+                                servicosDisponiveis.push(possivelServico);
+                            }
+                        } else {
+                            // Se não conseguiu identificar, usa a primeira parte como atendente e o resto como serviço
+                            const nomeAtendente = partes[0];
+                            const servico = partes.slice(1).join('-').trim();
+                            
+                            if (nomeAtendente && servico) {
+                                atendentes.push({
+                                    nome: nomeAtendente,
+                                    servico: servico,
+                                    isPI: true
+                                });
+                                
+                                if (!servicosDisponiveis.includes(servico)) {
+                                    servicosDisponiveis.push(servico);
+                                }
                             }
                         }
                     }
                 });
             }
-            // Se não encontrou no formato "atendente - serviço", tenta outros formatos
-            else if (empresaSelecionada.servicos) {
-                // Processa como string separada por vírgulas ou barras
-                const servicosArray = empresaSelecionada.servicos.split(/[,\/]/)
-                    .map(s => s.trim())
-                    .filter(s => s.length > 0);
-                
-                servicosDisponiveis = [...new Set(servicosArray)];
-                
-                // Adiciona o próprio PI como atendente para todos os serviços
-                const nomeAtendente = empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Prestador";
-                
-                servicosDisponiveis.forEach(servico => {
-                    atendentes.push({
-                        nome: nomeAtendente,
-                        servico: servico,
-                        isPI: true
-                    });
-                });
-            }
-            else if (empresaSelecionada.servico) {
-                // Processa como string separada por vírgulas ou barras
-                const servicosArray = empresaSelecionada.servico.split(/[,\/]/)
-                    .map(s => s.trim())
-                    .filter(s => s.length > 0);
-                
-                servicosDisponiveis = [...new Set(servicosArray)];
+            
+            // Se não encontrou no campo 'servicoAtendente', verifica outros campos
+            if (servicosDisponiveis.length === 0) {
+                // Verifica campo 'servicos' (pode ser string ou array)
+                if (empresaSelecionada.servicos) {
+                    if (Array.isArray(empresaSelecionada.servicos)) {
+                        servicosDisponiveis = [...new Set(empresaSelecionada.servicos)];
+                    } else {
+                        // Processa como string separada por vírgulas, barras ou quebras de linha
+                        const servicosArray = empresaSelecionada.servicos.split(/[,\/\n]/)
+                            .map(s => s.trim())
+                            .filter(s => s.length > 0);
+                        servicosDisponiveis = [...new Set(servicosArray)];
+                    }
+                }
+                // Verifica campo 'servico' (formato mais antigo)
+                else if (empresaSelecionada.servico) {
+                    if (Array.isArray(empresaSelecionada.servico)) {
+                        servicosDisponiveis = [...new Set(empresaSelecionada.servico)];
+                    } else {
+                        const servicosArray = empresaSelecionada.servico.split(/[,\/\n]/)
+                            .map(s => s.trim())
+                            .filter(s => s.length > 0);
+                        servicosDisponiveis = [...new Set(servicosArray)];
+                    }
+                }
                 
                 // Adiciona o próprio PI como atendente para todos os serviços
                 const nomeAtendente = empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Prestador";
@@ -576,7 +592,7 @@
                 });
             }
             
-            // Se não encontrou serviços, usa um padrão
+            // Se não encontrou serviços de nenhuma forma, usa um padrão
             if (servicosDisponiveis.length === 0) {
                 servicosDisponiveis = ["Serviço Geral"];
                 atendentes.push({
