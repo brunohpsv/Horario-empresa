@@ -149,12 +149,23 @@ function processarServicosAtendentesPI(dadosPI) {
                 }
                 
                 // Processa os atendentes que podem ser string ou array
-                const listaAtendentes = Array.isArray(item.atendentes) 
-                    ? item.atendentes 
-                    : typeof item.atendentes === 'string' 
-                        ? item.atendentes.split(',').map(a => a.trim())
-                        : [];
-                        
+                let listaAtendentes = [];
+                
+                if (Array.isArray(item.atendentes)) {
+                    listaAtendentes = item.atendentes;
+                } else if (typeof item.atendentes === 'string') {
+                    // Tenta parsear se for JSON string
+                    try {
+                        listaAtendentes = JSON.parse(item.atendentes);
+                        if (!Array.isArray(listaAtendentes)) {
+                            listaAtendentes = [item.atendentes];
+                        }
+                    } catch (e) {
+                        // Se não for JSON, trata como string simples
+                        listaAtendentes = item.atendentes.split(',').map(a => a.trim());
+                    }
+                }
+                
                 listaAtendentes.forEach(atendente => {
                     if (atendente && atendente.trim() !== '') {
                         atendentes.push({
@@ -169,34 +180,97 @@ function processarServicosAtendentesPI(dadosPI) {
     } 
     // Caso 2: servicoAtendente é uma string no formato "Serviço - Atendente"
     else if (typeof dadosPI.servicoAtendente === 'string') {
-        const linhas = dadosPI.servicoAtendente.split('\n')
-            .map(linha => linha.trim())
-            .filter(linha => linha.length > 0);
-        
-        linhas.forEach(linha => {
-            const partes = linha.split('-').map(p => p.trim());
-            
-            if (partes.length >= 2) {
-                const servico = partes[0];
-                const nomesAtendentes = partes.slice(1).join('-').split(',').map(a => a.trim());
-                
-                if (servico && nomesAtendentes.length > 0) {
-                    if (!servicosDisponiveis.includes(servico)) {
-                        servicosDisponiveis.push(servico);
+        try {
+            // Tenta parsear como JSON primeiro
+            const parsed = JSON.parse(dadosPI.servicoAtendente);
+            if (Array.isArray(parsed)) {
+                parsed.forEach(item => {
+                    if (item.servico && item.atendentes) {
+                        const servico = item.servico.trim();
+                        if (!servicosDisponiveis.includes(servico)) {
+                            servicosDisponiveis.push(servico);
+                        }
+                        
+                        let listaAtendentes = [];
+                        if (Array.isArray(item.atendentes)) {
+                            listaAtendentes = item.atendentes;
+                        } else if (typeof item.atendentes === 'string') {
+                            listaAtendentes = item.atendentes.split(',').map(a => a.trim());
+                        }
+                        
+                        listaAtendentes.forEach(atendente => {
+                            if (atendente && atendente.trim() !== '') {
+                                atendentes.push({
+                                    nome: atendente.trim(),
+                                    servico: servico,
+                                    isPI: true
+                                });
+                            }
+                        });
                     }
+                });
+            } else {
+                // Se não for array, trata como string no formato antigo
+                const linhas = dadosPI.servicoAtendente.split('\n')
+                    .map(linha => linha.trim())
+                    .filter(linha => linha.length > 0);
+                
+                linhas.forEach(linha => {
+                    const partes = linha.split('-').map(p => p.trim());
                     
-                    nomesAtendentes.forEach(atendente => {
-                        if (atendente && atendente.trim() !== '') {
-                            atendentes.push({
-                                nome: atendente,
-                                servico: servico,
-                                isPI: true
+                    if (partes.length >= 2) {
+                        const servico = partes[0];
+                        const nomesAtendentes = partes.slice(1).join('-').split(',').map(a => a.trim());
+                        
+                        if (servico && nomesAtendentes.length > 0) {
+                            if (!servicosDisponiveis.includes(servico)) {
+                                servicosDisponiveis.push(servico);
+                            }
+                            
+                            nomesAtendentes.forEach(atendente => {
+                                if (atendente && atendente.trim() !== '') {
+                                    atendentes.push({
+                                        nome: atendente,
+                                        servico: servico,
+                                        isPI: true
+                                    });
+                                }
                             });
                         }
-                    });
-                }
+                    }
+                });
             }
-        });
+        } catch (e) {
+            // Se falhar no parse, trata como string no formato antigo
+            const linhas = dadosPI.servicoAtendente.split('\n')
+                .map(linha => linha.trim())
+                .filter(linha => linha.length > 0);
+            
+            linhas.forEach(linha => {
+                const partes = linha.split('-').map(p => p.trim());
+                
+                if (partes.length >= 2) {
+                    const servico = partes[0];
+                    const nomesAtendentes = partes.slice(1).join('-').split(',').map(a => a.trim());
+                    
+                    if (servico && nomesAtendentes.length > 0) {
+                        if (!servicosDisponiveis.includes(servico)) {
+                            servicosDisponiveis.push(servico);
+                        }
+                        
+                        nomesAtendentes.forEach(atendente => {
+                            if (atendente && atendente.trim() !== '') {
+                                atendentes.push({
+                                    nome: atendente,
+                                    servico: servico,
+                                    isPI: true
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        }
     }
     // Caso 3: Não há servicoAtendente definido - cria um serviço padrão com o próprio PI como atendente
     else {
@@ -228,10 +302,21 @@ function processarServicosAtendentesEmpresa(dadosEmpresa) {
                 }
                 
                 // Processa os atendentes que podem ser string ou array
-                const listaAtendentes = Array.isArray(item.atendentes) 
-                    ? item.atendentes 
-                    : item.atendentes.split(',').map(a => a.trim());
-                    
+                let listaAtendentes = [];
+                
+                if (Array.isArray(item.atendentes)) {
+                    listaAtendentes = item.atendentes;
+                } else if (typeof item.atendentes === 'string') {
+                    try {
+                        listaAtendentes = JSON.parse(item.atendentes);
+                        if (!Array.isArray(listaAtendentes)) {
+                            listaAtendentes = [item.atendentes];
+                        }
+                    } catch (e) {
+                        listaAtendentes = item.atendentes.split(',').map(a => a.trim());
+                    }
+                }
+                
                 listaAtendentes.forEach(atendente => {
                     if (atendente) {
                         atendentes.push({
@@ -246,34 +331,97 @@ function processarServicosAtendentesEmpresa(dadosEmpresa) {
     } 
     // Caso 2: servicoAtendente é uma string no formato "Serviço - Atendente1, Atendente2"
     else if (typeof dadosEmpresa.servicoAtendente === 'string') {
-        const linhas = dadosEmpresa.servicoAtendente.split('\n')
-            .map(linha => linha.trim())
-            .filter(linha => linha.length > 0);
-        
-        linhas.forEach(linha => {
-            const partes = linha.split('-').map(p => p.trim());
-            
-            if (partes.length >= 2) {
-                const servico = partes[0];
-                const nomesAtendentes = partes[1].split(',').map(a => a.trim());
-                
-                if (servico && nomesAtendentes.length > 0) {
-                    if (!servicosDisponiveis.includes(servico)) {
-                        servicosDisponiveis.push(servico);
+        try {
+            // Tenta parsear como JSON primeiro
+            const parsed = JSON.parse(dadosEmpresa.servicoAtendente);
+            if (Array.isArray(parsed)) {
+                parsed.forEach(item => {
+                    if (item.servico && item.atendentes) {
+                        const servico = item.servico.trim();
+                        if (!servicosDisponiveis.includes(servico)) {
+                            servicosDisponiveis.push(servico);
+                        }
+                        
+                        let listaAtendentes = [];
+                        if (Array.isArray(item.atendentes)) {
+                            listaAtendentes = item.atendentes;
+                        } else if (typeof item.atendentes === 'string') {
+                            listaAtendentes = item.atendentes.split(',').map(a => a.trim());
+                        }
+                        
+                        listaAtendentes.forEach(atendente => {
+                            if (atendente) {
+                                atendentes.push({
+                                    nome: atendente.trim(),
+                                    servico: servico,
+                                    isPI: false
+                                });
+                            }
+                        });
                     }
+                });
+            } else {
+                // Se não for array, trata como string no formato antigo
+                const linhas = dadosEmpresa.servicoAtendente.split('\n')
+                    .map(linha => linha.trim())
+                    .filter(linha => linha.length > 0);
+                
+                linhas.forEach(linha => {
+                    const partes = linha.split('-').map(p => p.trim());
                     
-                    nomesAtendentes.forEach(atendente => {
-                        if (atendente) {
-                            atendentes.push({
-                                nome: atendente,
-                                servico: servico,
-                                isPI: false
+                    if (partes.length >= 2) {
+                        const servico = partes[0];
+                        const nomesAtendentes = partes[1].split(',').map(a => a.trim());
+                        
+                        if (servico && nomesAtendentes.length > 0) {
+                            if (!servicosDisponiveis.includes(servico)) {
+                                servicosDisponiveis.push(servico);
+                            }
+                            
+                            nomesAtendentes.forEach(atendente => {
+                                if (atendente) {
+                                    atendentes.push({
+                                        nome: atendente,
+                                        servico: servico,
+                                        isPI: false
+                                    });
+                                }
                             });
                         }
-                    });
-                }
+                    }
+                });
             }
-        });
+        } catch (e) {
+            // Se falhar no parse, trata como string no formato antigo
+            const linhas = dadosEmpresa.servicoAtendente.split('\n')
+                .map(linha => linha.trim())
+                .filter(linha => linha.length > 0);
+            
+            linhas.forEach(linha => {
+                const partes = linha.split('-').map(p => p.trim());
+                
+                if (partes.length >= 2) {
+                    const servico = partes[0];
+                    const nomesAtendentes = partes[1].split(',').map(a => a.trim());
+                    
+                    if (servico && nomesAtendentes.length > 0) {
+                        if (!servicosDisponiveis.includes(servico)) {
+                            servicosDisponiveis.push(servico);
+                        }
+                        
+                        nomesAtendentes.forEach(atendente => {
+                            if (atendente) {
+                                atendentes.push({
+                                    nome: atendente,
+                                    servico: servico,
+                                    isPI: false
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        }
     }
     // Caso 3: Não há servicoAtendente definido - usa os campos 'servicos' ou 'servico'
     else {
@@ -292,9 +440,6 @@ function processarServicosAtendentesEmpresa(dadosEmpresa) {
         if (servicosDisponiveis.length === 0) {
             servicosDisponiveis = ["Serviço Geral"];
         }
-        
-        // Para empresas regulares sem atendentes definidos, não podemos adivinhar
-        // então deixamos o array de atendentes vazio
     }
     
     // Preenche o select de serviços/atendentes
