@@ -388,7 +388,8 @@
                                     servico: servico,
                                     isPI: dados.isPI,
                                     horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
-                                    diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento
+                                    diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
+                                    docId: dados.id // Armazena o ID do documento de origem
                                 });
                             }
                         });
@@ -410,7 +411,8 @@
                                             servico: servico,
                                             isPI: dados.isPI,
                                             horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
-                                            diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento
+                                            diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
+                                            docId: dados.id
                                         });
                                     }
                                 });
@@ -443,7 +445,8 @@
                                         servico: servico,
                                         isPI: dados.isPI,
                                         horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
-                                        diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento
+                                        diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
+                                        docId: dados.id
                                     });
                                 }
                             });
@@ -465,7 +468,8 @@
                     servico: servicoPadrao,
                     isPI: dados.isPI,
                     horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
-                    diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento
+                    diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
+                    docId: dados.id
                 });
             }
         }
@@ -555,13 +559,9 @@
             const selectedOption = select.options[select.selectedIndex];
             const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
             
-            // Determina se o atendente selecionado é do PI ou da empresa
-            const isAtendentePI = atendenteInfo ? atendenteInfo.isPI : false;
-            
             // Define o documento correto onde os agendamentos serão armazenados
-            const docRef = isAtendentePI 
-                ? db.collection("usuarios").doc(empresaSelecionada.id) // Documento do PI
-                : db.collection("usuarios").doc(empresaSelecionada.id); // Documento da empresa
+            // Usa o docId armazenado nas informações do atendente
+            const docRef = db.collection("usuarios").doc(atendenteInfo.docId);
             
             // Primeiro carrega os agendamentos existentes
             docRef.collection("agendamentos")
@@ -687,8 +687,6 @@
             const selectedOption = select.options[select.selectedIndex];
             const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
             
-            const isAtendentePI = atendenteInfo ? atendenteInfo.isPI : false;
-            
             const agendamento = {
                 servico: servicoSelecionado,
                 prestador: atendenteSelecionado,
@@ -703,9 +701,8 @@
             };
             
             // Define a referência correta para o documento onde o agendamento será armazenado
-            const docRef = isAtendentePI 
-                ? db.collection("usuarios").doc(empresaSelecionada.id) // Documento do PI
-                : db.collection("usuarios").doc(empresaSelecionada.id); // Documento da empresa
+            // Usa o docId armazenado nas informações do atendente
+            const docRef = db.collection("usuarios").doc(atendenteInfo.docId);
             
             docRef.collection("agendamentos")
                 .add(agendamento)
