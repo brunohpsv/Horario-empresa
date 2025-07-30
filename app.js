@@ -388,17 +388,16 @@ function preencherSelectServicosAtendentes() {
     });
 }
 
-function verificarAgendamentoExistente(documento) {
+// Função para verificar agendamento existente em prestador individual (com "PI -")
+function verificarAgendamentoPrestadorIndividual(documento) {
     const documentoLimpo = documento.replace(/\D/g, '');
     
     if (!documentoLimpo || !empresaSelecionada) return;
     
-    // Para PIs, usa o originalId (sem o "PI - ")
-    const empresaId = empresaSelecionada.isPI 
-        ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
-        : empresaSelecionada.id;
+    // Remove o prefixo "PI - " para obter o ID real do prestador
+    const prestadorId = empresaSelecionada.id.replace("PI - ", "");
     
-    db.collection("usuarios").doc(empresaId)
+    db.collection("usuarios").doc(prestadorId)
         .collection("agendamentos")
         .where("clienteDocumento", "==", documentoLimpo)
         .where("status", "==", "confirmado")
@@ -415,10 +414,45 @@ function verificarAgendamentoExistente(documento) {
             }
         })
         .catch(err => {
-            console.error("Erro ao verificar agendamento:", err);
+            console.error("Erro ao verificar agendamento com PI:", err);
             document.getElementById('info-agendamento-existente').style.display = 'none';
             document.getElementById('formulario-agendamento').style.display = 'block';
         });
+}
+
+function verificarAgendamentoExistente(documento) {
+    const documentoLimpo = documento.replace(/\D/g, '');
+    
+    if (!documentoLimpo || !empresaSelecionada) return;
+    
+    if (empresaSelecionada.id.startsWith("PI - ")) {
+        verificarAgendamentoPrestadorIndividual(documento);
+    } else {
+        // Código original para empresas regulares
+        const empresaId = empresaSelecionada.id;
+        
+        db.collection("usuarios").doc(empresaId)
+            .collection("agendamentos")
+            .where("clienteDocumento", "==", documentoLimpo)
+            .where("status", "==", "confirmado")
+            .get()
+            .then(querySnapshot => {
+                if (!querySnapshot.empty) {
+                    querySnapshot.forEach(doc => {
+                        agendamentoExistente = { id: doc.id, ...doc.data() };
+                        exibirAgendamentoExistente(agendamentoExistente);
+                    });
+                } else {
+                    document.getElementById('info-agendamento-existente').style.display = 'none';
+                    document.getElementById('formulario-agendamento').style.display = 'block';
+                }
+            })
+            .catch(err => {
+                console.error("Erro ao verificar agendamento:", err);
+                document.getElementById('info-agendamento-existente').style.display = 'none';
+                document.getElementById('formulario-agendamento').style.display = 'block';
+            });
+    }
 }
 
 function exibirAgendamentoExistente(agendamento) {
@@ -448,7 +482,7 @@ function exibirAgendamentoExistente(agendamento) {
 
 function cancelarAgendamentoExistente(agendamento) {
     const empresaId = empresaSelecionada.isPI 
-        ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
+        ? empresaSelecionada.id.replace("PI - ", "")
         : empresaSelecionada.id;
     
     db.collection("usuarios").doc(empresaId)
@@ -509,7 +543,7 @@ function carregarHorariosDisponiveis() {
     const agora = new Date();
     
     const query = db.collection("usuarios").doc(empresaSelecionada.isPI 
-        ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
+        ? empresaSelecionada.id.replace("PI - ", "")
         : empresaSelecionada.id)
         .collection("agendamentos")
         .where("data", "==", dataFormatada)
@@ -628,7 +662,7 @@ function confirmarAgendamento() {
     
     // Determina o ID correto da empresa (remove "PI - " se necessário)
     const empresaId = empresaSelecionada.isPI 
-        ? (empresaSelecionada.originalId || empresaSelecionada.id.replace("PI - ", ""))
+        ? empresaSelecionada.id.replace("PI - ", "")
         : empresaSelecionada.id;
     
     db.collection("usuarios").doc(empresaId)
