@@ -228,19 +228,11 @@
         let atendentes = [];
         let servicosDisponiveis = [];
         
-        const horariosConfig = {
-            duracaoAtendimento: 30,
-            horarioAbertura: "08:00",
-            horarioFechamento: "18:00",
-            intervaloAtendimento: 15
-        };
-        
         // Inicializa o calendário
         const calendar = flatpickr("#calendar-input", {
             locale: "pt",
             minDate: "today",
             dateFormat: "d/m/Y",
-            disable: [date => date.getDay() === 0 || date.getDay() === 6],
             onChange: (selectedDates) => {
                 dataSelecionada = selectedDates[0];
                 document.getElementById('selected-date').textContent = formatarData(dataSelecionada);
@@ -285,10 +277,6 @@
                     document.getElementById('empresa-nome').textContent = 
                         empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Empresa";
                     
-                    if (empresaSelecionada.horariosConfig) {
-                        Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-                    }
-                    
                     // Depois de carregar a empresa normal, carrega o prestador individual se existir
                     carregarPrestadorIndividual(empresaId);
                 })
@@ -318,10 +306,6 @@
                     document.getElementById('empresa-nome').textContent = 
                         empresaSelecionada.nomeCompleto || "Prestador Individual";
                     
-                    if (empresaSelecionada.horariosConfig) {
-                        Object.assign(horariosConfig, empresaSelecionada.horariosConfig);
-                    }
-                    
                     processarServicosAtendentes(empresaSelecionada);
                 })
                 .catch(err => {
@@ -341,11 +325,6 @@
                             id: piId,
                             isPI: true
                         };
-                        
-                        // Combina os horários config se existirem no PI
-                        if (prestadorIndividualSelecionado.horariosConfig) {
-                            Object.assign(horariosConfig, prestadorIndividualSelecionado.horariosConfig);
-                        }
                         
                         // Processa os serviços e atendentes combinando empresa e PI
                         processarServicosAtendentesCombinados(empresaSelecionada, prestadorIndividualSelecionado);
@@ -407,7 +386,9 @@
                                 atendentes.push({
                                     nome: atendente.trim(),
                                     servico: servico,
-                                    isPI: dados.isPI
+                                    isPI: dados.isPI,
+                                    horarios: item.horarios || dados.horarios || null,
+                                    diasFuncionamento: item.diasFuncionamento || dados.diasFuncionamento || null
                                 });
                             }
                         });
@@ -427,7 +408,9 @@
                                         atendentes.push({
                                             nome: atendente,
                                             servico: servico,
-                                            isPI: dados.isPI
+                                            isPI: dados.isPI,
+                                            horarios: dados.horarios || null,
+                                            diasFuncionamento: dados.diasFuncionamento || null
                                         });
                                     }
                                 });
@@ -458,7 +441,9 @@
                                     atendentes.push({
                                         nome: atendente,
                                         servico: servico,
-                                        isPI: dados.isPI
+                                        isPI: dados.isPI,
+                                        horarios: dados.horarios || null,
+                                        diasFuncionamento: dados.diasFuncionamento || null
                                     });
                                 }
                             });
@@ -478,7 +463,9 @@
                 atendentes.push({
                     nome: nomeAtendente,
                     servico: servicoPadrao,
-                    isPI: dados.isPI
+                    isPI: dados.isPI,
+                    horarios: dados.horarios || null,
+                    diasFuncionamento: dados.diasFuncionamento || null
                 });
             }
         }
@@ -507,14 +494,15 @@
                 if (!servicosComAtendentes[atendente.servico]) {
                     servicosComAtendentes[atendente.servico] = [];
                 }
-                servicosComAtendentes[atendente.servico].push(atendente.nome);
+                servicosComAtendentes[atendente.servico].push(atendente);
             });
             
             Object.keys(servicosComAtendentes).sort().forEach(servico => {
                 servicosComAtendentes[servico].forEach(atendente => {
                     const option = document.createElement('option');
-                    option.value = `${servico}|${atendente}`;
-                    option.textContent = `${servico} - ${atendente}`;
+                    option.value = `${servico}|${atendente.nome}`;
+                    option.textContent = `${servico} - ${atendente.nome}`;
+                    option.dataset.atendenteInfo = JSON.stringify(atendente);
                     select.appendChild(option);
                 });
             });
@@ -524,6 +512,24 @@
                 servicoAtendenteSelecionado = this.value;
                 servicoSelecionado = servico;
                 atendenteSelecionado = atendente;
+                
+                // Atualiza o calendário com os dias de funcionamento do atendente
+                const selectedOption = this.options[this.selectedIndex];
+                const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
+                
+                // Configura os dias desabilitados no calendário
+                if (atendenteInfo.diasFuncionamento) {
+                    const diasFuncionamento = Array.isArray(atendenteInfo.diasFuncionamento) 
+                        ? atendenteInfo.diasFuncionamento 
+                        : atendenteInfo.diasFuncionamento.split(',').map(d => parseInt(d.trim()));
+                    
+                    calendar.set('disable', [
+                        date => !diasFuncionamento.includes(date.getDay())
+                    ]);
+                } else {
+                    // Se não tiver dias específicos, permite todos os dias
+                    calendar.set('disable', []);
+                }
                 
                 if (dataSelecionada) carregarHorariosDisponiveis();
             });
@@ -544,14 +550,19 @@
             const isHoje = dataFormatada === hojeFormatado;
             const agora = new Date();
             
+            // Obtém as informações do atendente selecionado
+            const select = document.getElementById('servico-atendente');
+            const selectedOption = select.options[select.selectedIndex];
+            const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
+            
             // Determina se o atendente selecionado é do PI ou da empresa
-            const atendenteInfo = atendentes.find(a => a.nome === atendenteSelecionado && a.servico === servicoSelecionado);
             const isAtendentePI = atendenteInfo ? atendenteInfo.isPI : false;
             
             const empresaId = isAtendentePI 
                 ? empresaSelecionada.id.replace("PI - ", "")
                 : empresaSelecionada.id;
             
+            // Primeiro carrega os agendamentos existentes
             db.collection("usuarios").doc(empresaId)
                 .collection("agendamentos")
                 .where("data", "==", dataFormatada)
@@ -561,7 +572,9 @@
                 .get()
                 .then(querySnapshot => {
                     const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
-                    const horariosBase = calcularHorariosDisponiveis();
+                    
+                    // Calcula os horários disponíveis baseado nas configurações do atendente
+                    const horariosBase = calcularHorariosDisponiveis(atendenteInfo);
                     
                     const horariosDisponiveis = horariosBase.map(horario => {
                         const [h, m] = horario.split(':').map(Number);
@@ -581,8 +594,18 @@
                 });
         }
         
-        function calcularHorariosDisponiveis() {
+        function calcularHorariosDisponiveis(atendenteInfo) {
             const horarios = [];
+            
+            // Usa as configurações do atendente ou padrões se não existirem
+            const configHorarios = atendenteInfo.horarios || {
+                duracaoAtendimento: 30,
+                horarioAbertura: "08:00",
+                horarioFechamento: "18:00",
+                intervaloAtendimento: 15
+            };
+            
+            // Funções auxiliares para conversão de tempo
             const toMinutes = timeStr => {
                 const [h, m] = timeStr.split(':').map(Number);
                 return h * 60 + m;
@@ -594,10 +617,10 @@
                 return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
             };
             
-            const inicio = toMinutes(horariosConfig.horarioAbertura);
-            const fim = toMinutes(horariosConfig.horarioFechamento);
-            const duracao = horariosConfig.duracaoAtendimento;
-            const intervalo = horariosConfig.intervaloAtendimento;
+            const inicio = toMinutes(configHorarios.horarioAbertura || "08:00");
+            const fim = toMinutes(configHorarios.horarioFechamento || "18:00");
+            const duracao = configHorarios.duracaoAtendimento || 30;
+            const intervalo = configHorarios.intervaloAtendimento || 15;
             const totalPorAtendimento = duracao + intervalo;
             
             for (let time = inicio; time + duracao <= fim; time += totalPorAtendimento) {
@@ -648,8 +671,11 @@
                 return;
             }
             
-            // Determina se o atendente selecionado é do PI ou da empresa
-            const atendenteInfo = atendentes.find(a => a.nome === atendenteSelecionado && a.servico === servicoSelecionado);
+            // Obtém as informações do atendente selecionado
+            const select = document.getElementById('servico-atendente');
+            const selectedOption = select.options[select.selectedIndex];
+            const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
+            
             const isAtendentePI = atendenteInfo ? atendenteInfo.isPI : false;
             
             const agendamento = {
