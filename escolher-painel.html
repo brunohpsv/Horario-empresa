@@ -86,11 +86,13 @@
             padding: 20px;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+            min-height: 120px;
         }
         
         .panel-card:hover {
-            border-color: #4CAF50;
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .panel-card h3 {
@@ -128,6 +130,30 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .loading-text {
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .no-panels {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            grid-column: 1 / -1;
+        }
+        
+        .error-message {
+            color: #d32f2f;
+            text-align: center;
+            padding: 10px;
+            background-color: #ffebee;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -145,6 +171,8 @@
         <div class="panel-selection">
             <h2>Escolha o Painel que Deseja Acessar</h2>
             
+            <div id="errorMessage" class="error-message"></div>
+            
             <div class="panel-options">
                 <!-- Painel Principal -->
                 <div class="panel-card main-panel" id="mainPanel">
@@ -154,7 +182,8 @@
                 
                 <!-- Painéis Individuais -->
                 <div id="individualPanelsContainer">
-                    <!-- Os painéis individuais serão inseridos aqui via JavaScript -->
+                    <div class="loading-text" id="loadingText">Carregando painéis individuais...</div>
+                    <div class="no-panels" id="noPanelsMessage" style="display: none;">Nenhum painel individual encontrado</div>
                 </div>
             </div>
         </div>
@@ -195,48 +224,102 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Variáveis globais
-        let currentUser = null;
+        // Elementos DOM
         const pageLoader = document.getElementById('pageLoader');
+        const loadingText = document.getElementById('loadingText');
+        const noPanelsMessage = document.getElementById('noPanelsMessage');
+        const errorMessage = document.getElementById('errorMessage');
         const mainPanelCard = document.getElementById('mainPanel');
         const individualPanelsContainer = document.getElementById('individualPanelsContainer');
         const logoutBtn = document.getElementById('logoutBtn');
+
+        // Estados
+        let currentUser = null;
+        let panelsLoaded = false;
 
         // Verifica o estado de autenticação
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
+                showLoadingState();
                 await loadPanels();
             } else {
-                window.location.href = 'login.html';
+                redirectToLogin();
             }
         });
+
+        // Mostra estado de carregamento
+        function showLoadingState() {
+            pageLoader.style.display = 'block';
+            loadingText.style.display = 'block';
+            noPanelsMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            individualPanelsContainer.innerHTML = '';
+        }
 
         // Carrega os painéis individuais
         async function loadPanels() {
             try {
-                pageLoader.style.display = 'block';
+                // Limpa container
                 individualPanelsContainer.innerHTML = '';
                 
-                // Busca todos os documentos que começam com "PI-" na coleção "usuarios"
+                // Mostra mensagem de carregamento
+                loadingText.style.display = 'block';
+                
+                // Busca todos os documentos que começam com "PI" (com ou sem espaço) na coleção "usuarios"
                 const usuariosRef = collection(db, "usuarios");
-                const q = query(usuariosRef, where("__name__", ">=", "PI-"));
                 
-                const querySnapshot = await getDocs(q);
+                // Criamos duas queries para pegar tanto "PI " quanto "PI-"
+                const q1 = query(usuariosRef, where("__name__", ">=", "PI "), where("__name__", "<", "PI!"));
+                const q2 = query(usuariosRef, where("__name__", ">=", "PI-"), where("__name__", "<", "PI."));
                 
-                querySnapshot.forEach((doc) => {
-                    const panelData = doc.data();
-                    if (panelData.nomeCompleto) {
-                        createPanelCard(doc.id, panelData.nomeCompleto);
-                    }
+                // Executa ambas as queries em paralelo
+                const [querySnapshot1, querySnapshot2] = await Promise.all([
+                    getDocs(q1),
+                    getDocs(q2)
+                ]);
+                
+                // Combina os resultados
+                const allPanels = [];
+                
+                querySnapshot1.forEach(doc => allPanels.push({ id: doc.id, data: doc.data() }));
+                querySnapshot2.forEach(doc => allPanels.push({ id: doc.id, data: doc.data() }));
+                
+                // Ordena os painéis por nome
+                allPanels.sort((a, b) => {
+                    const nameA = a.data.nomeCompleto?.toUpperCase() || '';
+                    const nameB = b.data.nomeCompleto?.toUpperCase() || '';
+                    return nameA.localeCompare(nameB);
                 });
+                
+                // Cria os cards para cada painel
+                if (allPanels.length > 0) {
+                    allPanels.forEach(panel => {
+                        if (panel.data.nomeCompleto) {
+                            createPanelCard(panel.id, panel.data.nomeCompleto);
+                        }
+                    });
+                    noPanelsMessage.style.display = 'none';
+                } else {
+                    noPanelsMessage.style.display = 'block';
+                }
+                
+                panelsLoaded = true;
                 
             } catch (error) {
                 console.error("Erro ao carregar painéis:", error);
-                alert("Erro ao carregar painéis. Tente novamente.");
+                showError("Erro ao carregar painéis. Tente recarregar a página.");
             } finally {
                 pageLoader.style.display = 'none';
+                loadingText.style.display = 'none';
             }
+        }
+
+        // Mostra mensagem de erro
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            noPanelsMessage.style.display = 'none';
         }
 
         // Cria um card de painel individual
@@ -252,10 +335,15 @@
             
             // Adiciona evento de clique para acessar o painel
             panelCard.addEventListener('click', () => {
-                window.location.href = `painelindiv.html?panelId=${panelId}`;
+                window.location.href = `painelindiv.html?panelId=${encodeURIComponent(panelId)}`;
             });
             
             individualPanelsContainer.appendChild(panelCard);
+        }
+
+        // Redireciona para login
+        function redirectToLogin() {
+            window.location.href = 'login.html';
         }
 
         // Event Listeners
@@ -266,10 +354,13 @@
         logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             try {
+                pageLoader.style.display = 'block';
                 await signOut(auth);
-                window.location.href = 'login.html';
+                redirectToLogin();
             } catch (error) {
                 console.error("Erro ao fazer logout:", error);
+                showError("Erro ao fazer logout. Tente novamente.");
+                pageLoader.style.display = 'none';
             }
         });
     </script>
