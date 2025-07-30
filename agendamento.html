@@ -250,6 +250,74 @@
             el.classList.remove('d-none');
             setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
         }
+
+function verificarAgendamentoExistente(documento) {
+    const docNumerico = documento.replace(/\D/g, '');
+    
+    // Verifica em todos os documentos de atendentes
+    const promises = atendentes.map(atendente => {
+        return db.collection("usuarios").doc(atendente.docId)
+            .collection("agendamentos")
+            .where("clienteDocumento", "==", docNumerico)
+            .where("status", "==", "confirmado")
+            .get();
+    });
+
+    Promise.all(promises)
+        .then(results => {
+            const agendamentos = [];
+            results.forEach(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    agendamentos.push({ id: doc.id, ...doc.data(), docRef: doc.ref });
+                });
+            });
+
+            if (agendamentos.length > 0) {
+                agendamentoExistente = agendamentos[0];
+                exibirAgendamentoExistente(agendamentoExistente);
+            }
+        })
+        .catch(err => {
+            console.error("Erro ao verificar agendamentos:", err);
+        });
+}
+
+function exibirAgendamentoExistente(agendamento) {
+    const resumo = document.getElementById('resumo-agendamento-existente');
+    resumo.innerHTML = `
+        <p><strong>Serviço:</strong> ${agendamento.servico}</p>
+        <p><strong>Atendente:</strong> ${agendamento.prestador}</p>
+        <p><strong>Data:</strong> ${agendamento.data}</p>
+        <p><strong>Horário:</strong> ${agendamento.horario}</p>
+    `;
+    
+    document.getElementById('info-agendamento-existente').classList.remove('d-none');
+    document.getElementById('formulario-agendamento').classList.add('d-none');
+    
+    // Configura os botões
+    document.getElementById('btn-cancelar-agendamento').addEventListener('click', () => {
+        cancelarAgendamento(agendamento);
+    });
+    
+    document.getElementById('btn-novo-agendamento').addEventListener('click', () => {
+        document.getElementById('info-agendamento-existente').classList.add('d-none');
+        document.getElementById('formulario-agendamento').classList.remove('d-none');
+    });
+}
+
+function cancelarAgendamento(agendamento) {
+    agendamento.docRef.update({ status: "cancelado" })
+        .then(() => {
+            alert("Agendamento cancelado com sucesso!");
+            document.getElementById('info-agendamento-existente').classList.add('d-none');
+            document.getElementById('formulario-agendamento').classList.remove('d-none');
+            agendamentoExistente = null;
+        })
+        .catch(err => {
+            console.error("Erro ao cancelar:", err);
+            mostrarErro("Erro ao cancelar agendamento.");
+        });
+}
         
         function carregarDadosEmpresa() {
             const empresaId = new URLSearchParams(window.location.search).get('id');
@@ -540,59 +608,54 @@
         }
         
         function carregarHorariosDisponiveis() {
-            if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado || !atendenteSelecionado) return;
+    if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado || !atendenteSelecionado) return;
+    
+    const container = document.getElementById('horarios-container');
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3">Carregando...</p></div>';
+    
+    document.getElementById('horario-section').classList.remove('d-none');
+    document.getElementById('dados-section').classList.add('d-none');
+    document.getElementById('btn-confirmar').classList.add('d-none');
+    
+    const dataFormatada = formatarDataFirestore(dataSelecionada);
+    const hojeFormatado = formatarDataFirestore(new Date());
+    const isHoje = dataFormatada === hojeFormatado;
+    const agora = new Date();
+    
+    const select = document.getElementById('servico-atendente');
+    const selectedOption = select.options[select.selectedIndex];
+    const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
+    
+    const docRef = db.collection("usuarios").doc(atendenteInfo.docId);
+    
+    // Alterado para buscar todos os agendamentos do atendente naquela data
+    docRef.collection("agendamentos")
+        .where("data", "==", dataFormatada)
+        .where("prestador", "==", atendenteSelecionado)
+        .where("status", "==", "confirmado")
+        .get()
+        .then(querySnapshot => {
+            const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
             
-            const container = document.getElementById('horarios-container');
-            container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3">Carregando...</p></div>';
+            const horariosBase = calcularHorariosDisponiveis(atendenteInfo);
             
-            document.getElementById('horario-section').classList.remove('d-none');
-            document.getElementById('dados-section').classList.add('d-none');
-            document.getElementById('btn-confirmar').classList.add('d-none');
+            const horariosDisponiveis = horariosBase.map(horario => {
+                const [h, m] = horario.split(':').map(Number);
+                const horarioValido = !isHoje || (h > agora.getHours() || (h === agora.getHours() && m > agora.getMinutes()));
+                
+                return {
+                    horario,
+                    disponivel: horarioValido && !horariosOcupados.includes(horario)
+                };
+            });
             
-            const dataFormatada = formatarDataFirestore(dataSelecionada);
-            const hojeFormatado = formatarDataFirestore(new Date());
-            const isHoje = dataFormatada === hojeFormatado;
-            const agora = new Date();
-            
-            // Obtém as informações do atendente selecionado
-            const select = document.getElementById('servico-atendente');
-            const selectedOption = select.options[select.selectedIndex];
-            const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
-            
-            // Define o documento correto onde os agendamentos serão armazenados
-            // Usa o docId armazenado nas informações do atendente
-            const docRef = db.collection("usuarios").doc(atendenteInfo.docId);
-            
-            // Primeiro carrega os agendamentos existentes
-            docRef.collection("agendamentos")
-                .where("data", "==", dataFormatada)
-                .where("servico", "==", servicoSelecionado)
-                .where("prestador", "==", atendenteSelecionado)
-                .where("status", "==", "confirmado")
-                .get()
-                .then(querySnapshot => {
-                    const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
-                    
-                    // Calcula os horários disponíveis baseado nas configurações do atendente
-                    const horariosBase = calcularHorariosDisponiveis(atendenteInfo);
-                    
-                    const horariosDisponiveis = horariosBase.map(horario => {
-                        const [h, m] = horario.split(':').map(Number);
-                        const horarioValido = !isHoje || (h > agora.getHours() || (h === agora.getHours() && m > agora.getMinutes()));
-                        
-                        return {
-                            horario,
-                            disponivel: horarioValido && !horariosOcupados.includes(horario)
-                        };
-                    });
-                    
-                    exibirHorariosDisponiveis(horariosDisponiveis);
-                })
-                .catch(err => {
-                    console.error("Erro ao carregar horários:", err);
-                    container.innerHTML = '<div class="alert alert-danger">Erro ao carregar horários.</div>';
-                });
-        }
+            exibirHorariosDisponiveis(horariosDisponiveis);
+        })
+        .catch(err => {
+            console.error("Erro ao carregar horários:", err);
+            container.innerHTML = '<div class="alert alert-danger">Erro ao carregar horários.</div>';
+        });
+}
         
         function calcularHorariosDisponiveis(atendenteInfo) {
             const horarios = [];
@@ -733,19 +796,23 @@
             document.getElementById('resumo-agendamento').classList.remove('d-none');
         }
         
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('documento').addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                
-                if (value.length <= 11) {
-                    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-                } else {
-                    value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-                }
-                
-                e.target.value = value.substring(0, value.length > 14 ? 18 : 14);
-                documentoCliente = e.target.value;
-            });
+        document.getElementById('documento').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    
+    if (value.length <= 11) {
+        value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    } else {
+        value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+    
+    e.target.value = value.substring(0, value.length > 14 ? 18 : 14);
+    documentoCliente = e.target.value;
+    
+    // Verifica agendamento existente quando o documento estiver completo
+    if ((value.length === 14 && value.indexOf('.') > -1) || (value.length === 18 && value.indexOf('/') > -1)) {
+        verificarAgendamentoExistente(value);
+    }
+});
             
             document.getElementById('telefone').addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
