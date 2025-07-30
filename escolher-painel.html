@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escolher Painel | HORÁRIO</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        .panel-selection {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .panel-selection h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+        
+        .panel-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .panel-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .panel-card:hover {
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
+        }
+        
+        .panel-card h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .panel-card p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .panel-card .main-panel {
+            background-color: #f0f8ff;
+            border-color: #4682b4;
+        }
+        
+        .panel-card .individual-panel {
+            background-color: #f0fff0;
+            border-color: #2e8b57;
+        }
+        
+        .panel-card .edit-name {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .panel-card .edit-name:hover {
+            color: #333;
+        }
+        
+        .add-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .add-panel:hover {
+            border-color: #4CAF50;
+            background-color: #f5fff5;
+        }
+        
+        .add-panel span {
+            font-size: 40px;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        
+        .add-panel p {
+            color: #666;
+            text-align: center;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .modal-content h3 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .modal-buttons .cancel-btn {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .modal-buttons .save-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">HORÁRIO</div>
+        <nav>
+            <ul>
+                <li><a href="https://horario.site">Início</a></li>
+                <li><a href="#" id="logoutBtn">Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <div class="panel-selection">
+            <h2>Escolha o Painel que Deseja Acessar</h2>
+            
+            <div class="panel-options">
+                <!-- Painel Principal -->
+                <div class="panel-card main-panel" id="mainPanel">
+                    <h3>Painel Principal</h3>
+                    <p>Acesso completo a todas as funcionalidades</p>
+                </div>
+                
+                <!-- Painéis Individuais -->
+                <div id="individualPanelsContainer">
+                    <!-- Os painéis individuais serão inseridos aqui via JavaScript -->
+                </div>
+                
+                <!-- Adicionar Novo Painel (máximo de 30) -->
+                <div class="add-panel" id="addPanelBtn">
+                    <span>+</span>
+                    <p>Adicionar Novo Painel Individual</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para editar/nomear painel -->
+    <div class="modal" id="nameModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Nomear Painel Individual</h3>
+            <input type="text" id="panelNameInput" placeholder="Digite o nome do atendente">
+            <div class="modal-buttons">
+                <button class="cancel-btn" id="cancelModalBtn">Cancelar</button>
+                <button class="save-btn" id="savePanelBtn">Salvar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loader" id="pageLoader"></div>
+
+    <!-- Firebase SDK v9 (modular via CDN) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection,
+            query,
+            where,
+            getDocs,
+            doc,
+            getDoc,
+            setDoc,
+            updateDoc,
+            arrayUnion,
+            arrayRemove
+        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        import {
+            getAuth,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+            authDomain: "banco-de-dados-d253e.firebaseapp.com",
+            projectId: "banco-de-dados-d253e",
+            storageBucket: "banco-de-dados-d253e.appspot.com",
+            messagingSenderId: "1005413315224",
+            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Variáveis globais
+        let currentUser = null;
+        let currentUserData = null;
+        let panelsData = [];
+        let currentEditingPanelId = null;
+        const MAX_INDIVIDUAL_PANELS = 30;
+
+        // Elementos da página
+        const mainPanelCard = document.getElementById('mainPanel');
+        const individualPanelsContainer = document.getElementById('individualPanelsContainer');
+        const addPanelBtn = document.getElementById('addPanelBtn');
+        const nameModal = document.getElementById('nameModal');
+        const panelNameInput = document.getElementById('panelNameInput');
+        const savePanelBtn = document.getElementById('savePanelBtn');
+        const cancelModalBtn = document.getElementById('cancelModalBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const pageLoader = document.getElementById('pageLoader');
+        const modalTitle = document.getElementById('modalTitle');
+
+        // Verifica o estado de autenticação
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                await loadUserData();
+                await loadPanels();
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Carrega os dados do usuário
+        async function loadUserData() {
+            try {
+                pageLoader.style.display = 'block';
+                
+                const userDoc = await getDoc(doc(db, "usuarios", currentUser.uid));
+                if (userDoc.exists()) {
+                    currentUserData = userDoc.data();
+                } else {
+                    console.error("Documento do usuário não encontrado");
+                    await signOut(auth);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar dados do usuário:", error);
+                alert("Erro ao carregar dados. Tente novamente.");
+                await signOut(auth);
+            } finally {
+                pageLoader.style.display = 'none';
+            }
+        }
+
+        // Carrega os painéis individuais
+        async function loadPanels() {
+            try {
+                pageLoader.style.display = 'block';
+                individualPanelsContainer.innerHTML = '';
+                
+                // Verifica se o usuário tem painéis individuais
+                if (currentUserData && currentUserData.paineisIndividuais && currentUserData.paineisIndividuais.length > 0) {
+                    panelsData = currentUserData.paineisIndividuais;
+                    
+                    // Ordena os painéis por nome
+                    panelsData.sort((a, b) => a.nome.localeCompare(b.nome));
+                    
+                    // Renderiza cada painel individual
+                    panelsData.forEach(panel => {
+                        createPanelCard(panel);
+                    });
+                }
+            } catch (error) {
+                console.error("Erro ao carregar painéis:", error);
+                alert("Erro ao carregar painéis. Tente novamente.");
+            } finally {
+                pageLoader.style.display = 'none';
+            }
+        }
+
+        // Cria um card de painel individual
+        function createPanelCard(panel) {
+            const panelCard = document.createElement('div');
+            panelCard.className = 'panel-card individual-panel';
+            panelCard.dataset.id = panel.id;
+            
+            panelCard.innerHTML = `
+                <div class="edit-name" title="Editar nome">✏️</div>
+                <h3>${panel.nome || 'Painel Individual'}</h3>
+                <p>Painel individual para atendimento</p>
+            `;
+            
+            // Adiciona evento de clique para acessar o painel
+            panelCard.addEventListener('click', (e) => {
+                // Se o clique foi no ícone de edição, não redireciona
+                if (!e.target.classList.contains('edit-name')) {
+                    window.location.href = `painelindiv.html?panelId=${panel.id}`;
+                }
+            });
+            
+            // Adiciona evento de clique para editar o nome
+            const editBtn = panelCard.querySelector('.edit-name');
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openEditModal(panel.id, panel.nome);
+            });
+            
+            individualPanelsContainer.appendChild(panelCard);
+        }
+
+        // Abre o modal para editar/nomear painel
+        function openEditModal(panelId, currentName = '') {
+            currentEditingPanelId = panelId;
+            panelNameInput.value = currentName;
+            
+            if (panelId) {
+                modalTitle.textContent = 'Editar Nome do Painel';
+            } else {
+                modalTitle.textContent = 'Nomear Novo Painel';
+            }
+            
+            nameModal.style.display = 'flex';
+            panelNameInput.focus();
+        }
+
+        // Fecha o modal
+        function closeModal() {
+            nameModal.style.display = 'none';
+            currentEditingPanelId = null;
+            panelNameInput.value = '';
+        }
+
+        // Adiciona um novo painel individual
+        async function addNewPanel(panelName) {
+            try {
+                if (panelsData.length >= MAX_INDIVIDUAL_PANELS) {
+                    alert(`Você atingiu o limite máximo de ${MAX_INDIVIDUAL_PANELS} painéis individuais.`);
+                    return;
+                }
+                
+                pageLoader.style.display = 'block';
+                
+                // Gera um ID único para o novo painel
+                const newPanelId = 'PI-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+                
+                const newPanel = {
+                    id: newPanelId,
+                    nome: panelName || `Painel ${panelsData.length + 1}`,
+                    criadoEm: new Date().toISOString()
+                };
+                
+                // Atualiza o documento do usuário no Firestore
+                const userRef = doc(db, "usuarios", currentUser.uid);
+                await updateDoc(userRef, {
+                    paineisIndividuais: arrayUnion(newPanel)
+                });
+                
+                // Atualiza a lista local
+                panelsData.push(newPanel);
+                createPanelCard(newPanel);
+                
+                // Ordena os painéis por nome
+                panelsData.sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                // Reorganiza os cards na tela
+                individualPanelsContainer.innerHTML = '';
+                panelsData.forEach(panel => {
+                    createPanelCard(panel);
+                });
+                
+            } catch (error) {
+                console.error("Erro ao adicionar painel:", error);
+                alert("Erro ao adicionar painel. Tente novamente.");
+            } finally {
+                pageLoader.style.display = 'none';
+            }
+        }
+
+        // Atualiza o nome de um painel existente
+        async function updatePanelName(panelId, newName) {
+            try {
+                pageLoader.style.display = 'block';
+                
+                // Encontra o painel na lista
+                const panelIndex = panelsData.findIndex(p => p.id === panelId);
+                if (panelIndex === -1) return;
+                
+                // Cria uma cópia do painel com o nome atualizado
+                const updatedPanel = {
+                    ...panelsData[panelIndex],
+                    nome: newName
+                };
+                
+                // Atualiza o documento do usuário no Firestore
+                const userRef = doc(db, "usuarios", currentUser.uid);
+                
+                // Primeiro remove o painel antigo
+                await updateDoc(userRef, {
+                    paineisIndividuais: arrayRemove(panelsData[panelIndex])
+                });
+                
+                // Depois adiciona o painel atualizado
+                await updateDoc(userRef, {
+                    paineisIndividuais: arrayUnion(updatedPanel)
+                });
+                
+                // Atualiza a lista local
+                panelsData[panelIndex] = updatedPanel;
+                
+                // Atualiza o card na tela
+                const panelCard = document.querySelector(`.panel-card[data-id="${panelId}"]`);
+                if (panelCard) {
+                    panelCard.querySelector('h3').textContent = newName;
+                }
+                
+            } catch (error) {
+                console.error("Erro ao atualizar painel:", error);
+                alert("Erro ao atualizar painel. Tente novamente.");
+            } finally {
+                pageLoader.style.display = 'none';
+            }
+        }
+
+        // Event Listeners
+        mainPanelCard.addEventListener('click', () => {
+            window.location.href = 'painel.html';
+        });
+        
+        addPanelBtn.addEventListener('click', () => {
+            if (panelsData.length >= MAX_INDIVIDUAL_PANELS) {
+                alert(`Você atingiu o limite máximo de ${MAX_INDIVIDUAL_PANELS} painéis individuais.`);
+                return;
+            }
+            openEditModal(null);
+        });
+        
+        savePanelBtn.addEventListener('click', async () => {
+            const name = panelNameInput.value.trim();
+            
+            if (!name) {
+                alert('Por favor, digite um nome para o painel.');
+                return;
+            }
+            
+            if (currentEditingPanelId) {
+                // Editar painel existente
+                await updatePanelName(currentEditingPanelId, name);
+            } else {
+                // Adicionar novo painel
+                await addNewPanel(name);
+            }
+            
+            closeModal();
+        });
+        
+        cancelModalBtn.addEventListener('click', closeModal);
+        
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error("Erro ao fazer logout:", error);
+            }
+        });
+        
+        // Fecha o modal ao clicar fora dele
+        window.addEventListener('click', (e) => {
+            if (e.target === nameModal) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
