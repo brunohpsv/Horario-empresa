@@ -153,7 +153,7 @@
                         <span id="resumo-empresa" class="ms-2"></span>
                     </div>
                     <div class="mb-3">
-                        <span class="fw-bold text-muted">Serviço:</span>
+                        <span class="fw-bold text-muted">Servico:</span>
                         <span id="resumo-servico" class="ms-2"></span>
                     </div>
                     <div class="mb-3">
@@ -387,8 +387,8 @@
                                     nome: atendente.trim(),
                                     servico: servico,
                                     isPI: dados.isPI,
-                                    horarios: item.horarios || dados.horarios || null,
-                                    diasFuncionamento: item.diasFuncionamento || dados.diasFuncionamento || null
+                                    horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
+                                    diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento
                                 });
                             }
                         });
@@ -409,8 +409,8 @@
                                             nome: atendente,
                                             servico: servico,
                                             isPI: dados.isPI,
-                                            horarios: dados.horarios || null,
-                                            diasFuncionamento: dados.diasFuncionamento || null
+                                            horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
+                                            diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento
                                         });
                                     }
                                 });
@@ -442,8 +442,8 @@
                                         nome: atendente,
                                         servico: servico,
                                         isPI: dados.isPI,
-                                        horarios: dados.horarios || null,
-                                        diasFuncionamento: dados.diasFuncionamento || null
+                                        horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
+                                        diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento
                                     });
                                 }
                             });
@@ -464,8 +464,8 @@
                     nome: nomeAtendente,
                     servico: servicoPadrao,
                     isPI: dados.isPI,
-                    horarios: dados.horarios || null,
-                    diasFuncionamento: dados.diasFuncionamento || null
+                    horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
+                    diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento
                 });
             }
         }
@@ -520,7 +520,7 @@
                 // Configura os dias desabilitados no calendário
                 if (atendenteInfo.diasFuncionamento) {
                     const diasFuncionamento = Array.isArray(atendenteInfo.diasFuncionamento) 
-                        ? atendenteInfo.diasFuncionamento 
+                        ? atendenteInfo.diasFuncionamento.map(d => parseInt(d))
                         : atendenteInfo.diasFuncionamento.split(',').map(d => parseInt(d.trim()));
                     
                     calendar.set('disable', [
@@ -623,7 +623,18 @@
             const intervalo = configHorarios.intervaloAtendimento || 15;
             const totalPorAtendimento = duracao + intervalo;
             
+            // Verifica se há horário de almoço configurado
+            const temAlmoco = configHorarios.almocoInicio && configHorarios.almocoFim;
+            const inicioAlmoco = temAlmoco ? toMinutes(configHorarios.almocoInicio) : null;
+            const fimAlmoco = temAlmoco ? toMinutes(configHorarios.almocoFim) : null;
+            
             for (let time = inicio; time + duracao <= fim; time += totalPorAtendimento) {
+                // Pula horários durante o intervalo de almoço
+                if (temAlmoco && time >= inicioAlmoco && time < fimAlmoco) {
+                    time = fimAlmoco - totalPorAtendimento; // Ajusta para continuar após o almoço
+                    continue;
+                }
+                
                 horarios.push(toTimeStr(time));
             }
             
