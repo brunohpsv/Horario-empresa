@@ -504,82 +504,83 @@
                 });
         }
         
-        // Processa os serviços e atendentes para Prestadores Individuais (PI)
         function processarServicosAtendentesPI(dadosPI) {
-            servicosDisponiveis = [];
-            atendentes = [];
-            
-            // Caso 1: servicoAtendente é um array de objetos {servico, atendentes}
-            if (Array.isArray(dadosPI.servicoAtendente)) {
-                dadosPI.servicoAtendente.forEach(item => {
-                    if (item.servico && item.atendentes) {
-                        const servico = item.servico.trim();
-                        if (!servicosDisponiveis.includes(servico)) {
-                            servicosDisponiveis.push(servico);
-                        }
+    servicosDisponiveis = [];
+    atendentes = [];
+    
+    // Caso 1: servicoAtendente é um array de objetos {servico, atendentes}
+    if (Array.isArray(dadosPI.servicoAtendente)) {
+        dadosPI.servicoAtendente.forEach(item => {
+            if (item.servico && item.atendentes) {
+                const servico = item.servico.trim();
+                if (!servicosDisponiveis.includes(servico)) {
+                    servicosDisponiveis.push(servico);
+                }
+                
+                // Processa os atendentes que podem ser string ou array
+                const listaAtendentes = Array.isArray(item.atendentes) 
+                    ? item.atendentes 
+                    : typeof item.atendentes === 'string' 
+                        ? item.atendentes.split(',').map(a => a.trim())
+                        : [];
                         
-                        // Processa os atendentes que podem ser string ou array
-                        const listaAtendentes = Array.isArray(item.atendentes) 
-                            ? item.atendentes 
-                            : item.atendentes.split(',').map(a => a.trim());
-                            
-                        listaAtendentes.forEach(atendente => {
-                            if (atendente) {
-                                atendentes.push({
-                                    nome: atendente.trim(),
-                                    servico: servico,
-                                    isPI: true
-                                });
-                            }
+                listaAtendentes.forEach(atendente => {
+                    if (atendente && atendente.trim() !== '') {
+                        atendentes.push({
+                            nome: atendente.trim(),
+                            servico: servico,
+                            isPI: true
                         });
                     }
                 });
-            } 
-            // Caso 2: servicoAtendente é uma string no formato "Serviço - Atendente"
-            else if (typeof dadosPI.servicoAtendente === 'string') {
-                const linhas = dadosPI.servicoAtendente.split('\n')
-                    .map(linha => linha.trim())
-                    .filter(linha => linha.length > 0);
+            }
+        });
+    } 
+    // Caso 2: servicoAtendente é uma string no formato "Serviço - Atendente"
+    else if (typeof dadosPI.servicoAtendente === 'string') {
+        const linhas = dadosPI.servicoAtendente.split('\n')
+            .map(linha => linha.trim())
+            .filter(linha => linha.length > 0);
+        
+        linhas.forEach(linha => {
+            const partes = linha.split('-').map(p => p.trim());
+            
+            if (partes.length >= 2) {
+                const servico = partes[0];
+                const nomesAtendentes = partes.slice(1).join('-').split(',').map(a => a.trim());
                 
-                linhas.forEach(linha => {
-                    const partes = linha.split('-').map(p => p.trim());
+                if (servico && nomesAtendentes.length > 0) {
+                    if (!servicosDisponiveis.includes(servico)) {
+                        servicosDisponiveis.push(servico);
+                    }
                     
-                    if (partes.length >= 2) {
-                        const servico = partes[0];
-                        const nomesAtendentes = partes.slice(1).join('-').split(',').map(a => a.trim());
-                        
-                        if (servico && nomesAtendentes.length > 0) {
-                            if (!servicosDisponiveis.includes(servico)) {
-                                servicosDisponiveis.push(servico);
-                            }
-                            
-                            nomesAtendentes.forEach(atendente => {
-                                if (atendente) {
-                                    atendentes.push({
-                                        nome: atendente,
-                                        servico: servico,
-                                        isPI: true
-                                    });
-                                }
+                    nomesAtendentes.forEach(atendente => {
+                        if (atendente && atendente.trim() !== '') {
+                            atendentes.push({
+                                nome: atendente,
+                                servico: servico,
+                                isPI: true
                             });
                         }
-                    }
-                });
+                    });
+                }
             }
-            // Caso 3: Não há servicoAtendente definido - cria um serviço padrão com o próprio PI como atendente
-            else {
-                const nomeAtendente = dadosPI.nomeCompleto || dadosPI.nomeFantasia || "Prestador";
-                servicosDisponiveis = ["Serviço Geral"];
-                atendentes.push({
-                    nome: nomeAtendente,
-                    servico: "Serviço Geral",
-                    isPI: true
-                });
-            }
-            
-            // Preenche o select de serviços/atendentes
-            preencherSelectServicosAtendentes();
-        }
+        });
+    }
+    // Caso 3: Não há servicoAtendente definido - cria um serviço padrão com o próprio PI como atendente
+    else {
+        const nomeAtendente = dadosPI.nomeCompleto || dadosPI.nomeFantasia || "Prestador";
+        servicosDisponiveis = ["Serviço Geral"];
+        atendentes.push({
+            nome: nomeAtendente,
+            servico: "Serviço Geral",
+            isPI: true
+        });
+    }
+    
+    // Preenche o select de serviços/atendentes
+    preencherSelectServicosAtendentes();
+}
         
         // Processa os serviços e atendentes para empresas regulares
         function processarServicosAtendentesEmpresa(dadosEmpresa) {
