@@ -220,6 +220,25 @@
         .horario-input {
             flex: 1;
         }
+        
+        /* Nome inicial */
+        .nome-inicial {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .nome-inicial .form-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nome-inicial input {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -238,85 +257,98 @@
     </header>
 
     <div class="container">
-        <div id="calendar"></div>
-        
-        <div class="config-section">
-            <h2>Configurações do Painel</h2>
-            
+        <!-- Seção de nome inicial (mostra apenas se não tiver nome selecionado) -->
+        <div id="nomeInicialSection" class="nome-inicial" style="display: none;">
+            <h2>Identifique-se</h2>
             <div id="message" class="message" style="display: none;"></div>
+            <div class="form-group">
+                <input type="text" id="nomeInicial" placeholder="Digite seu nome completo">
+                <button id="adicionarNomeBtn" class="btn">Adicionar Nome</button>
+            </div>
+        </div>
+        
+        <!-- Conteúdo principal (mostra apenas após selecionar nome) -->
+        <div id="mainContent" style="display: none;">
+            <div id="calendar"></div>
             
-            <form id="painelForm">
-                <div class="form-group">
-                    <label for="nomeCompleto">Nome Completo:</label>
-                    <input type="text" id="nomeCompleto" required>
-                </div>
+            <div class="config-section">
+                <h2>Configurações do Painel</h2>
                 
-                <div class="form-group">
-                    <label for="nomeFantasia">Nome Fantasia:</label>
-                    <input type="text" id="nomeFantasia" placeholder="Nome do seu estabelecimento">
-                </div>
+                <div id="configMessage" class="message" style="display: none;"></div>
                 
-                <div class="form-group">
-                    <label for="identificacao">Identificação:</label>
-                    <input type="text" id="identificacao" placeholder="Sua identificação na empresa">
-                </div>
-                
-                <div id="servicosContainer" class="form-group">
-                    <label>Serviços e Atendentes:</label>
-                    <!-- Serviços serão adicionados aqui -->
-                </div>
-                
-                <button type="button" id="addServicoBtn" class="btn">Adicionar Serviço</button>
-                
-                <div class="form-group">
-                    <label>Dias de Funcionamento:</label>
-                    <div class="dias-semana">
-                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="1"> Segunda</label>
-                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="2"> Terça</label>
-                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="3"> Quarta</label>
-                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="4"> Quinta</label>
-                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="5"> Sexta</label>
-                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="6"> Sábado</label>
-                        <label class="dia-checkbox"><input type="checkbox" name="dia" value="0"> Domingo</label>
+                <form id="painelForm">
+                    <div class="form-group">
+                        <label for="nomeCompleto">Nome Completo:</label>
+                        <input type="text" id="nomeCompleto" required>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Horário de Funcionamento:</label>
-                    <div class="horarios-container">
-                        <div class="horario-input">
-                            <label>Abertura</label>
-                            <input type="time" id="horarioAbertura" required>
-                        </div>
-                        <div class="horario-input">
-                            <label>Fechamento</label>
-                            <input type="time" id="horarioFechamento" required>
+                    
+                    <div class="form-group">
+                        <label for="nomeFantasia">Nome Fantasia:</label>
+                        <input type="text" id="nomeFantasia" placeholder="Nome do seu estabelecimento">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="identificacao">Identificação:</label>
+                        <input type="text" id="identificacao" placeholder="Sua identificação na empresa">
+                    </div>
+                    
+                    <div id="servicosContainer" class="form-group">
+                        <label>Serviços e Atendentes:</label>
+                        <!-- Serviços serão adicionados aqui -->
+                    </div>
+                    
+                    <button type="button" id="addServicoBtn" class="btn">Adicionar Serviço</button>
+                    
+                    <div class="form-group">
+                        <label>Dias de Funcionamento:</label>
+                        <div class="dias-semana">
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="1"> Segunda</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="2"> Terça</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="3"> Quarta</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="4"> Quinta</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="5"> Sexta</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="6"> Sábado</label>
+                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="0"> Domingo</label>
                         </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="duracaoAtendimento">Duração de cada atendimento:</label>
-                    <select id="duracaoAtendimento" required>
-                        <option value="15">15 minutos</option>
-                        <option value="30" selected>30 minutos</option>
-                        <option value="45">45 minutos</option>
-                        <option value="60">60 minutos</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="intervaloAtendimento">Intervalo entre atendimentos:</label>
-                    <select id="intervaloAtendimento" required>
-                        <option value="0">Sem intervalo</option>
-                        <option value="5">5 minutos</option>
-                        <option value="10">10 minutos</option>
-                        <option value="15" selected>15 minutos</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="btn">Salvar Configurações</button>
-            </form>
+                    
+                    <div class="form-group">
+                        <label>Horário de Funcionamento:</label>
+                        <div class="horarios-container">
+                            <div class="horario-input">
+                                <label>Abertura</label>
+                                <input type="time" id="horarioAbertura" required>
+                            </div>
+                            <div class="horario-input">
+                                <label>Fechamento</label>
+                                <input type="time" id="horarioFechamento" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="duracaoAtendimento">Duração de cada atendimento:</label>
+                        <select id="duracaoAtendimento" required>
+                            <option value="15">15 minutos</option>
+                            <option value="30" selected>30 minutos</option>
+                            <option value="45">45 minutos</option>
+                            <option value="60">60 minutos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="intervaloAtendimento">Intervalo entre atendimentos:</label>
+                        <select id="intervaloAtendimento" required>
+                            <option value="0">Sem intervalo</option>
+                            <option value="5">5 minutos</option>
+                            <option value="10">10 minutos</option>
+                            <option value="15" selected>15 minutos</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn">Salvar Configurações</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -354,6 +386,7 @@
         
         // Variável para armazenar os dados do usuário
         let currentUserData = null;
+        let selectedNomeCompleto = localStorage.getItem('selectedNomeCompleto');
         
         // Verificação de autenticação
         document.addEventListener('DOMContentLoaded', function() {
@@ -364,36 +397,16 @@
                     try {
                         document.getElementById('loaderOverlay').style.display = 'flex';
                         
-                        // Busca o usuário pelo UID (mais seguro que por email)
-                        const userDoc = await db.collection('usuarios').doc(user.uid).get();
-                        
-                        if (!userDoc.exists) {
-                            // Se não encontrou pelo UID, tenta buscar pelo email (para compatibilidade com registros antigos)
-                            const userQuery = await db.collection('usuarios').where('email', '==', user.email).get();
-                            
-                            if (userQuery.empty) {
-                                throw new Error('Usuário não encontrado');
-                            }
-                            
-                            // Pega o primeiro documento (deveria ter apenas um)
-                            const doc = userQuery.docs[0];
-                            currentUserData = doc.data();
-                            currentUserData.id = doc.id;
+                        // Verifica se já tem um nome selecionado no localStorage
+                        if (selectedNomeCompleto) {
+                            // Busca o usuário pelo nome completo
+                            await loadUserData(selectedNomeCompleto);
+                            showMainContent();
                         } else {
-                            currentUserData = userDoc.data();
-                            currentUserData.id = userDoc.id;
+                            // Mostra a seção para inserir o nome
+                            document.getElementById('nomeInicialSection').style.display = 'block';
                         }
                         
-                        // Preenche o nome completo
-                        document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
-                        
-                        // Carrega as configurações
-                        loadConfigurations();
-                        
-                        // Inicializa o calendário
-                        initializeCalendar();
-                        
-                        // Esconde o loader
                         document.getElementById('loaderOverlay').style.display = 'none';
                         
                     } catch (error) {
@@ -408,11 +421,38 @@
                 }
             });
             
+            // Evento para adicionar nome
+            document.getElementById('adicionarNomeBtn').addEventListener('click', async function() {
+                const nomeCompleto = document.getElementById('nomeInicial').value.trim();
+                if (!nomeCompleto) {
+                    showMessage('error', 'Por favor, digite seu nome completo');
+                    return;
+                }
+                
+                try {
+                    document.getElementById('loaderOverlay').style.display = 'flex';
+                    
+                    // Busca os dados do usuário
+                    await loadUserData(nomeCompleto);
+                    
+                    // Salva no localStorage
+                    localStorage.setItem('selectedNomeCompleto', nomeCompleto);
+                    selectedNomeCompleto = nomeCompleto;
+                    
+                    // Mostra o conteúdo principal
+                    showMainContent();
+                    
+                    document.getElementById('loaderOverlay').style.display = 'none';
+                    
+                } catch (error) {
+                    console.error('Erro ao carregar dados:', error);
+                    document.getElementById('loaderOverlay').style.display = 'none';
+                    showMessage('error', 'Erro ao carregar dados. Verifique se o nome está correto.');
+                }
+            });
+            
             // Adiciona evento para adicionar serviço
             document.getElementById('addServicoBtn').addEventListener('click', addServico);
-            
-            // Adiciona o primeiro serviço por padrão
-            addServico();
             
             // Evento para carregar dados quando o nome completo mudar
             document.getElementById('nomeCompleto').addEventListener('change', async function() {
@@ -421,37 +461,92 @@
                     try {
                         document.getElementById('loaderOverlay').style.display = 'flex';
                         
-                        // Remove "PI -" se existir no início do nome
-                        const nomeBusca = nomeCompleto.replace(/^PI\s*-\s*/i, '').trim();
+                        // Busca os dados do usuário
+                        await loadUserData(nomeCompleto);
                         
-                        // Busca usuários onde o nome completo corresponde (ignorando "PI -")
-                        const userQuery = await db.collection('usuarios')
-                            .where('nomeCompleto', '>=', nomeBusca)
-                            .where('nomeCompleto', '<=', nomeBusca + '\uf8ff')
-                            .get();
-                        
-                        if (userQuery.empty) {
-                            throw new Error('Nenhum usuário encontrado com este nome');
-                        }
-                        
-                        // Pega o primeiro documento que corresponde
-                        const userDoc = userQuery.docs[0];
-                        currentUserData = userDoc.data();
-                        currentUserData.id = userDoc.id;
-                        
-                        // Carrega as configurações
-                        loadConfigurations();
+                        // Atualiza o localStorage
+                        localStorage.setItem('selectedNomeCompleto', nomeCompleto);
+                        selectedNomeCompleto = nomeCompleto;
                         
                         document.getElementById('loaderOverlay').style.display = 'none';
                         
                     } catch (error) {
                         console.error('Erro ao carregar dados por nome:', error);
                         document.getElementById('loaderOverlay').style.display = 'none';
-                        showMessage('error', 'Nenhum usuário encontrado com este nome');
+                        showConfigMessage('error', 'Nenhum usuário encontrado com este nome');
                     }
                 }
             });
         });
+
+        // Função para carregar dados do usuário
+        async function loadUserData(nomeCompleto) {
+            // Remove "PI -" se existir no início do nome
+            const nomeBusca = nomeCompleto.replace(/^PI\s*-\s*/i, '').trim();
+            
+            // Busca usuários onde o nome completo corresponde (ignorando "PI -")
+            const userQuery = await db.collection('usuarios')
+                .where('nomeCompleto', '>=', nomeBusca)
+                .where('nomeCompleto', '<=', nomeBusca + '\uf8ff')
+                .get();
+            
+            if (userQuery.empty) {
+                throw new Error('Nenhum usuário encontrado com este nome');
+            }
+            
+            // Pega o primeiro documento que corresponde
+            const userDoc = userQuery.docs[0];
+            currentUserData = userDoc.data();
+            currentUserData.id = userDoc.id;
+            
+            // Preenche os campos do formulário
+            document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
+            document.getElementById('nomeFantasia').value = currentUserData.nomeFantasia || '';
+            document.getElementById('identificacao').value = currentUserData.identificacao || '';
+            
+            // Preenche serviços e atendentes
+            const servicosContainer = document.getElementById('servicosContainer');
+            servicosContainer.innerHTML = '<label>Serviços e Atendentes:</label>';
+            
+            if (currentUserData.servicoAtendente && currentUserData.servicoAtendente.length > 0) {
+                currentUserData.servicoAtendente.forEach(servico => {
+                    addServico({
+                        servico: servico.servico || '',
+                        atendentes: servico.atendentes || ['']
+                    });
+                });
+            } else {
+                addServico();
+            }
+            
+            // Preenche horários
+            if (currentUserData.horarios) {
+                const horarios = currentUserData.horarios;
+                
+                // Dias de funcionamento
+                if (horarios.diasFuncionamento) {
+                    horarios.diasFuncionamento.forEach(dia => {
+                        const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }
+                
+                // Horários
+                document.getElementById('horarioAbertura').value = horarios.horarioAbertura || '';
+                document.getElementById('horarioFechamento').value = horarios.horarioFechamento || '';
+                document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento || '30';
+                document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento || '15';
+            }
+        }
+
+        // Função para mostrar o conteúdo principal
+        function showMainContent() {
+            document.getElementById('nomeInicialSection').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            
+            // Inicializa o calendário
+            initializeCalendar();
+        }
 
         // Função para inicializar o calendário
         function initializeCalendar() {
@@ -501,11 +596,10 @@
                 const today = moment().startOf('day');
                 const isFutureOrToday = date.isSameOrAfter(today, 'day');
                 
-                // Busca agendamentos para esta data e este atendente (nome completo)
+                // Busca agendamentos para esta data no documento do usuário atual
                 const agendamentosRef = db.collection('usuarios').doc(currentUserData.id)
                     .collection('agendamentos')
-                    .where('data', '==', dateKey)
-                    .where('atendente', '==', currentUserData.nomeCompleto);
+                    .where('data', '==', dateKey);
                 
                 const querySnapshot = await agendamentosRef.get();
                 
@@ -524,11 +618,10 @@
         // Função para carregar agendamentos de um dia
         async function loadAgendamentosForDay(dateKey, dateStr) {
             try {
-                // Busca agendamentos para esta data e este atendente (nome completo)
+                // Busca agendamentos para esta data no documento do usuário atual
                 const agendamentosRef = db.collection('usuarios').doc(currentUserData.id)
                     .collection('agendamentos')
-                    .where('data', '==', dateKey)
-                    .where('atendente', '==', currentUserData.nomeCompleto);
+                    .where('data', '==', dateKey);
                 
                 const querySnapshot = await agendamentosRef.get();
                 
@@ -645,53 +738,6 @@
             }
         }
 
-        // Função para carregar as configurações
-        function loadConfigurations() {
-            try {
-                // Preenche os campos com os dados do usuário
-                document.getElementById('nomeFantasia').value = currentUserData.nomeFantasia || '';
-                document.getElementById('identificacao').value = currentUserData.identificacao || '';
-                
-                // Preenche serviços e atendentes
-                const servicosContainer = document.getElementById('servicosContainer');
-                servicosContainer.innerHTML = '<label>Serviços e Atendentes:</label>';
-                
-                if (currentUserData.servicoAtendente && currentUserData.servicoAtendente.length > 0) {
-                    currentUserData.servicoAtendente.forEach(servico => {
-                        addServico({
-                            servico: servico.servico || '',
-                            atendentes: servico.atendentes || ['']
-                        });
-                    });
-                } else {
-                    addServico();
-                }
-                
-                // Preenche horários
-                if (currentUserData.horarios) {
-                    const horarios = currentUserData.horarios;
-                    
-                    // Dias de funcionamento
-                    if (horarios.diasFuncionamento) {
-                        horarios.diasFuncionamento.forEach(dia => {
-                            const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
-                            if (checkbox) checkbox.checked = true;
-                        });
-                    }
-                    
-                    // Horários
-                    document.getElementById('horarioAbertura').value = horarios.horarioAbertura || '';
-                    document.getElementById('horarioFechamento').value = horarios.horarioFechamento || '';
-                    document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento || '30';
-                    document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento || '15';
-                }
-                
-            } catch (error) {
-                console.error('Erro ao carregar configurações:', error);
-                showMessage('error', 'Erro ao carregar configurações');
-            }
-        }
-
         // Função para adicionar um serviço
         function addServico(servicoData = { servico: '', atendentes: [''] }) {
             const servicosContainer = document.getElementById('servicosContainer');
@@ -724,7 +770,7 @@
                 if (document.querySelectorAll('.servico-item').length > 1) {
                     servicoItem.remove();
                 } else {
-                    showMessage('error', 'Você deve ter pelo menos um serviço');
+                    showConfigMessage('error', 'Você deve ter pelo menos um serviço');
                 }
             });
             
@@ -742,7 +788,7 @@
                     if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
                         atendenteItem.remove();
                     } else {
-                        showMessage('error', 'Cada serviço deve ter pelo menos um atendente');
+                        showConfigMessage('error', 'Cada serviço deve ter pelo menos um atendente');
                     }
                 });
             });
@@ -752,7 +798,7 @@
                     if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
                         this.closest('.atendente-item').remove();
                     } else {
-                        showMessage('error', 'Cada serviço deve ter pelo menos um atendente');
+                        showConfigMessage('error', 'Cada serviço deve ter pelo menos um atendente');
                     }
                 });
             });
@@ -761,6 +807,18 @@
         // Função para mostrar mensagens
         function showMessage(type, text) {
             const messageDiv = document.getElementById('message');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Função para mostrar mensagens na seção de configuração
+        function showConfigMessage(type, text) {
+            const messageDiv = document.getElementById('configMessage');
             messageDiv.className = `message ${type}`;
             messageDiv.textContent = text;
             messageDiv.style.display = 'block';
@@ -783,7 +841,7 @@
                 const identificacao = document.getElementById('identificacao').value;
                 
                 if (!nomeCompleto) {
-                    showMessage('error', 'O nome completo é obrigatório');
+                    showConfigMessage('error', 'O nome completo é obrigatório');
                     return;
                 }
                 
@@ -796,7 +854,7 @@
                     const atendentes = Array.from(item.querySelectorAll('.atendente-input')).map(input => input.value.trim()).filter(a => a);
                     
                     if (!servico || atendentes.length === 0) {
-                        showMessage('error', 'Preencha todos os campos de serviços e atendentes');
+                        showConfigMessage('error', 'Preencha todos os campos de serviços e atendentes');
                         return;
                     }
                     
@@ -814,7 +872,7 @@
                 const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
                 
                 if (diasSelecionados.length === 0 || !horarioAbertura || !horarioFechamento) {
-                    showMessage('error', 'Preencha todos os campos de horários');
+                    showConfigMessage('error', 'Preencha todos os campos de horários');
                     return;
                 }
                 
@@ -840,11 +898,11 @@
                 // Atualiza os dados locais
                 currentUserData = { ...currentUserData, ...dataToSave };
                 
-                showMessage('success', 'Configurações salvas com sucesso!');
+                showConfigMessage('success', 'Configurações salvas com sucesso!');
                 
             } catch (error) {
                 console.error('Erro ao salvar configurações:', error);
-                showMessage('error', 'Erro ao salvar configurações');
+                showConfigMessage('error', 'Erro ao salvar configurações');
             } finally {
                 document.getElementById('loaderOverlay').style.display = 'none';
             }
@@ -854,6 +912,8 @@
         document.getElementById('logoutBtn').addEventListener('click', function(e) {
             e.preventDefault();
             auth.signOut().then(() => {
+                // Limpa o localStorage ao fazer logout
+                localStorage.removeItem('selectedNomeCompleto');
                 window.location.href = 'https://horario.site/login.html';
             }).catch(error => {
                 console.error('Erro ao fazer logout:', error);
