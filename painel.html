@@ -39,30 +39,57 @@
             letter-spacing: 1px;
         }
         
-        nav ul {
-            display: flex;
-            list-style: none;
+        /* Menu Dropdown */
+        .dropdown {
+            position: relative;
+            display: inline-block;
         }
         
-        nav ul li {
-            margin-left: 30px;
-        }
-        
-        nav ul li a {
+        .dropbtn {
+            background-color: transparent;
             color: white;
-            text-decoration: none;
-            font-size: 16px;
-            transition: color 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 5px 10px;
         }
         
-        nav ul li a:hover {
-            color: #cccccc;
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+        }
+        
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+            transition: background-color 0.3s;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
         }
         
         .nav-btn {
             padding: 8px 16px;
             border-radius: 4px;
             transition: background-color 0.3s;
+            display: block;
+            margin: 5px 0;
+            text-align: left;
+            color: white !important;
         }
         
         .servicatend-btn {
@@ -369,16 +396,17 @@
 
     <header>
         <div class="logo">PAINEL DE CONTROLE</div>
-        <nav>
-            <ul>
-                <li><a href="painel.html" class="active">CALENDÁRIO</a></li>
-                <li><a href="escolher-painel.html" class="active">Escolher Painel</a></li>
-                <li><a href="/servicos.html" class="nav-btn servicatend-btn">SERVIÇOS/ATEND.</a></li>
-                <li><a href="painelindiv.html" class="nav-btn painelindiv-btn">Painéis Individuais</a></li>
-                <li><a href="painelconfig.html">CONFIGURAÇÕES</a></li>
-                <li><a href="#" id="logoutBtn" class="nav-btn logout-btn">SAIR</a></li>
-            </ul>
-        </nav>
+        <div class="dropdown">
+            <button class="dropbtn"><i class="fas fa-ellipsis-v"></i></button>
+            <div class="dropdown-content">
+                <a href="painel.html" class="active">CALENDÁRIO</a>
+                <a href="escolher-painel.html" class="active">Escolher Painel</a>
+                <a href="/servicos.html" class="nav-btn servicatend-btn">SERVIÇOS/ATEND.</a>
+                <a href="painelindiv.html" class="nav-btn painelindiv-btn">Painéis Individuais</a>
+                <a href="painelconfig.html">CONFIGURAÇÕES</a>
+                <a href="#" id="logoutBtn" class="nav-btn logout-btn">SAIR</a>
+            </div>
+        </div>
     </header>
 
     <div class="container">
