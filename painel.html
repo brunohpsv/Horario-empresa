@@ -39,20 +39,22 @@
             letter-spacing: 1px;
         }
         
-        /* Menu Dropdown */
         .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .dropbtn {
-            background-color: transparent;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 24px;
-            padding: 5px 10px;
-        }
+        position: relative;
+        display: inline-block;
+        z-index: 1001; /* Adicione esta linha */
+    }
+    
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: #f9f9f9;
+        min-width: 200px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1002; /* Aumente este valor */
+        border-radius: 4px;
+    }
         
         .dropdown-content {
             display: none;
