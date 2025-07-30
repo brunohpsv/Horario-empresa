@@ -374,11 +374,14 @@
                         currentUserData = userDoc.data();
                         currentUserData.id = userDoc.id;
                         
+                        // Preenche o nome completo
+                        document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
+                        
+                        // Carrega os dados do usuário pelo nome completo
+                        await loadUserDataByName(currentUserData.nomeCompleto);
+                        
                         // Inicializa o calendário
                         initializeCalendar();
-                        
-                        // Carrega as configurações
-                        loadConfigurations();
                         
                         // Esconde o loader
                         document.getElementById('loaderOverlay').style.display = 'none';
@@ -397,7 +400,52 @@
             
             // Adiciona o primeiro serviço por padrão
             addServico();
+            
+            // Evento para carregar dados quando o nome completo mudar
+            document.getElementById('nomeCompleto').addEventListener('change', async function() {
+                const nomeCompleto = this.value.trim();
+                if (nomeCompleto) {
+                    try {
+                        document.getElementById('loaderOverlay').style.display = 'flex';
+                        await loadUserDataByName(nomeCompleto);
+                        document.getElementById('loaderOverlay').style.display = 'none';
+                    } catch (error) {
+                        console.error('Erro ao carregar dados:', error);
+                        document.getElementById('loaderOverlay').style.display = 'none';
+                    }
+                }
+            });
         });
+
+        // Função para carregar dados do usuário pelo nome completo
+        async function loadUserDataByName(nomeCompleto) {
+            try {
+                // Remove "PI -" se existir no início do nome
+                const nomeBusca = nomeCompleto.replace(/^PI\s*-\s*/i, '').trim();
+                
+                // Busca usuários onde o nome completo corresponde (ignorando "PI -")
+                const userQuery = await db.collection('usuarios')
+                    .where('nomeCompleto', '>=', nomeBusca)
+                    .where('nomeCompleto', '<=', nomeBusca + '\uf8ff')
+                    .get();
+                
+                if (userQuery.empty) {
+                    throw new Error('Nenhum usuário encontrado com este nome');
+                }
+                
+                // Pega o primeiro documento que corresponde (pode ajustar conforme necessidade)
+                const userDoc = userQuery.docs[0];
+                currentUserData = userDoc.data();
+                currentUserData.id = userDoc.id;
+                
+                // Carrega as configurações
+                loadConfigurations();
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados por nome:', error);
+                throw error;
+            }
+        }
 
         // Função para inicializar o calendário
         function initializeCalendar() {
@@ -447,8 +495,11 @@
                 const today = moment().startOf('day');
                 const isFutureOrToday = date.isSameOrAfter(today, 'day');
                 
+                // Busca agendamentos para esta data e este atendente (nome completo)
                 const agendamentosRef = db.collection('usuarios').doc(currentUserData.id)
-                    .collection('agendamentos').where('data', '==', dateKey);
+                    .collection('agendamentos')
+                    .where('data', '==', dateKey)
+                    .where('atendente', '==', currentUserData.nomeCompleto);
                 
                 const querySnapshot = await agendamentosRef.get();
                 
@@ -467,8 +518,11 @@
         // Função para carregar agendamentos de um dia
         async function loadAgendamentosForDay(dateKey, dateStr) {
             try {
+                // Busca agendamentos para esta data e este atendente (nome completo)
                 const agendamentosRef = db.collection('usuarios').doc(currentUserData.id)
-                    .collection('agendamentos').where('data', '==', dateKey);
+                    .collection('agendamentos')
+                    .where('data', '==', dateKey)
+                    .where('atendente', '==', currentUserData.nomeCompleto);
                 
                 const querySnapshot = await agendamentosRef.get();
                 
@@ -586,10 +640,9 @@
         }
 
         // Função para carregar as configurações
-        async function loadConfigurations() {
+        function loadConfigurations() {
             try {
                 // Preenche os campos com os dados do usuário
-                document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
                 document.getElementById('nomeFantasia').value = currentUserData.nomeFantasia || '';
                 document.getElementById('identificacao').value = currentUserData.identificacao || '';
                 
