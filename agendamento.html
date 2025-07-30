@@ -796,7 +796,8 @@ function cancelarAgendamento(agendamento) {
             document.getElementById('resumo-agendamento').classList.remove('d-none');
         }
         
-        document.getElementById('documento').addEventListener('input', function(e) {
+        // Substitua esta parte no final do seu código:
+document.getElementById('documento').addEventListener('input', function(e) {
     let value = e.target.value.replace(/\D/g, '');
     
     if (value.length <= 11) {
@@ -814,16 +815,47 @@ function cancelarAgendamento(agendamento) {
     }
 });
             
-            document.getElementById('telefone').addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                e.target.value = value.substring(0, 15);
-            });
-            
-            document.getElementById('btn-confirmar').addEventListener('click', confirmarAgendamento);
-            
-            carregarDadosEmpresa();
-        });
+document.getElementById('telefone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    e.target.value = value.substring(0, 15);
+});
+
+document.getElementById('btn-confirmar').addEventListener('click', confirmarAgendamento);
+
+carregarDadosEmpresa();
+// por esta versão corrigida:
+document.getElementById('documento').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    
+    if (value.length <= 11) {
+        value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    } else {
+        value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+    
+    e.target.value = value.substring(0, value.length > 14 ? 18 : 14);
+    documentoCliente = e.target.value;
+    
+    // Verifica agendamento existente quando o documento estiver completo
+    const rawValue = e.target.value.replace(/\D/g, '');
+    if (rawValue.length === 11 || rawValue.length === 14) {
+        verificarAgendamentoExistente(rawValue);
+    }
+});
+
+document.getElementById('telefone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    e.target.value = value.substring(0, 15);
+});
+
+document.getElementById('btn-confirmar').addEventListener('click', confirmarAgendamento);
+
+// Inicializa o carregamento dos dados da empresa
+document.addEventListener('DOMContentLoaded', function() {
+    carregarDadosEmpresa();
+});
     </script>
 </body>
 </html>
