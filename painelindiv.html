@@ -362,23 +362,33 @@
                     window.location.href = 'https://horario.site/login.html';
                 } else {
                     try {
-                        // Busca o usuário pelo email
-                        const userQuery = await db.collection('usuarios').where('email', '==', user.email).get();
+                        document.getElementById('loaderOverlay').style.display = 'flex';
                         
-                        if (userQuery.empty) {
-                            throw new Error('Usuário não encontrado');
+                        // Busca o usuário pelo UID (mais seguro que por email)
+                        const userDoc = await db.collection('usuarios').doc(user.uid).get();
+                        
+                        if (!userDoc.exists) {
+                            // Se não encontrou pelo UID, tenta buscar pelo email (para compatibilidade com registros antigos)
+                            const userQuery = await db.collection('usuarios').where('email', '==', user.email).get();
+                            
+                            if (userQuery.empty) {
+                                throw new Error('Usuário não encontrado');
+                            }
+                            
+                            // Pega o primeiro documento (deveria ter apenas um)
+                            const doc = userQuery.docs[0];
+                            currentUserData = doc.data();
+                            currentUserData.id = doc.id;
+                        } else {
+                            currentUserData = userDoc.data();
+                            currentUserData.id = userDoc.id;
                         }
-                        
-                        // Pega o primeiro documento (deveria ter apenas um)
-                        const userDoc = userQuery.docs[0];
-                        currentUserData = userDoc.data();
-                        currentUserData.id = userDoc.id;
                         
                         // Preenche o nome completo
                         document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
                         
-                        // Carrega os dados do usuário pelo nome completo
-                        await loadUserDataByName(currentUserData.nomeCompleto);
+                        // Carrega as configurações
+                        loadConfigurations();
                         
                         // Inicializa o calendário
                         initializeCalendar();
@@ -388,9 +398,12 @@
                         
                     } catch (error) {
                         console.error('Erro ao carregar dados:', error);
-                        alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
-                        auth.signOut();
-                        window.location.href = 'https://horario.site/login.html';
+                        document.getElementById('loaderOverlay').style.display = 'none';
+                        showMessage('error', 'Erro ao carregar dados do usuário. Por favor, faça login novamente.');
+                        setTimeout(() => {
+                            auth.signOut();
+                            window.location.href = 'https://horario.site/login.html';
+                        }, 3000);
                     }
                 }
             });
@@ -407,45 +420,38 @@
                 if (nomeCompleto) {
                     try {
                         document.getElementById('loaderOverlay').style.display = 'flex';
-                        await loadUserDataByName(nomeCompleto);
+                        
+                        // Remove "PI -" se existir no início do nome
+                        const nomeBusca = nomeCompleto.replace(/^PI\s*-\s*/i, '').trim();
+                        
+                        // Busca usuários onde o nome completo corresponde (ignorando "PI -")
+                        const userQuery = await db.collection('usuarios')
+                            .where('nomeCompleto', '>=', nomeBusca)
+                            .where('nomeCompleto', '<=', nomeBusca + '\uf8ff')
+                            .get();
+                        
+                        if (userQuery.empty) {
+                            throw new Error('Nenhum usuário encontrado com este nome');
+                        }
+                        
+                        // Pega o primeiro documento que corresponde
+                        const userDoc = userQuery.docs[0];
+                        currentUserData = userDoc.data();
+                        currentUserData.id = userDoc.id;
+                        
+                        // Carrega as configurações
+                        loadConfigurations();
+                        
                         document.getElementById('loaderOverlay').style.display = 'none';
+                        
                     } catch (error) {
-                        console.error('Erro ao carregar dados:', error);
+                        console.error('Erro ao carregar dados por nome:', error);
                         document.getElementById('loaderOverlay').style.display = 'none';
+                        showMessage('error', 'Nenhum usuário encontrado com este nome');
                     }
                 }
             });
         });
-
-        // Função para carregar dados do usuário pelo nome completo
-        async function loadUserDataByName(nomeCompleto) {
-            try {
-                // Remove "PI -" se existir no início do nome
-                const nomeBusca = nomeCompleto.replace(/^PI\s*-\s*/i, '').trim();
-                
-                // Busca usuários onde o nome completo corresponde (ignorando "PI -")
-                const userQuery = await db.collection('usuarios')
-                    .where('nomeCompleto', '>=', nomeBusca)
-                    .where('nomeCompleto', '<=', nomeBusca + '\uf8ff')
-                    .get();
-                
-                if (userQuery.empty) {
-                    throw new Error('Nenhum usuário encontrado com este nome');
-                }
-                
-                // Pega o primeiro documento que corresponde (pode ajustar conforme necessidade)
-                const userDoc = userQuery.docs[0];
-                currentUserData = userDoc.data();
-                currentUserData.id = userDoc.id;
-                
-                // Carrega as configurações
-                loadConfigurations();
-                
-            } catch (error) {
-                console.error('Erro ao carregar dados por nome:', error);
-                throw error;
-            }
-        }
 
         // Função para inicializar o calendário
         function initializeCalendar() {
