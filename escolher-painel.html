@@ -281,59 +281,55 @@
                 // Mostra mensagem de carregamento
                 loadingText.style.display = 'block';
                 
-                // Busca todos os documentos que começam com "P1 -" até "P30 -" na coleção "usuarios"
-                const usuariosRef = collection(db, "usuarios");
+                // Primeiro, verifica se o usuário tem um painel principal (PP -)
+                const userDoc = await getDoc(doc(db, "usuarios", currentUser.uid));
                 
-                // Criamos queries para cada prefixo de painel individual (P1 - a P30 -)
+                if (!userDoc.exists()) {
+                    showError("Usuário não encontrado na base de dados.");
+                    return;
+                }
+                
+                // Extrai o sufixo do painel principal (tudo depois de "PP - ")
+                const principalId = userDoc.id;
+                if (!principalId.startsWith("PP - ")) {
+                    showError("Este usuário não é um painel principal válido.");
+                    return;
+                }
+                
+                const suffix = principalId.substring(5); // Remove "PP - " do início
+                
+                // Busca todos os painéis individuais (P1 - suffix até P30 - suffix)
+                const usuariosRef = collection(db, "usuarios");
                 const panelQueries = [];
+                
                 for (let i = 1; i <= 30; i++) {
-                    const prefix = `P${i} -`;
-                    panelQueries.push(
-                        query(usuariosRef, 
-                            where("__name__", ">=", prefix),
-                            where("__name__", "<", prefix + '\uf8ff')
-                        )
-                    );
+                    const panelId = `P${i} - ${suffix}`;
+                    panelQueries.push(doc(usuariosRef, panelId));
                 }
                 
                 // Executa todas as queries em paralelo
-                const querySnapshots = await Promise.all(
-                    panelQueries.map(q => getDocs(q))
+                const panelSnapshots = await Promise.all(
+                    panelQueries.map(ref => getDoc(ref))
                 );
                 
-                // Combina os resultados
-                const allPanels = [];
+                // Filtra apenas os painéis que existem e têm nomeCompleto
+                const existingPanels = [];
                 
-                for (const snapshot of querySnapshots) {
-                    for (const docSnap of snapshot.docs) {
-                        const panelData = docSnap.data();
-                        if (panelData.nomeFantasia) {
-                            // Busca o nome do atendente na subcoleção "atendentes"
-                            const atendentesRef = collection(db, "usuarios", docSnap.id, "atendentes");
-                            const atendentesSnapshot = await getDocs(atendentesRef);
-                            
-                            if (!atendentesSnapshot.empty) {
-                                // Pega o primeiro atendente (assumindo que cada painel tem pelo menos um)
-                                const primeiroAtendente = atendentesSnapshot.docs[0].data();
-                                const nomeAtendente = primeiroAtendente.nome || "Atendente sem nome";
-                                
-                                allPanels.push({ 
-                                    id: docSnap.id, 
-                                    nome: nomeAtendente,
-                                    numero: parseInt(docSnap.id.split(' -')[0].replace('P', ''))
-                                });
-                            }
-                        }
+                for (let i = 0; i < panelSnapshots.length; i++) {
+                    const docSnap = panelSnapshots[i];
+                    if (docSnap.exists() && docSnap.data().nomeCompleto) {
+                        existingPanels.push({
+                            id: docSnap.id,
+                            nome: docSnap.data().nomeCompleto,
+                            numero: i + 1
+                        });
                     }
                 }
                 
-                // Ordena os painéis por número (P1, P2, P3...)
-                allPanels.sort((a, b) => a.numero - b.numero);
-                
                 // Cria os cards para cada painel
-                if (allPanels.length > 0) {
-                    allPanels.forEach(panel => {
-                        createPanelCard(panel.id, panel.nome);
+                if (existingPanels.length > 0) {
+                    existingPanels.forEach(panel => {
+                        createPanelCard(panel.id, panel.nome, panel.numero);
                     });
                     noPanelsMessage.style.display = 'none';
                 } else {
@@ -359,14 +355,14 @@
         }
 
         // Cria um card de painel individual
-        function createPanelCard(panelId, atendenteName) {
+        function createPanelCard(panelId, nomeCompleto, numero) {
             const panelCard = document.createElement('div');
             panelCard.className = 'panel-card individual-panel';
             panelCard.dataset.id = panelId;
             
             panelCard.innerHTML = `
-                <h3>${atendenteName}</h3>
-                <p>Painel individual ${panelId.split(' -')[0]}</p>
+                <h3>${nomeCompleto}</h3>
+                <p>Painel individual P${numero}</p>
             `;
             
             // Adiciona evento de clique para acessar o painel
