@@ -22,78 +22,58 @@
         header {
             background-color: #000000;
             color: white;
-            padding: 20px 40px;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
         .logo {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
-            letter-spacing: 1px;
         }
         
-        nav ul {
-            display: flex;
-            list-style: none;
-        }
-        
-        nav ul li {
-            margin-left: 30px;
-        }
-        
-        nav ul li a {
+        .back-btn {
             color: white;
             text-decoration: none;
-            font-size: 16px;
-            transition: color 0.3s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
-        nav ul li a:hover {
-            color: #cccccc;
-        }
-        
-        .nav-btn {
-            padding: 8px 16px;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-        
-        .logout-btn {
-            background-color: #f44336;
-        }
-        
-        .logout-btn:hover {
-            background-color: #d32f2f;
+        .back-btn i {
+            font-size: 12px;
         }
         
         .container {
-            max-width: 1000px;
-            margin: 30px auto;
+            max-width: 800px;
+            margin: 20px auto;
             padding: 20px;
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
         h1 {
             color: #333;
             margin-bottom: 20px;
-            border-bottom: 2px solid #4CAF50;
-            padding-bottom: 10px;
+            font-size: 22px;
+            text-align: center;
         }
         
         .section {
-            margin-bottom: 30px;
-            padding: 20px;
+            margin-bottom: 25px;
+            padding: 15px;
             background: #f9f9f9;
             border-radius: 6px;
+            border-left: 3px solid #4CAF50;
         }
         
         .section h2 {
             color: #444;
             margin-bottom: 15px;
+            font-size: 18px;
         }
         
         .form-group {
@@ -105,24 +85,25 @@
             margin-bottom: 5px;
             font-weight: bold;
             color: #555;
+            font-size: 14px;
         }
         
         input, textarea, select {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 16px;
+            font-size: 14px;
         }
         
         button {
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             transition: background-color 0.3s;
         }
         
@@ -130,19 +111,12 @@
             background-color: #45a049;
         }
         
-        .btn-secondary {
-            background-color: #2196F3;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #0b7dda;
-        }
-        
         .message {
             padding: 10px;
             margin: 10px 0;
             border-radius: 4px;
             display: none;
+            font-size: 14px;
         }
         
         .success {
@@ -173,11 +147,11 @@
         }
 
         .loader {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #4CAF50;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
         }
 
@@ -186,69 +160,34 @@
             100% { transform: rotate(360deg); }
         }
         
-        footer {
-            background-color: #000000;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            margin-top: 30px;
-        }
-        
-        .contato-rodape {
-            max-width: 1200px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-        
-        .contato-rodape a {
-            color: #4CAF50;
-            text-decoration: none;
-        }
-
         /* Estilos para a configuração de horários */
         .horarios-config {
             background-color: white;
-            padding: 30px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-
-        .horarios-config h3 {
+            padding: 15px;
             margin-bottom: 20px;
-            color: #333;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
         }
 
         .dias-semana {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 15px;
         }
 
         .dia-checkbox {
             display: flex;
             align-items: center;
             background: #f5f5f5;
-            padding: 8px 15px;
+            padding: 6px 12px;
             cursor: pointer;
             border-radius: 4px;
-            transition: all 0.3s;
-        }
-
-        .dia-checkbox:hover {
-            background: #e9e9e9;
-        }
-
-        .dia-checkbox input {
-            margin-right: 8px;
+            font-size: 13px;
         }
 
         .horarios-container {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         .horario-input {
@@ -259,133 +198,74 @@
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 20px;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        .btn-salvar:hover {
-            background-color: #45a049;
-        }
-
-        .horarios-exemplo {
-            background-color: #f8f9fa;
-            padding: 15px;
-            margin-top: 20px;
+            padding: 10px 15px;
             font-size: 14px;
-            border-radius: 4px;
-        }
-
-        .horarios-exemplo h4 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .horarios-exemplo ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-
-        .horarios-exemplo li {
-            margin-bottom: 5px;
-        }
-
-        .success-message {
-            color: #4CAF50;
+            cursor: pointer;
             margin-top: 10px;
-            font-weight: bold;
-            display: none;
+            border-radius: 4px;
+            width: 100%;
         }
 
         /* Seção de almoço */
         .almoco-section {
             background-color: #f8f9fa;
-            padding: 20px;
+            padding: 15px;
             border-radius: 4px;
-            margin-top: 20px;
-            border-left: 4px solid #4CAF50;
+            margin-top: 15px;
         }
         
         .almoco-toggle {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             cursor: pointer;
         }
         
         .almoco-toggle input {
-            margin-right: 10px;
-        }
-        
-        .almoco-toggle label {
-            font-weight: bold;
-            color: #333;
-            cursor: pointer;
+            margin-right: 8px;
         }
         
         .almoco-times {
             display: none;
             background-color: white;
-            padding: 15px;
+            padding: 10px;
             border-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         .almoco-times.active {
             display: block;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .almoco-description {
-            font-size: 14px;
-            color: #666;
-            margin-top: 10px;
         }
 
         /* Seção de serviços e atendentes */
         .servicos-container {
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         .servico-item {
             background-color: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 15px;
+            padding: 12px;
+            margin-bottom: 12px;
             border-radius: 4px;
-            border-left: 4px solid #4CAF50;
         }
 
         .servico-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .servico-title {
-            font-weight: bold;
-            color: #333;
+            margin-bottom: 8px;
         }
 
         .remove-servico {
             background-color: #f44336;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 4px 8px;
             border-radius: 4px;
-            cursor: pointer;
+            font-size: 12px;
         }
 
         .atendentes-list {
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .atendente-item {
@@ -396,29 +276,26 @@
 
         .atendente-item input {
             flex: 1;
-            margin-right: 10px;
+            margin-right: 8px;
         }
 
         .remove-atendente {
             background-color: #f44336;
             color: white;
             border: none;
-            width: 30px;
-            height: 30px;
+            width: 25px;
+            height: 25px;
             border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 12px;
         }
 
         .add-atendente {
             background-color: #2196F3;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 4px 8px;
             border-radius: 4px;
-            cursor: pointer;
+            font-size: 12px;
             margin-top: 5px;
         }
 
@@ -426,46 +303,12 @@
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             gap: 5px;
-        }
-
-        .add-servico i {
-            font-size: 14px;
-        }
-
-        /* Estilo para o formulário de cadastro */
-        .cadastro-section {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        .cadastro-section h2 {
-            color: #444;
-            margin-bottom: 15px;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-        }
-
-        .password-info {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
         }
     </style>
 </head>
@@ -476,12 +319,10 @@
     </div>
 
     <header>
-        <div class="logo">CADASTRO DE PRESTADOR INDIVIDUAL</div>
-        <nav>
-            <ul>
-                <li><a href="login.html">VOLTAR PARA LOGIN</a></li>
-            </ul>
-        </nav>
+        <div class="logo">CADASTRO DE PRESTADOR</div>
+        <a href="painel.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> VOLTAR
+        </a>
     </header>
 
     <div class="container">
@@ -518,7 +359,7 @@
                 <div class="form-group">
                     <label for="empresaDocId">Código do Documento da Empresa:</label>
                     <input type="text" id="empresaDocId" placeholder="Digite o ID do documento da empresa" required>
-                    <p style="margin-top: 5px; font-size: 14px; color: #666;">Este é o ID do documento da empresa na coleção 'usuarios'</p>
+                    <p style="margin-top: 5px; font-size: 12px; color: #666;">Este é o ID do documento da empresa na coleção 'usuarios'</p>
                 </div>
             </div>
             
@@ -536,8 +377,8 @@
             </div>
             
             <!-- Seção de Configuração de Horários -->
-            <div class="horarios-config">
-                <h3>CONFIGURAÇÃO DE HORÁRIOS DE ATENDIMENTO</h3>
+            <div class="section">
+                <h2>HORÁRIOS DE ATENDIMENTO</h2>
                 
                 <div class="form-group">
                     <label>Dias de funcionamento:</label>
@@ -573,10 +414,6 @@
                         <label for="temAlmoco">Definir horário de almoço</label>
                     </div>
                     
-                    <p class="almoco-description">
-                        Marque esta opção se seu estabelecimento fecha para almoço. Isso criará um intervalo no meio do dia onde não serão permitidos agendamentos.
-                    </p>
-                    
                     <div class="almoco-times" id="almocoTimes">
                         <div class="horarios-container">
                             <div class="horario-input">
@@ -592,7 +429,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="duracaoAtendimento">Duração de cada atendimento (minutos):</label>
+                    <label for="duracaoAtendimento">Duração de cada atendimento:</label>
                     <select id="duracaoAtendimento" required>
                         <option value="15">15 minutos</option>
                         <option value="30" selected>30 minutos</option>
@@ -602,7 +439,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="intervaloAtendimento">Intervalo entre atendimentos (minutos):</label>
+                    <label for="intervaloAtendimento">Intervalo entre atendimentos:</label>
                     <select id="intervaloAtendimento" required>
                         <option value="0">Sem intervalo</option>
                         <option value="5">5 minutos</option>
@@ -615,17 +452,8 @@
             </div>
             
             <button type="submit" class="btn-salvar">Cadastrar Prestador</button>
-            <div class="success-message" id="successMessage">Prestador cadastrado com sucesso!</div>
         </form>
     </div>
-
-    <footer>
-        <div class="contato-rodape">
-            <p>Precisa de ajuda? Entre em contato conosco:</p>
-            <p>E-mail: <a href="mailto:suportehorario@gmail.com">suportehorario@gmail.com</a> | Telefone: (62) 98159-6601</p>
-            <p>Horário de atendimento: Segunda a Domingo, 24 horas</p>
-        </div>
-    </footer>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -853,14 +681,19 @@
                     return;
                 }
                 
-                // Gera um ID aleatório para o prestador
-                const userId = 'PI-' + Math.random().toString(36).substr(2, 9);
-                
-                // Cria o ID do documento do painel individual com prefixo "PI -"
-                const painelDocId = `PI - ${userId}`;
+                // Cria o ID do documento do painel individual com prefixo "PI - " + empresaDocId
+                const painelDocId = `PI - ${empresaDocId}`;
                 
                 // Referência para o documento do painel individual na coleção 'usuarios'
                 const painelRef = db.collection('usuarios').doc(painelDocId);
+                
+                // Verifica se já existe um documento com esse ID
+                const docExists = await painelRef.get();
+                if (docExists.exists) {
+                    showMessage('error', 'Já existe um prestador cadastrado para esta empresa com este ID');
+                    document.getElementById('loaderOverlay').style.display = 'none';
+                    return;
+                }
                 
                 // Objeto com todos os dados a serem salvos
                 const dataToSave = {
@@ -869,7 +702,6 @@
                     cpf: cpf,
                     identificacao: identificacao,
                     empresaDocId: empresaDocId,
-                    userId: userId,
                     tipo: 'painel-individual',
                     horarios: {
                         diasFuncionamento: diasSelecionados,
