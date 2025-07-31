@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escolher Painel | HORÁRIO</title>
+    <title>Gerenciar Painéis | HORÁRIO</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
         * {
@@ -93,8 +93,8 @@
             padding: 0 25px;
         }
 
-        .panel-selection {
-            max-width: 900px;
+        .panel-management {
+            max-width: 1000px;
             margin: 0 auto;
             padding: 35px;
             background: white;
@@ -102,7 +102,7 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
         
-        .panel-selection h2 {
+        .panel-management h2 {
             margin-bottom: 25px;
             text-align: center;
             color: #2c3e50;
@@ -110,46 +110,45 @@
             font-size: 26px;
         }
         
-        .panel-options {
+        .panel-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 35px;
+            gap: 20px;
+            margin-top: 30px;
         }
         
-        .panel-card {
+        .panel-item {
             border: 1px solid #e0e0e0;
             border-radius: 10px;
-            padding: 25px;
-            cursor: pointer;
+            padding: 20px;
             transition: all 0.3s ease;
             position: relative;
             min-height: 140px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            overflow: hidden;
+            background-color: #fff;
         }
         
-        .panel-card:hover {
-            transform: translateY(-7px);
+        .panel-item:hover {
+            transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
         
-        .panel-card h3 {
+        .panel-item h3 {
             margin-bottom: 12px;
             color: #2c3e50;
             font-size: 18px;
             font-weight: 600;
         }
         
-        .panel-card p {
+        .panel-item p {
             color: #666;
             font-size: 14px;
             line-height: 1.5;
+            margin-bottom: 15px;
         }
         
-        .panel-card .panel-badge {
+        .panel-badge {
             position: absolute;
             top: 15px;
             right: 15px;
@@ -161,24 +160,58 @@
             font-weight: 600;
         }
         
-        .panel-card.main-panel {
+        .panel-item.main-panel {
             background-color: #f0f8ff;
             border-color: #4682b4;
         }
         
-        .panel-card.main-panel .panel-badge {
+        .panel-item.main-panel .panel-badge {
             background-color: #4682b4;
             color: white;
         }
         
-        .panel-card.individual-panel {
+        .panel-item.individual-panel {
             background-color: #f8f9fa;
             border-color: #6c757d;
         }
         
-        .panel-card.individual-panel .panel-badge {
+        .panel-item.individual-panel .panel-badge {
             background-color: #6c757d;
             color: white;
+        }
+        
+        .panel-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .panel-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .edit-btn {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+        
+        .access-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .access-btn:hover {
+            background-color: #218838;
         }
         
         .loader {
@@ -234,6 +267,130 @@
             margin-bottom: 30px;
             font-size: 16px;
         }
+        
+        .company-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 18px;
+        }
+        
+        .edit-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .cancel-btn {
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ced4da;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #e9ecef;
+        }
+        
+        .save-btn {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .save-btn:hover {
+            background-color: #0069d9;
+        }
+        
+        .add-panel-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .add-panel-btn:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
@@ -248,17 +405,41 @@
     </header>
 
     <div class="main-container">
-        <div class="panel-selection">
-            <h2>Seus Painéis Disponíveis</h2>
+        <div class="panel-management">
+            <h2>Gerenciar Painéis da Empresa</h2>
+            <div class="company-name" id="companyName"></div>
             <div class="welcome-message" id="welcomeMessage"></div>
             
             <div id="errorMessage" class="error-message"></div>
             
-            <div class="panel-options" id="panelsContainer">
+            <div class="panel-list" id="panelsContainer">
                 <div class="loader" id="pageLoader"></div>
-                <div class="loading-text" id="loadingText">Carregando seus painéis...</div>
-                <div class="no-panels" id="noPanelsMessage" style="display: none;">Nenhum painel encontrado para este login</div>
+                <div class="loading-text" id="loadingText">Carregando painéis da empresa...</div>
+                <div class="no-panels" id="noPanelsMessage" style="display: none;">Nenhum painel encontrado para esta empresa</div>
             </div>
+            
+            <button id="addPanelBtn" class="add-panel-btn" style="display: none;">+ Adicionar Novo Painel Individual</button>
+        </div>
+    </div>
+
+    <!-- Modal para edição de painel -->
+    <div class="edit-modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Painel</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editPanelId">
+                <div class="form-group">
+                    <label for="panelName">Nome do Painel</label>
+                    <input type="text" id="panelName" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="modal-btn cancel-btn" id="cancelEdit">Cancelar</button>
+                    <button type="submit" class="modal-btn save-btn">Salvar Alterações</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -272,7 +453,10 @@
             where,
             getDocs,
             doc,
-            getDoc
+            getDoc,
+            updateDoc,
+            addDoc,
+            serverTimestamp
         } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
         import {
             getAuth,
@@ -303,15 +487,27 @@
         const panelsContainer = document.getElementById('panelsContainer');
         const logoutBtn = document.getElementById('logoutBtn');
         const welcomeMessage = document.getElementById('welcomeMessage');
+        const companyName = document.getElementById('companyName');
+        const addPanelBtn = document.getElementById('addPanelBtn');
+        const editModal = document.getElementById('editModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelEdit = document.getElementById('cancelEdit');
+        const editForm = document.getElementById('editForm');
+        const panelNameInput = document.getElementById('panelName');
+        const editPanelIdInput = document.getElementById('editPanelId');
 
         // Estados
         let currentUser = null;
+        let currentCompany = null;
+        let currentUserData = null;
+        let panels = [];
 
         // Verifica o estado de autenticação
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 showLoadingState();
+                await loadUserData();
                 await loadPanels();
             } else {
                 redirectToLogin();
@@ -325,12 +521,12 @@
             loadingText.style.display = 'block';
             noPanelsMessage.style.display = 'none';
             errorMessage.style.display = 'none';
+            addPanelBtn.style.display = 'none';
         }
 
-        // Carrega todos os painéis com o mesmo login
-        async function loadPanels() {
+        // Carrega os dados do usuário atual
+        async function loadUserData() {
             try {
-                // Primeiro, obtém o documento do usuário atual
                 const userDoc = await getDoc(doc(db, "usuarios", currentUser.uid));
                 
                 if (!userDoc.exists()) {
@@ -338,24 +534,37 @@
                     return;
                 }
                 
-                const userData = userDoc.data();
+                currentUserData = userDoc.data();
                 
-                // Verifica se o campo login existe
-                if (!userData.login) {
-                    showError("Campo 'login' não encontrado no usuário.");
+                // Verifica se o campo nomeFantasia existe
+                if (!currentUserData.nomeFantasia) {
+                    showError("Campo 'nomeFantasia' não encontrado no usuário.");
                     return;
                 }
                 
-                // Atualiza mensagem de boas-vindas
-                welcomeMessage.textContent = `Olá, ${userData.nomeCompleto || 'Usuário'}!`;
+                currentCompany = currentUserData.nomeFantasia;
                 
-                // Busca todos os usuários com o mesmo login
+                // Atualiza mensagens de boas-vindas
+                companyName.textContent = currentUserData.nomeFantasia;
+                welcomeMessage.textContent = `Olá, ${currentUserData.nomeCompleto || 'Usuário'}!`;
+                
+            } catch (error) {
+                console.error("Erro ao carregar dados do usuário:", error);
+                showError("Erro ao carregar dados do usuário. Por favor, recarregue a página.");
+            }
+        }
+
+        // Carrega todos os painéis da empresa
+        async function loadPanels() {
+            try {
+                // Busca todos os usuários com o mesmo nomeFantasia
                 const usuariosRef = collection(db, "usuarios");
-                const q = query(usuariosRef, where("login", "==", userData.login));
+                const q = query(usuariosRef, where("nomeFantasia", "==", currentCompany));
                 const querySnapshot = await getDocs(q);
                 
                 // Limpa o container
                 panelsContainer.innerHTML = '';
+                panels = [];
                 
                 if (querySnapshot.empty) {
                     noPanelsMessage.style.display = 'block';
@@ -363,18 +572,49 @@
                 }
                 
                 // Processa os documentos encontrados
+                let hasMainPanel = false;
+                
                 querySnapshot.forEach((doc) => {
                     const panelData = doc.data();
                     const panelId = doc.id;
                     const isMainPanel = panelId.startsWith("PP - ");
                     
-                    createPanelCard({
+                    // Adiciona ao array de painéis
+                    panels.push({
                         id: panelId,
-                        name: panelData.nomeCompleto || (isMainPanel ? "Painel Principal" : "Painel Individual"),
+                        name: isMainPanel ? 
+                            (panelData.nomeFantasia || "Painel Principal") : 
+                            (panelData.nomeCompleto || "Painel Individual"),
                         type: isMainPanel ? "principal" : "individual",
-                        email: panelData.email || "Sem e-mail"
+                        email: panelData.email || "Sem e-mail",
+                        description: isMainPanel ? 
+                            "Painel administrativo principal da empresa" : 
+                            `Painel individual de ${panelData.nomeCompleto || "Usuário"}`,
+                        data: panelData
                     });
+                    
+                    // Garante que só mostramos um painel principal
+                    if (isMainPanel && !hasMainPanel) {
+                        hasMainPanel = true;
+                    }
                 });
+                
+                // Ordena painéis (principal primeiro, depois individuais por nome)
+                panels.sort((a, b) => {
+                    if (a.type === 'principal') return -1;
+                    if (b.type === 'principal') return 1;
+                    return a.name.localeCompare(b.name);
+                });
+                
+                // Renderiza todos os painéis
+                panels.forEach(panel => {
+                    createPanelItem(panel);
+                });
+                
+                // Mostra botão de adicionar apenas para o painel principal
+                if (currentUser.uid.startsWith("PP - ")) {
+                    addPanelBtn.style.display = 'block';
+                }
                 
             } catch (error) {
                 console.error("Erro ao carregar painéis:", error);
@@ -385,28 +625,101 @@
             }
         }
 
-        // Cria um card de painel
-        function createPanelCard(panel) {
-            const panelCard = document.createElement('div');
-            panelCard.className = `panel-card ${panel.type}-panel`;
-            panelCard.dataset.id = panel.id;
+        // Cria um item de painel na lista
+        function createPanelItem(panel) {
+            const panelItem = document.createElement('div');
+            panelItem.className = `panel-item ${panel.type}-panel`;
+            panelItem.dataset.id = panel.id;
             
-            panelCard.innerHTML = `
+            panelItem.innerHTML = `
                 <span class="panel-badge">${panel.type === 'principal' ? 'Principal' : 'Individual'}</span>
                 <h3>${panel.name}</h3>
-                <p>${panel.email}</p>
+                <p>${panel.description || panel.email}</p>
+                <div class="panel-actions">
+                    <button class="panel-btn edit-btn" data-id="${panel.id}">Editar</button>
+                    <button class="panel-btn access-btn" data-id="${panel.id}">Acessar</button>
+                </div>
             `;
             
-            // Adiciona evento de clique para acessar o painel
-            panelCard.addEventListener('click', () => {
-                if (panel.type === 'principal') {
-                    window.location.href = 'painel.html';
-                } else {
-                    window.location.href = `painelindiv.html?panelId=${encodeURIComponent(panel.id)}`;
-                }
+            panelsContainer.appendChild(panelItem);
+            
+            // Adiciona eventos aos botões
+            panelItem.querySelector('.edit-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openEditModal(panel);
             });
             
-            panelsContainer.appendChild(panelCard);
+            panelItem.querySelector('.access-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                accessPanel(panel);
+            });
+        }
+
+        // Abre modal de edição
+        function openEditModal(panel) {
+            editPanelIdInput.value = panel.id;
+            panelNameInput.value = panel.name;
+            editModal.style.display = 'flex';
+        }
+
+        // Fecha modal de edição
+        function closeEditModal() {
+            editModal.style.display = 'none';
+            editForm.reset();
+        }
+
+        // Acessa um painel
+        function accessPanel(panel) {
+            if (panel.type === 'principal') {
+                window.location.href = 'painel.html';
+            } else {
+                window.location.href = `painelindiv.html?panelId=${encodeURIComponent(panel.id)}`;
+            }
+        }
+
+        // Adiciona um novo painel individual
+        async function addNewPanel() {
+            try {
+                showLoadingState();
+                
+                // Cria um novo documento na coleção de usuários
+                const newPanelRef = await addDoc(collection(db, "usuarios"), {
+                    nomeCompleto: `Novo Painel ${panels.filter(p => p.type === 'individual').length + 1}`,
+                    email: "",
+                    nomeFantasia: currentCompany,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    // Adicione outros campos necessários aqui
+                });
+                
+                // Recarrega a lista de painéis
+                await loadPanels();
+                
+            } catch (error) {
+                console.error("Erro ao adicionar novo painel:", error);
+                showError("Erro ao adicionar novo painel. Tente novamente.");
+            }
+        }
+
+        // Atualiza um painel
+        async function updatePanel(panelId, newName) {
+            try {
+                showLoadingState();
+                
+                // Atualiza o documento do painel
+                const panelRef = doc(db, "usuarios", panelId);
+                await updateDoc(panelRef, {
+                    [panelId.startsWith("PP - ") ? "nomeFantasia" : "nomeCompleto"]: newName,
+                    updatedAt: serverTimestamp()
+                });
+                
+                // Recarrega a lista de painéis
+                await loadPanels();
+                
+            } catch (error) {
+                console.error("Erro ao atualizar painel:", error);
+                showError("Erro ao atualizar painel. Tente novamente.");
+            }
         }
 
         // Mostra mensagem de erro
@@ -414,6 +727,8 @@
             errorMessage.textContent = message;
             errorMessage.style.display = 'block';
             noPanelsMessage.style.display = 'none';
+            pageLoader.style.display = 'none';
+            loadingText.style.display = 'none';
         }
 
         // Redireciona para login
@@ -432,6 +747,31 @@
                 console.error("Erro ao fazer logout:", error);
                 showError("Erro ao fazer logout. Tente novamente.");
                 pageLoader.style.display = 'none';
+            }
+        });
+
+        // Modal events
+        closeModal.addEventListener('click', closeEditModal);
+        cancelEdit.addEventListener('click', closeEditModal);
+        
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const panelId = editPanelIdInput.value;
+            const newName = panelNameInput.value.trim();
+            
+            if (newName) {
+                await updatePanel(panelId, newName);
+                closeEditModal();
+            }
+        });
+
+        // Adicionar novo painel
+        addPanelBtn.addEventListener('click', addNewPanel);
+
+        // Fecha modal ao clicar fora do conteúdo
+        editModal.addEventListener('click', (e) => {
+            if (e.target === editModal) {
+                closeEditModal();
             }
         });
     </script>
