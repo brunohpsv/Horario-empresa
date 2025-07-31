@@ -598,6 +598,20 @@
         document.getElementById('intervaloAtendimento').value = '15';
     }
 
+    // Função para encontrar o próximo ID disponível (de P1 a P30)
+    async function getNextAvailableId(baseId) {
+        for (let i = 1; i <= 30; i++) {
+            const docId = `P${i} - ${baseId}`;
+            const docRef = db.collection('usuarios').doc(docId);
+            const doc = await docRef.get();
+            
+            if (!doc.exists) {
+                return docId;
+            }
+        }
+        throw new Error('Todos os IDs de P1 a P30 já estão em uso para este documento base');
+    }
+
     // Adiciona o primeiro serviço quando a página carrega
     document.addEventListener('DOMContentLoaded', function() {
         // Esconde o loader
@@ -669,8 +683,8 @@
             // Mostra o loader enquanto cadastra
             document.getElementById('loaderOverlay').style.display = 'flex';
             
-            // Cria o ID do documento da empresa com "PI -" na frente
-            const empresaDocId = `PI - ${empresaId}`;
+            // Obtém o próximo ID disponível (P1, P2, ..., P30)
+            const empresaDocId = await getNextAvailableId(empresaId);
             const empresaRef = db.collection('usuarios').doc(empresaDocId);
             
             // Objeto com todos os dados a serem salvos
@@ -697,17 +711,17 @@
                 dataToSave.horarios.almocoFim = almocoFim;
             }
             
-            // Salva os dados no documento principal (sem criar subcoleções)
+            // Salva os dados no documento principal
             await empresaRef.set(dataToSave);
             
             // Limpa o formulário
             limparFormulario();
             
-            showMessage('success', 'Prestador cadastrado com sucesso!');
+            showMessage('success', `Prestador cadastrado com sucesso com o ID: ${empresaDocId}`);
             
         } catch (error) {
             console.error('Erro no cadastro:', error);
-            showMessage('error', 'Erro ao cadastrar prestador. Tente novamente.');
+            showMessage('error', error.message || 'Erro ao cadastrar prestador. Tente novamente.');
         } finally {
             // Esconde o loader
             document.getElementById('loaderOverlay').style.display = 'none';
