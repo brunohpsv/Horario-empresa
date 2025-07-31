@@ -703,118 +703,108 @@
 
         // Função melhorada para extrair serviços
         function extrairServicos(empresa) {
-            const servicos = [];
+    const servicos = [];
+    
+    // Verifica campos específicos que podem conter serviços
+    const camposServicos = [
+        'servicos', 'serviços', 'services',
+        'tipoServico', 'tipoServiço', 'serviceType',
+        'categoria', 'category',
+        'especialidade', 'specialty'
+    ];
+    
+    // Verifica campos genéricos que podem conter serviços
+    const camposGenericos = Object.keys(empresa).filter(key => 
+        key.toLowerCase().includes('servico') || 
+        key.toLowerCase().includes('serviço') || 
+        key.toLowerCase().includes('service') ||
+        key.toLowerCase().includes('categoria') ||
+        key.toLowerCase().includes('category') ||
+        key.toLowerCase().includes('especialidade') ||
+        key.toLowerCase().includes('specialty')
+    );
+    
+    // Combina todos os campos relevantes
+    const todosCampos = [...new Set([...camposServicos, ...camposGenericos])];
+    
+    todosCampos.forEach(campo => {
+        if (empresa[campo]) {
+            const valor = empresa[campo];
             
-            // Verifica campos específicos que podem conter serviços
-            const camposServicos = [
-                'servicos', 'serviços', 'services',
-                'tipoServico', 'tipoServiço', 'serviceType',
-                'categoria', 'category',
-                'especialidade', 'specialty'
-            ];
-            
-            // Verifica campos genéricos que podem conter serviços
-            const camposGenericos = Object.keys(empresa).filter(key => 
-                key.toLowerCase().includes('servico') || 
-                key.toLowerCase().includes('serviço') || 
-                key.toLowerCase().includes('service') ||
-                key.toLowerCase().includes('categoria') ||
-                key.toLowerCase().includes('category') ||
-                key.toLowerCase().includes('especialidade') ||
-                key.toLowerCase().includes('specialty')
-            );
-            
-            // Combina todos os campos relevantes
-            const todosCampos = [...new Set([...camposServicos, ...camposGenericos])];
-            
-            todosCampos.forEach(campo => {
-                if (empresa[campo]) {
-                    const valor = empresa[campo];
-                    
-                    // Caso 1: Valor é uma string
-                    if (typeof valor === 'string') {
-                        // Tenta dividir por vários separadores diferentes
-                        const separadores = [',', ';', '/', '|', '-', '•'];
-                        let partes = [valor];
-                        
-                        separadores.forEach(sep => {
-                            partes = partes.flatMap(part => 
-                                part.split(sep).map(p => p.trim()).filter(p => p)
-                            );
-                        });
-                        
-                        servicos.push(...partes);
-                    } 
-                    // Caso 2: Valor é um array
-                    else if (Array.isArray(valor)) {
-                        valor.forEach(item => {
-                            if (typeof item === 'string') {
-                                servicos.push(item.trim());
-                            }
-                        });
+            if (typeof valor === 'string') {
+                // Remove caracteres especiais e divide por múltiplos separadores
+                const cleaned = valor.replace(/[.,;\/\\|•-]/g, ',');
+                const partes = cleaned.split(',')
+                    .map(p => p.trim())
+                    .filter(p => p);
+                servicos.push(...partes);
+            } 
+            else if (Array.isArray(valor)) {
+                valor.forEach(item => {
+                    if (typeof item === 'string') {
+                        servicos.push(item.trim());
                     }
-                    // Caso 3: Valor é um objeto (poderia conter subserviços)
-                    else if (typeof valor === 'object' && valor !== null) {
-                        // Recursivamente extrai serviços de objetos aninhados
-                        servicos.push(...extrairServicos(valor));
-                    }
-                }
-            });
-            
-            // Remove duplicatas, strings vazias e normaliza (trim + uppercase first letter)
-            return [...new Set(
-                servicos
-                    .filter(s => s && s.trim() !== '')
-                    .map(s => s.trim())
-            )];
+                });
+            }
+            else if (typeof valor === 'object' && valor !== null) {
+                servicos.push(...extrairServicos(valor));
+            }
         }
+    });
+    
+    // Remove duplicatas (case insensitive) e strings vazias
+    return [...new Set(
+        servicos
+            .filter(s => s && s.trim() !== '')
+            .map(s => s.trim().toLowerCase())
+    )].map(s => s.charAt(0).toUpperCase() + s.slice(1)); // Capitaliza a primeira letra
+}
 
         // Função para filtrar empresas de forma inteligente
         function filtrarEmpresas() {
-            const cidade = document.getElementById('cidade').value.toLowerCase();
-            const estado = document.getElementById('estado').value;
-            const servico = document.getElementById('servico').value.toLowerCase();
-            const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
-            
-            let empresasFiltradas = todasEmpresas.filter(empresa => {
-                const nome = (empresa.nomeFantasia || '').toLowerCase();
-                const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
-                const estadoEmpresa = (empresa.estado || '');
-                
-                // Extrai serviços da empresa
-                const servicosEmpresa = extrairServicos(empresa)
-                    .map(s => s.toLowerCase());
-                
-                // Verifica todos os filtros de forma combinada com busca parcial
-                const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
-                const estadoMatch = !estado || estadoEmpresa === estado;
-                const servicoMatch = !servico || servicosEmpresa.some(s => s.includes(servico));
-                const nomeMatch = !nomeEmpresa || nome.includes(nomeEmpresa);
-                
-                return cidadeMatch && estadoMatch && servicoMatch && nomeMatch;
-            });
-            
-            // Se temos localização do usuário e está ativa, calculamos distâncias
-            if (geolocationActive && userLocation) {
-                empresasFiltradas = empresasFiltradas.map(empresa => {
-                    if (empresa.latitude && empresa.longitude) {
-                        const distancia = calcularDistancia(
-                            userLocation.latitude,
-                            userLocation.longitude,
-                            parseFloat(empresa.latitude),
-                            parseFloat(empresa.longitude)
-                        );
-                        return {...empresa, distancia};
-                    }
-                    return empresa;
-                });
-                
-                // Armazenamos as empresas com distância para reordenar depois
-                empresasComDistancia = [...empresasFiltradas];
+    const cidade = document.getElementById('cidade').value.toLowerCase();
+    const estado = document.getElementById('estado').value;
+    const servico = document.getElementById('servico').value.toLowerCase();
+    const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
+    
+    let empresasFiltradas = todasEmpresas.filter(empresa => {
+        const nome = (empresa.nomeFantasia || '').toLowerCase();
+        const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
+        const estadoEmpresa = (empresa.estado || '');
+        
+        // Extrai serviços da empresa e converte para lowercase
+        const servicosEmpresa = extrairServicos(empresa)
+            .map(s => s.toLowerCase());
+        
+        // Verifica todos os filtros
+        const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
+        const estadoMatch = !estado || estadoEmpresa === estado;
+        const servicoMatch = !servico || servicosEmpresa.some(s => s.includes(servico));
+        const nomeMatch = !nomeEmpresa || nome.includes(nomeEmpresa);
+        
+        return cidadeMatch && estadoMatch && servicoMatch && nomeMatch;
+    });
+    
+    // Restante da função permanece igual...
+    if (geolocationActive && userLocation) {
+        empresasFiltradas = empresasFiltradas.map(empresa => {
+            if (empresa.latitude && empresa.longitude) {
+                const distancia = calcularDistancia(
+                    userLocation.latitude,
+                    userLocation.longitude,
+                    parseFloat(empresa.latitude),
+                    parseFloat(empresa.longitude)
+                );
+                return {...empresa, distancia};
             }
-            
-            exibirEmpresas(empresasFiltradas);
-        }
+            return empresa;
+        });
+        
+        empresasComDistancia = [...empresasFiltradas];
+    }
+    
+    exibirEmpresas(empresasFiltradas);
+}
 
         // Função para obter a localização do usuário
         function obterLocalizacaoUsuario() {
@@ -952,18 +942,19 @@
                 selectServico.innerHTML = '<option value="">Todos os serviços</option>';
                 
                 // Converte Set para Array, ordena e remove duplicatas
-                Array.from(servicosDisponiveis)
-                    .filter((servico, index, self) => 
-                        self.findIndex(s => s.toLowerCase() === servico.toLowerCase()) === index
-                    ) // Remove duplicatas case insensitive
-                    .sort((a, b) => a.localeCompare(b))
-                    .forEach(servico => {
-                        const option = document.createElement('option');
-                        option.value = servico;
-                        option.textContent = servico;
-                        if (servico.toLowerCase() === currentService.toLowerCase()) option.selected = true;
-                        selectServico.appendChild(option);
-                    });
+                // No carregarEmpresas(), atualize esta parte:
+Array.from(servicosDisponiveis)
+    .filter((servico, index, self) => 
+        index === self.findIndex(s => s.toLowerCase() === servico.toLowerCase())
+    )
+    .sort((a, b) => a.localeCompare(b))
+    .forEach(servico => {
+        const option = document.createElement('option');
+        option.value = servico.toLowerCase(); // Armazena em lowercase para comparação
+        option.textContent = servico; // Exibe formatado
+        if (servico.toLowerCase() === currentService.toLowerCase()) option.selected = true;
+        selectServico.appendChild(option);
+    });
                 
                 // Atualiza dropdown de estados apenas com os estados existentes
                 const selectEstado = document.getElementById('estado');
