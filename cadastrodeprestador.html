@@ -607,133 +607,133 @@
             addServico();
         });
 
-        // Formulário de cadastro do prestador
-document.getElementById('prestadorForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    // Validação dos dados do prestador
-    const nomeFantasia = document.getElementById('nomeFantasia').value;
-    const nomeCompleto = document.getElementById('nomeCompleto').value;
-    const cpf = document.getElementById('cpf').value;
-    const identificacao = document.getElementById('identificacao').value;
-    const empresaIdentificacao = document.getElementById('empresaDocId').value.trim();
-    
-    if (!nomeFantasia || !nomeCompleto || !cpf || !identificacao || !empresaIdentificacao) {
-        showMessage('error', 'Preencha todas as informações pessoais');
-        return;
-    }
-    
-    // Validação de serviços e atendentes
-    const servicoAtendente = [];
-    const servicoItems = document.querySelectorAll('.servico-item');
-    
-    for (const item of servicoItems) {
-        const servico = item.querySelector('.servico-input').value.trim();
-        const atendentes = Array.from(item.querySelectorAll('.atendente-input')).map(input => input.value.trim()).filter(a => a);
-        
-        if (!servico || atendentes.length === 0) {
-            showMessage('error', 'Preencha todos os campos de serviços e atendentes');
-            return;
-        }
-        
-        servicoAtendente.push({
-            servico: servico,
-            atendentes: atendentes
-        });
-    }
-    
-    // Validação de horários
-    const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
-    const horarioAbertura = document.getElementById('horarioAbertura').value;
-    const horarioFechamento = document.getElementById('horarioFechamento').value;
-    const temAlmoco = document.getElementById('temAlmoco').checked;
-    const almocoInicio = temAlmoco ? document.getElementById('almocoInicio').value : null;
-    const almocoFim = temAlmoco ? document.getElementById('almocoFim').value : null;
-    const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
-    const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
-    
-    if (diasSelecionados.length === 0 || !horarioAbertura || !horarioFechamento) {
-        showMessage('error', 'Preencha todos os campos de horários obrigatórios');
-        return;
-    }
-    
-    if (temAlmoco && (!almocoInicio || !almocoFim)) {
-        showMessage('error', 'Preencha os horários de almoço');
-        return;
-    }
-    
-    try {
-        // Mostra o loader enquanto cadastra
-        document.getElementById('loaderOverlay').style.display = 'flex';
-        
-        // Cria o ID do documento com "PI -" na frente da identificação
-        const empresaDocId = `PI - ${empresaIdentificacao}`;
-        const empresaRef = db.collection('usuarios').doc(empresaDocId);
-        
-        // Cria um ID único para o prestador individual usando o timestamp atual
-        const prestadorId = `PI-${Date.now()}`;
-        
-        // Objeto com todos os dados a serem salvos
-        const dataToSave = {
-            nomeFantasia: nomeFantasia,
-            nomeCompleto: nomeCompleto,
-            cpf: cpf,
-            identificacao: identificacao,
-            tipo: 'painel-individual',
-            horarios: {
-                diasFuncionamento: diasSelecionados,
-                horarioAbertura: horarioAbertura,
-                horarioFechamento: horarioFechamento,
-                duracaoAtendimento: parseInt(duracaoAtendimento),
-                intervaloAtendimento: parseInt(intervaloAtendimento)
-            },
-            servicoAtendente: servicoAtendente,
-            dataCadastro: new Date().toISOString()
-        };
-        
-        // Adiciona horário de almoço se necessário
-        if (temAlmoco) {
-            dataToSave.horarios.almocoInicio = almocoInicio;
-            dataToSave.horarios.almocoFim = almocoFim;
-        }
-        
-        // Primeiro cria o documento principal na coleção 'usuarios'
-        await empresaRef.set({
-            identificacao: empresaIdentificacao,
-            tipo: 'empresa',
-            dataCadastro: new Date().toISOString()
-        });
-        
-        // Agora cria as subcoleções para cada atendente
-        for (const servico of servicoAtendente) {
-            for (const atendente of servico.atendentes) {
-                // Remove espaços em branco e caracteres especiais para criar o nome da subcoleção
-                const nomeSubcolecao = `PI - ${atendente.replace(/[^\w\s]/gi, '').trim()}`;
+        / Formulário de cadastro do prestador - VERSÃO CORRIGIDA
+        document.getElementById('prestadorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validação dos dados do prestador
+            const nomeFantasia = document.getElementById('nomeFantasia').value.trim();
+            const nomeCompleto = document.getElementById('nomeCompleto').value.trim();
+            const cpf = document.getElementById('cpf').value.trim();
+            const empresaIdentificacao = document.getElementById('empresaDocId').value.trim();
+            
+            if (!nomeFantasia || !nomeCompleto || !cpf || !empresaIdentificacao) {
+                showMessage('error', 'Preencha todas as informações pessoais');
+                return;
+            }
+            
+            // Validação básica de CPF
+            if (cpf.replace(/\D/g, '').length !== 11) {
+                showMessage('error', 'CPF inválido. Deve conter 11 dígitos.');
+                return;
+            }
+            
+            // Validação de serviços e atendentes
+            const servicoAtendente = [];
+            const servicoItems = document.querySelectorAll('.servico-item');
+            
+            for (const item of servicoItems) {
+                const servico = item.querySelector('.servico-input').value.trim();
+                const atendentes = Array.from(item.querySelectorAll('.atendente-input')).map(input => input.value.trim()).filter(a => a);
                 
-                // Cria a subcoleção no documento da empresa
-                await empresaRef.collection(nomeSubcolecao).doc(prestadorId).set({
-                    nomePrestador: nomeFantasia,
-                    servico: servico.servico,
-                    atendente: atendente,
-                    dataCadastro: new Date().toISOString(),s
-                    ...dataToSave.horarios // Inclui todas as informações de horários
+                if (!servico || atendentes.length === 0) {
+                    showMessage('error', 'Preencha todos os campos de serviços e atendentes');
+                    return;
+                }
+                
+                servicoAtendente.push({
+                    servico: servico,
+                    atendentes: atendentes
                 });
             }
-        }
-        
-        // Limpa o formulário
-        limparFormulario();
-        
-        showMessage('success', 'Prestador cadastrado com sucesso nas subcoleções da empresa!');
-        
-    } catch (error) {
-        console.error('Erro no cadastro:', error);
-        showMessage('error', 'Erro ao cadastrar prestador. Tente novamente.');
-    } finally {
-        // Esconde o loader
-        document.getElementById('loaderOverlay').style.display = 'none';
-    }
-});
+            
+            // Validação de horários
+            const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
+            const horarioAbertura = document.getElementById('horarioAbertura').value;
+            const horarioFechamento = document.getElementById('horarioFechamento').value;
+            const temAlmoco = document.getElementById('temAlmoco').checked;
+            const almocoInicio = temAlmoco ? document.getElementById('almocoInicio').value : null;
+            const almocoFim = temAlmoco ? document.getElementById('almocoFim').value : null;
+            const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
+            const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
+            
+            if (diasSelecionados.length === 0 || !horarioAbertura || !horarioFechamento) {
+                showMessage('error', 'Preencha todos os campos de horários obrigatórios');
+                return;
+            }
+            
+            if (temAlmoco && (!almocoInicio || !almocoFim)) {
+                showMessage('error', 'Preencha os horários de almoço');
+                return;
+            }
+            
+            try {
+                // Mostra o loader enquanto cadastra
+                document.getElementById('loaderOverlay').style.display = 'flex';
+                
+                // Cria o ID do documento com "PI -" na frente da identificação
+                const empresaDocId = `PI - ${empresaIdentificacao}`;
+                const empresaRef = db.collection('usuarios').doc(empresaDocId);
+                
+                // Objeto com todos os dados a serem salvos
+                const dataToSave = {
+                    nomeFantasia: nomeFantasia,
+                    nomeCompleto: nomeCompleto,
+                    cpf: cpf,
+                    identificacao: empresaIdentificacao,
+                    tipo: 'painel-individual',
+                    horarios: {
+                        diasFuncionamento: diasSelecionados,
+                        horarioAbertura: horarioAbertura,
+                        horarioFechamento: horarioFechamento,
+                        duracaoAtendimento: parseInt(duracaoAtendimento),
+                        intervaloAtendimento: parseInt(intervaloAtendimento),
+                        ...(temAlmoco && { 
+                            almocoInicio: almocoInicio,
+                            almocoFim: almocoFim 
+                        })
+                    },
+                    servicoAtendente: servicoAtendente,
+                    dataCadastro: new Date().toISOString()
+                };
+                
+                // Primeiro cria o documento principal na coleção 'usuarios'
+                await empresaRef.set({
+                    identificacao: empresaIdentificacao,
+                    tipo: 'empresa',
+                    dataCadastro: new Date().toISOString()
+                });
+                
+                // Agora cria as subcoleções para cada atendente
+                for (const servico of servicoAtendente) {
+                    for (const atendente of servico.atendentes) {
+                        // Remove espaços em branco e caracteres especiais para criar o nome da subcoleção
+                        const nomeSubcolecao = `PI - ${atendente.replace(/[^\w\s]/gi, '').trim()}`;
+                        
+                        // Cria a subcoleção no documento da empresa
+                        await empresaRef.collection(nomeSubcolecao).doc(empresaIdentificacao).set({
+                            nomePrestador: nomeFantasia,
+                            servico: servico.servico,
+                            atendente: atendente,
+                            dataCadastro: new Date().toISOString(),
+                            ...dataToSave.horarios // Inclui todas as informações de horários
+                        });
+                    }
+                }
+                
+                // Limpa o formulário
+                limparFormulario();
+                
+                showMessage('success', 'Prestador cadastrado com sucesso nas subcoleções da empresa!');
+                
+            } catch (error) {
+                console.error('Erro no cadastro:', error);
+                showMessage('error', 'Erro ao cadastrar prestador. Tente novamente.');
+            } finally {
+                // Esconde o loader
+                document.getElementById('loaderOverlay').style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
