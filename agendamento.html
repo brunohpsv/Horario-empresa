@@ -383,30 +383,30 @@
     }
     
     function carregarPrestadoresIndividuais(empresaId) {
-        // Carrega todos os documentos de prestadores individuais da empresa
-        db.collection("usuarios").doc(empresaId).collection("PI")
-            .get()
-            .then(querySnapshot => {
-                const prestadoresIndividuais = [];
-                
-                querySnapshot.forEach(doc => {
-                    prestadoresIndividuais.push({
-                        ...doc.data(),
-                        id: doc.id,
-                        isPI: true,
-                        docId: `${empresaId}/PI/${doc.id}` // Caminho completo do documento
-                    });
+    // Carrega todos os documentos de prestadores individuais da empresa
+    db.collection("usuarios").doc(empresaId).collection("PI")
+        .get()
+        .then(querySnapshot => {
+            const prestadoresIndividuais = [];
+            
+            querySnapshot.forEach(doc => {
+                prestadoresIndividuais.push({
+                    ...doc.data(),
+                    id: doc.id,
+                    isPI: true,
+                    docId: `${empresaId}/PI/${doc.id}` // Caminho completo do documento
                 });
-                
-                // Processa os serviços e atendentes combinando empresa e PIs
-                processarServicosAtendentesCombinados(empresaSelecionada, prestadoresIndividuais);
-            })
-            .catch(err => {
-                console.error("Erro ao carregar prestadores individuais:", err);
-                // Se der erro, continua apenas com os dados da empresa
-                processarServicosAtendentes(empresaSelecionada);
             });
-    }
+            
+            // Processa os serviços e atendentes combinando empresa e PIs
+            processarServicosAtendentesCombinados(empresaSelecionada, prestadoresIndividuais);
+        })
+        .catch(err => {
+            console.error("Erro ao carregar prestadores individuais:", err);
+            // Se der erro, continua apenas com os dados da empresa
+            processarServicosAtendentes(empresaSelecionada);
+        });
+}
     
     function processarServicosAtendentesCombinados(dadosEmpresa, prestadoresIndividuais) {
         servicosDisponiveis = [];
@@ -435,15 +435,27 @@
     }
     
     function processarServicosAtendentesDeDocumento(dados) {
-        if (Array.isArray(dados.servicoAtendente)) {
-            dados.servicoAtendente.forEach(item => {
-                if (item && typeof item === 'object') {
-                    const servico = item.servico?.trim();
-                    if (!servico) return;
-                    
-                    if (!servicosDisponiveis.includes(servico)) {
-                        servicosDisponiveis.push(servico);
-                    }
+    // Verifica se é um PI e tem os campos servico e atendente
+    if (dados.isPI && dados.servico && dados.atendente) {
+        const servico = dados.servico.trim();
+        const atendente = dados.atendente.trim();
+        
+        if (servico && atendente) {
+            if (!servicosDisponiveis.includes(servico)) {
+                servicosDisponiveis.push(servico);
+            }
+            
+            atendentes.push({
+                nome: atendente,
+                servico: servico,
+                isPI: true,
+                horarios: dados.horarios,
+                diasFuncionamento: dados.diasFuncionamento,
+                docId: dados.docId || dados.id
+            });
+        }
+        return;
+    }
                     
                     const listaAtendentes = Array.isArray(item.atendentes) 
                         ? item.atendentes 
