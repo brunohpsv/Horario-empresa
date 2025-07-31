@@ -120,12 +120,12 @@
             font-size: 14px;
         }
         
-        .panel-card .main-panel {
+        .panel-card.main-panel {
             background-color: #f0f8ff;
             border-color: #4682b4;
         }
         
-        .panel-card .individual-panel {
+        .panel-card.individual-panel {
             background-color: #f0fff0;
             border-color: #2e8b57;
         }
@@ -289,46 +289,56 @@
                     return;
                 }
                 
-                // Obtém o login do usuário atual
-                const userLogin = userDoc.data().login;
-                if (!userLogin) {
-                    showError("Login do usuário não encontrado.");
+                // Obtém o nomeFantasia do usuário atual
+                const nomeFantasia = userDoc.data().nomeFantasia;
+                if (!nomeFantasia) {
+                    showError("Campo 'nomeFantasia' não encontrado no usuário.");
                     return;
                 }
                 
-                // Busca todos os usuários com o mesmo login
+                // Busca todos os usuários com o mesmo nomeFantasia
                 const usuariosRef = collection(db, "usuarios");
-                const q = query(usuariosRef, where("login", "==", userLogin));
+                const q = query(usuariosRef, where("nomeFantasia", "==", nomeFantasia));
                 const querySnapshot = await getDocs(q);
                 
-                const panels = [];
+                const principalPanels = [];
+                const individualPanels = [];
                 
                 querySnapshot.forEach((doc) => {
+                    const id = doc.id;
                     const data = doc.data();
-                    panels.push({
-                        id: doc.id,
-                        nome: data.nomeCompleto || "Sem nome",
-                        tipo: doc.id.startsWith("PP - ") ? "principal" : 
-                              doc.id.startsWith("P") ? "individual" : "outro"
-                    });
+                    
+                    if (id.startsWith("PP - ")) {
+                        principalPanels.push({
+                            id: id,
+                            nome: data.nomeCompleto || "Painel Principal",
+                            tipo: "principal"
+                        });
+                    } 
+                    // Verifica se é um painel individual (P1 - a P30 -)
+                    else if (/^P[1-9] - |^P[1-2][0-9] - |^P30 - /.test(id)) {
+                        individualPanels.push({
+                            id: id,
+                            nome: data.nomeCompleto || `Painel Individual ${id.split(" - ")[0]}`,
+                            numero: id.split(" - ")[0].substring(1),
+                            tipo: "individual"
+                        });
+                    }
                 });
-                
-                // Separa os painéis principais dos individuais
-                const principalPanels = panels.filter(p => p.tipo === "principal");
-                const individualPanels = panels.filter(p => p.tipo === "individual");
                 
                 // Verifica se há painel principal
                 if (principalPanels.length === 0) {
-                    showError("Nenhum painel principal encontrado para este login.");
+                    showError("Nenhum painel principal encontrado para este nomeFantasia.");
                     return;
                 }
+                
+                // Ordena os painéis individuais por número
+                individualPanels.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
                 
                 // Cria os cards para cada painel individual
                 if (individualPanels.length > 0) {
                     individualPanels.forEach(panel => {
-                        // Extrai o número do painel (P1, P2, etc.)
-                        const panelNumber = panel.id.split(" - ")[0].substring(1);
-                        createPanelCard(panel.id, panel.nome, panelNumber);
+                        createPanelCard(panel.id, panel.nome, panel.numero);
                     });
                     noPanelsMessage.style.display = 'none';
                 } else {
