@@ -710,32 +710,25 @@
                 'servicos', 'serviços', 'services',
                 'tipoServico', 'tipoServiço', 'serviceType',
                 'categoria', 'category',
-                'especialidade', 'specialty'
+                'especialidade', 'specialty',
+                'servico', 'serviço', 'service'
             ];
             
-            // Verifica campos genéricos que podem conter serviços
-            const camposGenericos = Object.keys(empresa).filter(key => 
-                key.toLowerCase().includes('servico') || 
-                key.toLowerCase().includes('serviço') || 
-                key.toLowerCase().includes('service') ||
-                key.toLowerCase().includes('categoria') ||
-                key.toLowerCase().includes('category') ||
-                key.toLowerCase().includes('especialidade') ||
-                key.toLowerCase().includes('specialty')
-            );
-            
-            // Combina todos os campos relevantes
-            const todosCampos = [...new Set([...camposServicos, ...camposGenericos])];
-            
-            todosCampos.forEach(campo => {
-                if (empresa[campo]) {
-                    const valor = empresa[campo];
+            // Verifica todos os campos da empresa
+            Object.keys(empresa).forEach(key => {
+                const value = empresa[key];
+                
+                // Se o valor é uma string, verifica se parece ser um serviço
+                if (typeof value === 'string' && value.trim() !== '') {
+                    // Verifica se o nome do campo sugere que é um serviço
+                    const isServiceField = camposServicos.some(term => 
+                        key.toLowerCase().includes(term.toLowerCase())
+                    );
                     
-                    // Caso 1: Valor é uma string
-                    if (typeof valor === 'string') {
+                    if (isServiceField) {
                         // Tenta dividir por vários separadores diferentes
                         const separadores = [',', ';', '/', '|', '-', '•'];
-                        let partes = [valor];
+                        let partes = [value];
                         
                         separadores.forEach(sep => {
                             partes = partes.flatMap(part => 
@@ -744,20 +737,19 @@
                         });
                         
                         servicos.push(...partes);
-                    } 
-                    // Caso 2: Valor é um array
-                    else if (Array.isArray(valor)) {
-                        valor.forEach(item => {
-                            if (typeof item === 'string') {
-                                servicos.push(item.trim());
-                            }
-                        });
                     }
-                    // Caso 3: Valor é um objeto (poderia conter subserviços)
-                    else if (typeof valor === 'object' && valor !== null) {
-                        // Recursivamente extrai serviços de objetos aninhados
-                        servicos.push(...extrairServicos(valor));
-                    }
+                }
+                // Se o valor é um array, verifica cada item
+                else if (Array.isArray(value)) {
+                    value.forEach(item => {
+                        if (typeof item === 'string' && item.trim() !== '') {
+                            servicos.push(item.trim());
+                        }
+                    });
+                }
+                // Se o valor é um objeto, verifica recursivamente
+                else if (typeof value === 'object' && value !== null) {
+                    servicos.push(...extrairServicos(value));
                 }
             });
             
@@ -766,6 +758,7 @@
                 servicos
                     .filter(s => s && s.trim() !== '')
                     .map(s => s.trim())
+                    .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
             )];
         }
 
@@ -954,7 +947,7 @@
                 // Converte Set para Array, ordena e remove duplicatas
                 Array.from(servicosDisponiveis)
                     .filter((servico, index, self) => 
-                        self.findIndex(s => s.toLowerCase() === servico.toLowerCase()) === index
+                        index === self.findIndex(s => s.toLowerCase() === servico.toLowerCase())
                     ) // Remove duplicatas case insensitive
                     .sort((a, b) => a.localeCompare(b))
                     .forEach(servico => {
@@ -1046,20 +1039,21 @@
             });
 
             document.querySelector('.login-btn').addEventListener('click', function(e) {
-  e.preventDefault();
-  fetch('/login.html')
-    .then(response => {
-      if (response.ok) {
-        window.location.href = '/login.html';
-      } else {
-        alert('Página de login não encontrada. Entre em contato com o suporte.');
-      }
-    })
-    .catch(error => {
-      console.error('Erro:', error);
-      alert('Não foi possível acessar a página de login.');
-    });
-});
+                e.preventDefault();
+                fetch('/login.html')
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.href = '/login.html';
+                        } else {
+                            alert('Página de login não encontrada. Entre em contato com o suporte.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        alert('Não foi possível acessar a página de login.');
+                    });
+            });
+            
             // Inicia o carregamento
             carregarEmpresas();
             
