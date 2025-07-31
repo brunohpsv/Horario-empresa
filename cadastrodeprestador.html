@@ -681,19 +681,11 @@
                     return;
                 }
                 
-                // Cria o ID do documento do painel individual com prefixo "PI - " + empresaDocId
-                const painelDocId = `PI - ${empresaDocId}`;
+                // Cria um ID único para o prestador individual usando o timestamp atual
+                const prestadorId = `PI-${Date.now()}`;
                 
-                // Referência para o documento do painel individual na coleção 'usuarios'
-                const painelRef = db.collection('usuarios').doc(painelDocId);
-                
-                // Verifica se já existe um documento com esse ID
-                const docExists = await painelRef.get();
-                if (docExists.exists) {
-                    showMessage('error', 'Já existe um prestador cadastrado para esta empresa com este ID');
-                    document.getElementById('loaderOverlay').style.display = 'none';
-                    return;
-                }
+                // Referência para o documento do prestador individual na coleção 'usuarios'
+                const prestadorRef = db.collection('usuarios').doc(prestadorId);
                 
                 // Objeto com todos os dados a serem salvos
                 const dataToSave = {
@@ -721,7 +713,7 @@
                 }
                 
                 // Salva todos os dados no Firestore
-                await painelRef.set(dataToSave);
+                await prestadorRef.set(dataToSave);
                 
                 // Limpa o formulário (exceto o campo empresaDocId)
                 limparFormulario();
