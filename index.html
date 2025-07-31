@@ -435,7 +435,7 @@
             <ul>
                 <li><a href="index.html"><i class="fas fa-home"></i><span class="sr-only">Home</span></a></li>
                 <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização" aria-label="Localização"><i class="fas fa-map-marker-alt"></i></a></li>
-                <a href="/login" class="login-btn"><i class="fas fa-user"></i> Login/Cadastro</a>
+                <a href="https://horario.site/login.html" class="login-btn"><i class="fas fa-user"></i> Login/Cadastro</a>
             </ul>
         </nav>
     </header>
@@ -1043,7 +1043,22 @@
                     obterLocalizacaoUsuario();
                 }
             });
-            
+
+            document.querySelector('.login-btn').addEventListener('click', function(e) {
+  e.preventDefault();
+  fetch('/login.html')
+    .then(response => {
+      if (response.ok) {
+        window.location.href = '/login.html';
+      } else {
+        alert('Página de login não encontrada. Entre em contato com o suporte.');
+      }
+    })
+    .catch(error => {
+      console.error('Erro:', error);
+      alert('Não foi possível acessar a página de login.');
+    });
+});
             // Inicia o carregamento
             carregarEmpresas();
             
