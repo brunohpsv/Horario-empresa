@@ -304,17 +304,28 @@
                 // Combina os resultados
                 const allPanels = [];
                 
-                querySnapshots.forEach(snapshot => {
-                    snapshot.forEach(doc => {
-                        if (doc.data().nomeFantasia) {
-                            allPanels.push({ 
-                                id: doc.id, 
-                                nome: doc.data().nomeFantasia,
-                                numero: parseInt(doc.id.split(' -')[0].replace('P', ''))
-                            });
+                for (const snapshot of querySnapshots) {
+                    for (const docSnap of snapshot.docs) {
+                        const panelData = docSnap.data();
+                        if (panelData.nomeFantasia) {
+                            // Busca o nome do atendente na subcoleção "atendentes"
+                            const atendentesRef = collection(db, "usuarios", docSnap.id, "atendentes");
+                            const atendentesSnapshot = await getDocs(atendentesRef);
+                            
+                            if (!atendentesSnapshot.empty) {
+                                // Pega o primeiro atendente (assumindo que cada painel tem pelo menos um)
+                                const primeiroAtendente = atendentesSnapshot.docs[0].data();
+                                const nomeAtendente = primeiroAtendente.nome || "Atendente sem nome";
+                                
+                                allPanels.push({ 
+                                    id: docSnap.id, 
+                                    nome: nomeAtendente,
+                                    numero: parseInt(docSnap.id.split(' -')[0].replace('P', ''))
+                                });
+                            }
                         }
-                    });
-                });
+                    }
+                }
                 
                 // Ordena os painéis por número (P1, P2, P3...)
                 allPanels.sort((a, b) => a.numero - b.numero);
@@ -348,13 +359,13 @@
         }
 
         // Cria um card de painel individual
-        function createPanelCard(panelId, panelName) {
+        function createPanelCard(panelId, atendenteName) {
             const panelCard = document.createElement('div');
             panelCard.className = 'panel-card individual-panel';
             panelCard.dataset.id = panelId;
             
             panelCard.innerHTML = `
-                <h3>${panelName}</h3>
+                <h3>${atendenteName}</h3>
                 <p>Painel individual ${panelId.split(' -')[0]}</p>
             `;
             
