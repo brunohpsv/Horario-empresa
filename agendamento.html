@@ -320,131 +320,119 @@
     }
     
     function carregarDadosEmpresa() {
-        const empresaId = new URLSearchParams(window.location.search).get('id');
-        
-        if (!empresaId) {
-            mostrarErro("Nenhuma empresa selecionada. Volte e selecione uma empresa.");
-            return;
-        }
-        
-        console.log("Iniciando carregamento para empresa ID:", empresaId);
-        
-        // Primeiro carrega a empresa principal
-        db.collection("usuarios").doc(empresaId).get()
-            .then(docEmpresaPrincipal => {
-                console.log("Documento principal encontrado:", docEmpresaPrincipal.exists);
-                
-                // Mesmo que encontre a empresa principal, SEMPRE carrega os prestadores individuais
-                carregarPrestadoresIndividuais(empresaId, docEmpresaPrincipal);
-            })
-            .catch(err => {
-                console.error("Erro ao carregar empresa principal:", err);
-                // Se der erro, tenta como prestador individual
-                carregarComoPrestadorIndividual(empresaId);
-            });
+    const empresaId = new URLSearchParams(window.location.search).get('id');
+    
+    if (!empresaId) {
+        mostrarErro("Nenhuma empresa selecionada. Volte e selecione uma empresa.");
+        return;
     }
     
-    function carregarPrestadoresIndividuais(empresaId, docEmpresaPrincipal) {
-        console.log("Carregando prestadores individuais para empresa:", empresaId);
-        
-        // Carrega todos os documentos de prestadores individuais da empresa
-        db.collection("usuarios").doc(empresaId).collection("PI")
-            .get()
-            .then(querySnapshot => {
-                console.log("Prestadores individuais encontrados:", querySnapshot.size);
+    console.log("Iniciando carregamento para empresa ID:", empresaId);
+    
+    // Primeiro tenta carregar como empresa principal
+    db.collection("usuarios").doc(empresaId).get()
+        .then(docEmpresaPrincipal => {
+            if (docEmpresaPrincipal.exists) {
+                console.log("Empresa principal encontrada:", docEmpresaPrincipal.id);
+                empresaSelecionada = {
+                    ...docEmpresaPrincipal.data(),
+                    id: empresaId,
+                    isPI: false,
+                    docId: empresaId
+                };
+                document.getElementById('empresa-nome').textContent = 
+                    empresaSelecionada.nomeFantasia || empresaSelecionada.nomeCompleto || "Empresa";
                 
-                const prestadoresIndividuais = [];
-                
-                querySnapshot.forEach(doc => {
-                    prestadoresIndividuais.push({
-                        ...doc.data(),
-                        id: doc.id,
-                        isPI: true,
-                        docId: `${empresaId}/PI/${doc.id}` // Caminho completo do documento
-                    });
+                // Carrega prestadores individuais (se existirem)
+                carregarPrestadoresIndividuais(empresaId);
+            } else {
+                // Se não encontrou como empresa principal, tenta como PI
+                carregarComoPrestadorIndividual(empresaId);
+            }
+        })
+        .catch(err => {
+            console.error("Erro ao carregar empresa principal:", err);
+            // Tenta como prestador individual
+            carregarComoPrestadorIndividual(empresaId);
+        });
+}
+    
+    function carregarPrestadoresIndividuais(empresaId) {
+    console.log("Carregando prestadores individuais para empresa:", empresaId);
+    
+    db.collection("usuarios").doc(empresaId).collection("PI")
+        .get()
+        .then(querySnapshot => {
+            const prestadoresIndividuais = [];
+            
+            querySnapshot.forEach(doc => {
+                prestadoresIndividuais.push({
+                    ...doc.data(),
+                    id: doc.id,
+                    isPI: true,
+                    docId: `${empresaId}/PI/${doc.id}`
                 });
-                
-                // Processa os serviços e atendentes combinando empresa e PIs
-                processarServicosAtendentesCombinados(docEmpresaPrincipal, prestadoresIndividuais);
-            })
-            .catch(err => {
-                console.error("Erro ao carregar prestadores individuais:", err);
-                // Se der erro, processa apenas com os dados da empresa principal
-                if (docEmpresaPrincipal.exists) {
-                    processarServicosAtendentes({
-                        ...docEmpresaPrincipal.data(),
-                        id: empresaId,
-                        isPI: false,
-                        docId: empresaId
-                    });
-                } else {
-                    mostrarErro("Nenhum dado de empresa ou prestador encontrado.");
-                }
             });
-    }
+            
+            console.log("Prestadores individuais encontrados:", prestadoresIndividuais.length);
+            
+            // Processa os dados combinando empresa principal e PIs
+            processarDadosCombinados(empresaSelecionada, prestadoresIndividuais);
+        })
+        .catch(err => {
+            console.error("Erro ao carregar prestadores individuais:", err);
+            // Processa apenas com os dados da empresa principal
+            processarServicosAtendentes(empresaSelecionada);
+        });
+}
     
     function carregarComoPrestadorIndividual(empresaId) {
-        const piId = `PI - ${empresaId}`;
-        console.log("Tentando carregar como prestador individual:", piId);
-        
-        db.collection("usuarios").doc(piId).get()
-            .then(doc => {
-                if (!doc.exists) {
-                    mostrarErro("Empresa/prestador não encontrado.");
-                    return;
-                }
-                
+    console.log("Tentando carregar como prestador individual:", empresaId);
+    
+    // Primeiro tenta com o formato de ID de PI direto
+    db.collection("usuarios").doc(empresaId).get()
+        .then(doc => {
+            if (doc.exists) {
                 console.log("Prestador individual encontrado:", doc.id);
-                
-                // Processa os dados do prestador individual
                 empresaSelecionada = {
                     ...doc.data(),
-                    id: piId,
+                    id: empresaId,
                     isPI: true,
-                    docId: piId
+                    docId: empresaId
                 };
                 
                 document.getElementById('empresa-nome').textContent = 
-                    empresaSelecionada.nomeCompleto || "Prestador Individual";
+                    empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Prestador Individual";
                 
                 processarServicosAtendentes(empresaSelecionada);
-            })
-            .catch(err => {
-                console.error("Erro ao carregar dados do prestador individual:", err);
-                mostrarErro("Erro ao carregar dados da empresa/prestador.");
-            });
+            } else {
+                mostrarErro("Empresa/prestador não encontrado.");
+            }
+        })
+        .catch(err => {
+            console.error("Erro ao carregar dados do prestador individual:", err);
+            mostrarErro("Erro ao carregar dados da empresa/prestador.");
+        });
+}
+    function processarDadosCombinados(dadosEmpresa, prestadoresIndividuais) {
+    servicosDisponiveis = [];
+    atendentes = [];
+    
+    // Processa empresa principal
+    if (dadosEmpresa) {
+        processarServicosAtendentesDeDocumento(dadosEmpresa);
     }
     
-    function processarServicosAtendentesCombinados(docEmpresaPrincipal, prestadoresIndividuais) {
-        console.log("Processando serviços e atendentes combinados");
-        
-        servicosDisponiveis = [];
-        atendentes = [];
-        
-        // Processa serviços e atendentes da empresa principal (se existir)
-        if (docEmpresaPrincipal.exists) {
-            console.log("Processando empresa principal");
-            processarServicosAtendentesDeDocumento({
-                ...docEmpresaPrincipal.data(),
-                id: docEmpresaPrincipal.id,
-                isPI: false,
-                docId: docEmpresaPrincipal.id
-            });
-        }
-        
-        // Processa serviços e atendentes dos prestadores individuais
-        if (prestadoresIndividuais && prestadoresIndividuais.length > 0) {
-            console.log("Processando", prestadoresIndividuais.length, "prestadores individuais");
-            prestadoresIndividuais.forEach(pi => {
-                processarServicosAtendentesDeDocumento(pi);
-            });
-        }
-        
-        console.log("Total de serviços encontrados:", servicosDisponiveis.length);
-        console.log("Total de atendentes encontrados:", atendentes.length);
-        
-        preencherSelectServicosAtendentes();
-    }
+    // Processa prestadores individuais
+    prestadoresIndividuais.forEach(pi => {
+        processarServicosAtendentesDeDocumento(pi);
+    });
+    
+    console.log("Total de serviços:", servicosDisponiveis.length);
+    console.log("Total de atendentes:", atendentes.length);
+    
+    preencherSelectServicosAtendentes();
+}
     
     function processarServicosAtendentes(dados) {
         servicosDisponiveis = [];
@@ -454,162 +442,78 @@
     }
     
     function processarServicosAtendentesDeDocumento(dados) {
-        console.log("Processando documento:", dados.id);
-        
-        // Verifica se é um prestador individual na subcoleção PI
-        if (dados.id && dados.id.includes('/PI/')) {
-            console.log("Documento é um PI na subcoleção");
-            if (dados.servico && dados.atendente) {
-                const servico = dados.servico.trim();
-                const atendente = dados.atendente.trim();
+    // Caso 1: Dados estruturados com servicoAtendente como array
+    if (Array.isArray(dados.servicoAtendente)) {
+        dados.servicoAtendente.forEach(item => {
+            if (item && typeof item === 'object') {
+                const servico = item.servico?.trim();
+                if (!servico) return;
                 
-                if (servico && atendente) {
-                    if (!servicosDisponiveis.includes(servico)) {
-                        servicosDisponiveis.push(servico);
-                    }
-                    
-                    atendentes.push({
-                        nome: atendente,
-                        servico: servico,
-                        isPI: true,
-                        horarios: dados.horarios || dados.horariosConfig,
-                        diasFuncionamento: dados.diasFuncionamento || dados.horariosConfig?.diasFuncionamento,
-                        docId: dados.id
-                    });
-                }
-            }
-            return;
-        }
-
-        // Processamento normal para outros casos
-        if (Array.isArray(dados.servicoAtendente)) {
-            dados.servicoAtendente.forEach(item => {
-                if (item && typeof item === 'object') {
-                    const servico = item.servico?.trim();
-                    if (!servico) return;
-                    
-                    if (!servicosDisponiveis.includes(servico)) {
-                        servicosDisponiveis.push(servico);
-                    }
-                    
-                    const listaAtendentes = Array.isArray(item.atendentes) 
-                        ? item.atendentes 
-                        : typeof item.atendentes === 'string' 
-                            ? item.atendentes.split(',').map(a => a.trim())
-                            : [];
-                            
-                    listaAtendentes.forEach(atendente => {
-                        if (atendente && atendente.trim() !== '') {
-                            atendentes.push({
-                                nome: atendente.trim(),
-                                servico: servico,
-                                isPI: dados.isPI,
-                                horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
-                                diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
-                                docId: dados.id
-                            });
-                        }
-                    });
-                } else if (typeof item === 'string') {
-                    const partes = item.split('-').map(p => p.trim());
-                    if (partes.length >= 2) {
-                        const servico = partes[0];
-                        const nomesAtendentes = partes[1].split(',').map(a => a.trim());
-                        
-                        if (servico && nomesAtendentes.length > 0) {
-                            if (!servicosDisponiveis.includes(servico)) {
-                                servicosDisponiveis.push(servico);
-                            }
-                            
-                            nomesAtendentes.forEach(atendente => {
-                                if (atendente && atendente.trim() !== '') {
-                                    atendentes.push({
-                                        nome: atendente,
-                                        servico: servico,
-                                        isPI: dados.isPI,
-                                        horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
-                                        diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
-                                        docId: dados.id
-                                    });
-                                }
-                            });
-                        }
-                    }
-                }
-            });
-        } 
-        else if (typeof dados.servicoAtendente === 'string') {
-            const linhas = dados.servicoAtendente.split('\n')
-                .map(linha => linha.trim())
-                .filter(linha => linha.length > 0);
-            
-            linhas.forEach(linha => {
-                const partes = linha.split('-').map(p => p.trim());
-                
-                if (partes.length >= 2) {
-                    const servico = partes[0];
-                    const nomesAtendentes = partes[1].split(',').map(a => a.trim());
-                    
-                    if (servico && nomesAtendentes.length > 0) {
-                        if (!servicosDisponiveis.includes(servico)) {
-                            servicosDisponiveis.push(servico);
-                        }
-                        
-                        nomesAtendentes.forEach(atendente => {
-                            if (atendente && atendente.trim() !== '') {
-                                atendentes.push({
-                                    nome: atendente,
-                                    servico: servico,
-                                    isPI: dados.isPI,
-                                    horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
-                                    diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
-                                    docId: dados.id
-                                });
-                            }
-                        });
-                    }
-                }
-            });
-        }
-        else if (dados.servico && dados.atendente) {
-            // Formato específico para prestadores individuais
-            const servico = dados.servico.trim();
-            const atendente = dados.atendente.trim();
-            
-            if (servico && atendente) {
                 if (!servicosDisponiveis.includes(servico)) {
                     servicosDisponiveis.push(servico);
                 }
                 
-                atendentes.push({
-                    nome: atendente,
-                    servico: servico,
-                    isPI: dados.isPI,
-                    horarios: dados.horarios || dados.horariosConfig,
-                    diasFuncionamento: dados.diasFuncionamento || dados.horariosConfig?.diasFuncionamento,
-                    docId: dados.id
+                const listaAtendentes = Array.isArray(item.atendentes) 
+                    ? item.atendentes 
+                    : typeof item.atendentes === 'string' 
+                        ? item.atendentes.split(',').map(a => a.trim())
+                        : [];
+                        
+                listaAtendentes.forEach(atendente => {
+                    if (atendente && atendente.trim() !== '') {
+                        atendentes.push({
+                            nome: atendente.trim(),
+                            servico: servico,
+                            isPI: dados.isPI,
+                            horarios: dados.horarios || dados.horariosConfig,
+                            diasFuncionamento: dados.diasFuncionamento || dados.horariosConfig?.diasFuncionamento,
+                            docId: dados.docId || dados.id
+                        });
+                    }
                 });
             }
-        }
-        else {
-            const nomeAtendente = dados.nomeCompleto || dados.nomeFantasia || 
-                                  (dados.isPI ? "Prestador" : "Atendente");
-            const servicoPadrao = dados.isPI ? "Serviço do Prestador" : "Serviço Geral";
-            
-            if (!servicosDisponiveis.includes(servicoPadrao)) {
-                servicosDisponiveis.push(servicoPadrao);
+        });
+    }
+    // Caso 2: Prestador individual com campos separados
+    else if (dados.servico && dados.atendente) {
+        const servico = dados.servico.trim();
+        const atendente = dados.atendente.trim();
+        
+        if (servico && atendente) {
+            if (!servicosDisponiveis.includes(servico)) {
+                servicosDisponiveis.push(servico);
             }
             
             atendentes.push({
-                nome: nomeAtendente,
-                servico: servicoPadrao,
+                nome: atendente,
+                servico: servico,
                 isPI: dados.isPI,
-                horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
-                diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
-                docId: dados.id
+                horarios: dados.horarios || dados.horariosConfig,
+                diasFuncionamento: dados.diasFuncionamento || dados.horariosConfig?.diasFuncionamento,
+                docId: dados.docId || dados.id
             });
         }
     }
+    // Caso 3: Dados mínimos - cria um serviço e atendente padrão
+    else {
+        const nomeAtendente = dados.nomeCompleto || dados.nomeFantasia || "Atendente";
+        const servicoPadrao = "Serviço Principal";
+        
+        if (!servicosDisponiveis.includes(servicoPadrao)) {
+            servicosDisponiveis.push(servicoPadrao);
+        }
+        
+        atendentes.push({
+            nome: nomeAtendente,
+            servico: servicoPadrao,
+            isPI: dados.isPI,
+            horarios: dados.horarios || dados.horariosConfig,
+            diasFuncionamento: dados.diasFuncionamento || dados.horariosConfig?.diasFuncionamento,
+            docId: dados.docId || dados.id
+        });
+    }
+}
+
     
     function preencherSelectServicosAtendentes() {
         const select = document.getElementById('servico-atendente');
