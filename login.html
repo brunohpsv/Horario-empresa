@@ -271,9 +271,16 @@
                 // 2. Faz login no Firebase Authentication usando o email e senha
                 await signInWithEmailAndPassword(auth, userData.email, senha);
 
-                // 3. Redireciona para o painel
-                window.location.href = 'painel.html';
-                window.location.href = 'painelindiv.html';
+                // 3. Redireciona para o painel apropriado com base no prefixo do login
+                if (login.startsWith("PP -")) {
+                    window.location.href = 'painel.html';
+                } else if (login.startsWith("P") && /^\d/.test(login.substring(2, 3))) {
+                    // Verifica se após "P" tem um número (como "P1 -")
+                    window.location.href = 'painelindiv.html';
+                } else {
+                    // Redirecionamento padrão caso não se encaixe nos padrões
+                    window.location.href = 'painelindiv.html';
+                }
 
             } catch (error) {
                 console.error('Erro no login:', error);
