@@ -310,6 +310,16 @@
             align-items: center;
             gap: 5px;
         }
+
+        .credenciais-acesso {
+            display: none;
+            background: #e7f3fe;
+            color: #31708f;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #31708f;
+        }
     </style>
 </head>
 <body>
@@ -329,6 +339,14 @@
         <h1>Cadastro de Prestador Individual</h1>
         
         <div id="message" class="message"></div>
+        
+        <!-- Credenciais de acesso -->
+        <div id="credenciaisAcesso" class="credenciais-acesso">
+            <h3>Suas Credenciais de Acesso</h3>
+            <p><strong>Login:</strong> <span id="cred-login"></span></p>
+            <p><strong>Senha:</strong> <span id="cred-senha"></span></p>
+            <p>Guarde essas informações em local seguro. Você poderá alterar a senha após o primeiro login.</p>
+        </div>
         
         <!-- Formulário de configuração do prestador -->
         <form id="prestadorForm">
@@ -352,8 +370,8 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="identificacao">Identificação:</label>
-                    <input type="text" id="identificacao" placeholder="Sua identificação na empresa" required>
+                    <label for="email">E-mail:</label>
+                    <input type="email" id="email" placeholder="Seu e-mail para login" required>
                 </div>
                 
                 <div class="form-group">
@@ -488,6 +506,22 @@
         }, 5000);
     }
 
+    // Função para gerar senha aleatória
+    function gerarSenha() {
+        const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let senha = '';
+        for (let i = 0; i < 8; i++) {
+            senha += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        }
+        return senha;
+    }
+
+    // Função para gerar código de login numérico
+    function gerarCodigoLogin(nomeEmpresa) {
+        const codigo = Math.floor(10000000 + Math.random() * 90000000);
+        return `${nomeEmpresa.split(' ')[0]} - ${codigo}`;
+    }
+
     // Função para adicionar um novo serviço
     function addServico(servicoData = { servico: '', atendentes: [''] }) {
         const servicosContainer = document.getElementById('servicosContainer');
@@ -576,7 +610,7 @@
         document.getElementById('nomeFantasia').value = '';
         document.getElementById('nomeCompleto').value = '';
         document.getElementById('cpf').value = '';
-        document.getElementById('identificacao').value = '';
+        document.getElementById('email').value = '';
         document.getElementById('empresaDocId').value = '';
         
         // Limpa serviços (mantém apenas um serviço vazio)
@@ -632,10 +666,10 @@
         const nomeFantasia = document.getElementById('nomeFantasia').value;
         const nomeCompleto = document.getElementById('nomeCompleto').value;
         const cpf = document.getElementById('cpf').value;
-        const identificacao = document.getElementById('identificacao').value;
+        const email = document.getElementById('email').value;
         const empresaId = document.getElementById('empresaDocId').value.trim();
         
-        if (!nomeFantasia || !nomeCompleto || !cpf || !identificacao || !empresaId) {
+        if (!nomeFantasia || !nomeCompleto || !cpf || !email || !empresaId) {
             showMessage('error', 'Preencha todas as informações pessoais');
             return;
         }
@@ -683,6 +717,14 @@
             // Mostra o loader enquanto cadastra
             document.getElementById('loaderOverlay').style.display = 'flex';
             
+            // Gerar senha e login automaticamente
+            const senha = gerarSenha();
+            const login = gerarCodigoLogin(nomeFantasia);
+            
+            // Criar usuário no Authentication
+            const userCredential = await auth.createUserWithEmailAndPassword(email, senha);
+            const userId = userCredential.user.uid;
+            
             // Obtém o próximo ID disponível (P1, P2, ..., P30)
             const empresaDocId = await getNextAvailableId(empresaId);
             const empresaRef = db.collection('usuarios').doc(empresaDocId);
@@ -692,7 +734,9 @@
                 nomeFantasia: nomeFantasia,
                 nomeCompleto: nomeCompleto,
                 cpf: cpf,
-                identificacao: identificacao,
+                email: email,
+                login: login,
+                senha: senha, // Armazenando a senha no Firestore também
                 tipo: 'painel-individual',
                 horarios: {
                     diasFuncionamento: diasSelecionados,
@@ -702,7 +746,8 @@
                     intervaloAtendimento: parseInt(intervaloAtendimento)
                 },
                 servicoAtendente: servicoAtendente,
-                dataCadastro: new Date().toISOString()
+                dataCadastro: new Date().toISOString(),
+                userId: userId // Adiciona o UID do Authentication como referência
             };
             
             // Adiciona horário de almoço se necessário
@@ -713,6 +758,11 @@
             
             // Salva os dados no documento principal
             await empresaRef.set(dataToSave);
+            
+            // Mostra as credenciais de acesso
+            document.getElementById('credenciaisAcesso').style.display = 'block';
+            document.getElementById('cred-login').textContent = login;
+            document.getElementById('cred-senha').textContent = senha;
             
             // Limpa o formulário
             limparFormulario();
@@ -727,6 +777,6 @@
             document.getElementById('loaderOverlay').style.display = 'none';
         }
     });
-</script>
+    </script>
 </body>
 </html>
