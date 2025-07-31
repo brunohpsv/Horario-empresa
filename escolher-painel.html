@@ -281,7 +281,7 @@
                 // Mostra mensagem de carregamento
                 loadingText.style.display = 'block';
                 
-                // Primeiro, verifica se o usuário tem um painel principal (PP -)
+                // Primeiro, obtém o documento do usuário atual
                 const userDoc = await getDoc(doc(db, "usuarios", currentUser.uid));
                 
                 if (!userDoc.exists()) {
@@ -289,47 +289,46 @@
                     return;
                 }
                 
-                // Extrai o sufixo do painel principal (tudo depois de "PP - ")
-                const principalId = userDoc.id;
-                if (!principalId.startsWith("PP - ")) {
-                    showError("Este usuário não é um painel principal válido.");
+                // Obtém o login do usuário atual
+                const userLogin = userDoc.data().login;
+                if (!userLogin) {
+                    showError("Login do usuário não encontrado.");
                     return;
                 }
                 
-                const suffix = principalId.substring(5); // Remove "PP - " do início
-                
-                // Busca todos os painéis individuais (P1 - suffix até P30 - suffix)
+                // Busca todos os usuários com o mesmo login
                 const usuariosRef = collection(db, "usuarios");
-                const panelQueries = [];
+                const q = query(usuariosRef, where("login", "==", userLogin));
+                const querySnapshot = await getDocs(q);
                 
-                for (let i = 1; i <= 30; i++) {
-                    const panelId = `P${i} - ${suffix}`;
-                    panelQueries.push(doc(usuariosRef, panelId));
+                const panels = [];
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    panels.push({
+                        id: doc.id,
+                        nome: data.nomeCompleto || "Sem nome",
+                        tipo: doc.id.startsWith("PP - ") ? "principal" : 
+                              doc.id.startsWith("P") ? "individual" : "outro"
+                    });
+                });
+                
+                // Separa os painéis principais dos individuais
+                const principalPanels = panels.filter(p => p.tipo === "principal");
+                const individualPanels = panels.filter(p => p.tipo === "individual");
+                
+                // Verifica se há painel principal
+                if (principalPanels.length === 0) {
+                    showError("Nenhum painel principal encontrado para este login.");
+                    return;
                 }
                 
-                // Executa todas as queries em paralelo
-                const panelSnapshots = await Promise.all(
-                    panelQueries.map(ref => getDoc(ref))
-                );
-                
-                // Filtra apenas os painéis que existem e têm nomeCompleto
-                const existingPanels = [];
-                
-                for (let i = 0; i < panelSnapshots.length; i++) {
-                    const docSnap = panelSnapshots[i];
-                    if (docSnap.exists() && docSnap.data().nomeCompleto) {
-                        existingPanels.push({
-                            id: docSnap.id,
-                            nome: docSnap.data().nomeCompleto,
-                            numero: i + 1
-                        });
-                    }
-                }
-                
-                // Cria os cards para cada painel
-                if (existingPanels.length > 0) {
-                    existingPanels.forEach(panel => {
-                        createPanelCard(panel.id, panel.nome, panel.numero);
+                // Cria os cards para cada painel individual
+                if (individualPanels.length > 0) {
+                    individualPanels.forEach(panel => {
+                        // Extrai o número do painel (P1, P2, etc.)
+                        const panelNumber = panel.id.split(" - ")[0].substring(1);
+                        createPanelCard(panel.id, panel.nome, panelNumber);
                     });
                     noPanelsMessage.style.display = 'none';
                 } else {
