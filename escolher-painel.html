@@ -281,38 +281,48 @@
                 // Mostra mensagem de carregamento
                 loadingText.style.display = 'block';
                 
-                // Busca todos os documentos que começam com "PI" (com ou sem espaço) na coleção "usuarios"
+                // Busca todos os documentos que começam com "P1 -" até "P30 -" na coleção "usuarios"
                 const usuariosRef = collection(db, "usuarios");
                 
-                // Criamos duas queries para pegar tanto "PI " quanto "PI-"
-                const q1 = query(usuariosRef, where("__name__", ">=", "PI "), where("__name__", "<", "PI!"));
-                const q2 = query(usuariosRef, where("__name__", ">=", "PI-"), where("__name__", "<", "PI."));
+                // Criamos queries para cada prefixo de painel individual (P1 - a P30 -)
+                const panelQueries = [];
+                for (let i = 1; i <= 30; i++) {
+                    const prefix = `P${i} -`;
+                    panelQueries.push(
+                        query(usuariosRef, 
+                            where("__name__", ">=", prefix),
+                            where("__name__", "<", prefix + '\uf8ff')
+                        )
+                    );
+                }
                 
-                // Executa ambas as queries em paralelo
-                const [querySnapshot1, querySnapshot2] = await Promise.all([
-                    getDocs(q1),
-                    getDocs(q2)
-                ]);
+                // Executa todas as queries em paralelo
+                const querySnapshots = await Promise.all(
+                    panelQueries.map(q => getDocs(q))
+                );
                 
                 // Combina os resultados
                 const allPanels = [];
                 
-                querySnapshot1.forEach(doc => allPanels.push({ id: doc.id, data: doc.data() }));
-                querySnapshot2.forEach(doc => allPanels.push({ id: doc.id, data: doc.data() }));
-                
-                // Ordena os painéis por nome
-                allPanels.sort((a, b) => {
-                    const nameA = a.data.nomeCompleto?.toUpperCase() || '';
-                    const nameB = b.data.nomeCompleto?.toUpperCase() || '';
-                    return nameA.localeCompare(nameB);
+                querySnapshots.forEach(snapshot => {
+                    snapshot.forEach(doc => {
+                        if (doc.data().nomeFantasia) {
+                            allPanels.push({ 
+                                id: doc.id, 
+                                nome: doc.data().nomeFantasia,
+                                numero: parseInt(doc.id.split(' -')[0].replace('P', ''))
+                            });
+                        }
+                    });
                 });
+                
+                // Ordena os painéis por número (P1, P2, P3...)
+                allPanels.sort((a, b) => a.numero - b.numero);
                 
                 // Cria os cards para cada painel
                 if (allPanels.length > 0) {
                     allPanels.forEach(panel => {
-                        if (panel.data.nomeCompleto) {
-                            createPanelCard(panel.id, panel.data.nomeCompleto);
-                        }
+                        createPanelCard(panel.id, panel.nome);
                     });
                     noPanelsMessage.style.display = 'none';
                 } else {
@@ -345,7 +355,7 @@
             
             panelCard.innerHTML = `
                 <h3>${panelName}</h3>
-                <p>Painel individual para atendimento</p>
+                <p>Painel individual ${panelId.split(' -')[0]}</p>
             `;
             
             // Adiciona evento de clique para acessar o painel
