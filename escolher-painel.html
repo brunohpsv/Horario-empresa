@@ -10,114 +10,155 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background-color: #f5f5f5;
+            background-color: #f8f9fa;
+            color: #333;
         }
         
         header {
-            background-color: #000000;
+            background-color: #1a1a1a;
             color: white;
-            padding: 20px 40px;
+            padding: 18px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         
         .logo {
-            font-size: 24px;
-            font-weight: bold;
-            letter-spacing: 1px;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
         
         nav ul {
             display: flex;
             list-style: none;
-        }
-        
-        nav ul li {
-            margin-left: 30px;
+            gap: 25px;
         }
         
         nav ul li a {
             color: white;
             text-decoration: none;
-            font-size: 16px;
-            transition: color 0.3s;
+            font-size: 15px;
+            transition: color 0.2s;
+            padding: 5px 0;
+            position: relative;
         }
         
         nav ul li a:hover {
-            color: #cccccc;
+            color: #e0e0e0;
+        }
+        
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #fff;
+            transition: width 0.3s;
+        }
+        
+        nav ul li a:hover::after {
+            width: 100%;
         }
         
         .logout-btn {
             background-color: #d32f2f;
             color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 8px 18px;
+            border-radius: 6px;
             text-decoration: none;
-            font-size: 16px;
-            transition: background-color 0.3s;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
         }
         
         .logout-btn:hover {
             background-color: #b71c1c;
-            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(183, 28, 28, 0.3);
         }
         
         .main-container {
             max-width: 1200px;
-            margin: 50px auto;
-            padding: 0 20px;
+            margin: 40px auto;
+            padding: 0 25px;
         }
 
         .panel-selection {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 30px;
+            padding: 35px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
         
         .panel-selection h2 {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-align: center;
-            color: #333;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 26px;
         }
         
         .panel-options {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 35px;
         }
         
         .panel-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             position: relative;
-            min-height: 120px;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
         }
         
         .panel-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-7px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
         
         .panel-card h3 {
-            margin-bottom: 10px;
-            color: #333;
+            margin-bottom: 12px;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
         }
         
         .panel-card p {
             color: #666;
             font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .panel-card .panel-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(0, 0, 0, 0.1);
+            color: #333;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
         }
         
         .panel-card.main-panel {
@@ -125,19 +166,29 @@
             border-color: #4682b4;
         }
         
+        .panel-card.main-panel .panel-badge {
+            background-color: #4682b4;
+            color: white;
+        }
+        
         .panel-card.individual-panel {
-            background-color: #f0fff0;
-            border-color: #2e8b57;
+            background-color: #f8f9fa;
+            border-color: #6c757d;
+        }
+        
+        .panel-card.individual-panel .panel-badge {
+            background-color: #6c757d;
+            color: white;
         }
         
         .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4CAF50;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #4CAF50;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto;
+            margin: 30px auto;
             display: none;
         }
 
@@ -149,25 +200,39 @@
         .loading-text {
             text-align: center;
             color: #666;
-            margin-top: 20px;
+            margin: 20px 0;
+            font-size: 16px;
             display: none;
         }
         
         .no-panels {
             text-align: center;
             color: #666;
-            padding: 20px;
+            padding: 30px;
             grid-column: 1 / -1;
+            font-size: 16px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px dashed #ddd;
         }
         
         .error-message {
             color: #d32f2f;
             text-align: center;
-            padding: 10px;
+            padding: 15px;
             background-color: #ffebee;
-            border-radius: 4px;
-            margin-top: 10px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 15px;
             display: none;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -177,34 +242,25 @@
         <nav>
             <ul>
                 <li><a href="https://horario.site">Início</a></li>
-                <li><a href="#" id="logoutBtn" class="logout-btn">Sair</a></li>
+                <li><button id="logoutBtn" class="logout-btn">Sair</button></li>
             </ul>
         </nav>
     </header>
 
     <div class="main-container">
         <div class="panel-selection">
-            <h2>Escolha o Painel que Deseja Acessar</h2>
+            <h2>Seus Painéis Disponíveis</h2>
+            <div class="welcome-message" id="welcomeMessage"></div>
             
             <div id="errorMessage" class="error-message"></div>
             
-            <div class="panel-options">
-                <!-- Painel Principal -->
-                <div class="panel-card main-panel" id="mainPanel">
-                    <h3>Painel Principal</h3>
-                    <p>Acesso completo a todas as funcionalidades</p>
-                </div>
-                
-                <!-- Painéis Individuais -->
-                <div id="individualPanelsContainer">
-                    <div class="loading-text" id="loadingText">Carregando painéis individuais...</div>
-                    <div class="no-panels" id="noPanelsMessage" style="display: none;">Nenhum painel individual encontrado</div>
-                </div>
+            <div class="panel-options" id="panelsContainer">
+                <div class="loader" id="pageLoader"></div>
+                <div class="loading-text" id="loadingText">Carregando seus painéis...</div>
+                <div class="no-panels" id="noPanelsMessage" style="display: none;">Nenhum painel encontrado para este login</div>
             </div>
         </div>
     </div>
-    
-    <div class="loader" id="pageLoader"></div>
 
     <!-- Firebase SDK v9 (modular via CDN) -->
     <script type="module">
@@ -244,13 +300,12 @@
         const loadingText = document.getElementById('loadingText');
         const noPanelsMessage = document.getElementById('noPanelsMessage');
         const errorMessage = document.getElementById('errorMessage');
-        const mainPanelCard = document.getElementById('mainPanel');
-        const individualPanelsContainer = document.getElementById('individualPanelsContainer');
+        const panelsContainer = document.getElementById('panelsContainer');
         const logoutBtn = document.getElementById('logoutBtn');
+        const welcomeMessage = document.getElementById('welcomeMessage');
 
         // Estados
         let currentUser = null;
-        let panelsLoaded = false;
 
         // Verifica o estado de autenticação
         onAuthStateChanged(auth, async (user) => {
@@ -265,22 +320,16 @@
 
         // Mostra estado de carregamento
         function showLoadingState() {
+            panelsContainer.innerHTML = '';
             pageLoader.style.display = 'block';
             loadingText.style.display = 'block';
             noPanelsMessage.style.display = 'none';
             errorMessage.style.display = 'none';
-            individualPanelsContainer.innerHTML = '';
         }
 
-        // Carrega os painéis individuais
+        // Carrega todos os painéis com o mesmo login
         async function loadPanels() {
             try {
-                // Limpa container
-                individualPanelsContainer.innerHTML = '';
-                
-                // Mostra mensagem de carregamento
-                loadingText.style.display = 'block';
-                
                 // Primeiro, obtém o documento do usuário atual
                 const userDoc = await getDoc(doc(db, "usuarios", currentUser.uid));
                 
@@ -289,66 +338,75 @@
                     return;
                 }
                 
-                // Obtém a identificação do usuário atual
-                const identificacao = userDoc.data().identificacao;
-                if (!identificacao) {
-                    showError("Campo 'identificacao' não encontrado no usuário.");
+                const userData = userDoc.data();
+                
+                // Verifica se o campo login existe
+                if (!userData.login) {
+                    showError("Campo 'login' não encontrado no usuário.");
                     return;
                 }
                 
-                // Busca todos os usuários com a mesma identificação
+                // Atualiza mensagem de boas-vindas
+                welcomeMessage.textContent = `Olá, ${userData.nomeCompleto || 'Usuário'}!`;
+                
+                // Busca todos os usuários com o mesmo login
                 const usuariosRef = collection(db, "usuarios");
-                const q = query(usuariosRef, where("identificacao", "==", identificacao));
+                const q = query(usuariosRef, where("login", "==", userData.login));
                 const querySnapshot = await getDocs(q);
                 
-                const principalPanels = [];
-                const individualPanels = [];
+                // Limpa o container
+                panelsContainer.innerHTML = '';
                 
-                querySnapshot.forEach((doc) => {
-                    const id = doc.id;
-                    const data = doc.data();
-                    
-                    if (id.startsWith("PP - ")) {
-                        principalPanels.push({
-                            id: id,
-                            nome: "Painel Principal",
-                            tipo: "principal"
-                        });
-                    } else {
-                        // Adiciona todos os outros usuários como painéis individuais
-                        individualPanels.push({
-                            id: id,
-                            nome: data.nomeCompleto || "Painel Individual",
-                            tipo: "individual"
-                        });
-                    }
-                });
-                
-                // Verifica se há painel principal
-                if (principalPanels.length === 0) {
-                    showError("Nenhum painel principal encontrado para esta identificação.");
+                if (querySnapshot.empty) {
+                    noPanelsMessage.style.display = 'block';
                     return;
                 }
                 
-                // Cria os cards para cada painel individual
-                if (individualPanels.length > 0) {
-                    individualPanels.forEach(panel => {
-                        createPanelCard(panel.id, panel.nome);
+                // Processa os documentos encontrados
+                querySnapshot.forEach((doc) => {
+                    const panelData = doc.data();
+                    const panelId = doc.id;
+                    const isMainPanel = panelId.startsWith("PP - ");
+                    
+                    createPanelCard({
+                        id: panelId,
+                        name: panelData.nomeCompleto || (isMainPanel ? "Painel Principal" : "Painel Individual"),
+                        type: isMainPanel ? "principal" : "individual",
+                        email: panelData.email || "Sem e-mail"
                     });
-                    noPanelsMessage.style.display = 'none';
-                } else {
-                    noPanelsMessage.style.display = 'block';
-                }
-                
-                panelsLoaded = true;
+                });
                 
             } catch (error) {
                 console.error("Erro ao carregar painéis:", error);
-                showError("Erro ao carregar painéis. Tente recarregar a página.");
+                showError("Erro ao carregar painéis. Por favor, recarregue a página.");
             } finally {
                 pageLoader.style.display = 'none';
                 loadingText.style.display = 'none';
             }
+        }
+
+        // Cria um card de painel
+        function createPanelCard(panel) {
+            const panelCard = document.createElement('div');
+            panelCard.className = `panel-card ${panel.type}-panel`;
+            panelCard.dataset.id = panel.id;
+            
+            panelCard.innerHTML = `
+                <span class="panel-badge">${panel.type === 'principal' ? 'Principal' : 'Individual'}</span>
+                <h3>${panel.name}</h3>
+                <p>${panel.email}</p>
+            `;
+            
+            // Adiciona evento de clique para acessar o painel
+            panelCard.addEventListener('click', () => {
+                if (panel.type === 'principal') {
+                    window.location.href = 'painel.html';
+                } else {
+                    window.location.href = `painelindiv.html?panelId=${encodeURIComponent(panel.id)}`;
+                }
+            });
+            
+            panelsContainer.appendChild(panelCard);
         }
 
         // Mostra mensagem de erro
@@ -358,35 +416,12 @@
             noPanelsMessage.style.display = 'none';
         }
 
-        // Cria um card de painel individual
-        function createPanelCard(panelId, nomeCompleto) {
-            const panelCard = document.createElement('div');
-            panelCard.className = 'panel-card individual-panel';
-            panelCard.dataset.id = panelId;
-            
-            panelCard.innerHTML = `
-                <h3>${nomeCompleto}</h3>
-                <p>Painel individual</p>
-            `;
-            
-            // Adiciona evento de clique para acessar o painel
-            panelCard.addEventListener('click', () => {
-                window.location.href = `painelindiv.html?panelId=${encodeURIComponent(panelId)}`;
-            });
-            
-            individualPanelsContainer.appendChild(panelCard);
-        }
-
         // Redireciona para login
         function redirectToLogin() {
             window.location.href = 'login.html';
         }
 
         // Event Listeners
-        mainPanelCard.addEventListener('click', () => {
-            window.location.href = 'painel.html';
-        });
-        
         logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             try {
