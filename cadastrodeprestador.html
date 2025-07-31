@@ -673,9 +673,6 @@
             const empresaDocId = `PI - ${empresaId}`;
             const empresaRef = db.collection('usuarios').doc(empresaDocId);
             
-            // Cria um ID único para o prestador individual usando o timestamp atual
-            const prestadorId = `PI-${Date.now()}`;
-            
             // Objeto com todos os dados a serem salvos
             const dataToSave = {
                 nomeFantasia: nomeFantasia,
@@ -700,25 +697,8 @@
                 dataToSave.horarios.almocoFim = almocoFim;
             }
             
-            // Salva os dados principais no documento da empresa
+            // Salva os dados no documento principal (sem criar subcoleções)
             await empresaRef.set(dataToSave);
-            
-            // Agora cria as subcoleções para cada atendente
-            for (const servico of servicoAtendente) {
-                for (const atendente of servico.atendentes) {
-                    // Remove espaços em branco e caracteres especiais para criar o nome da subcoleção
-                    const nomeSubcolecao = `PI - ${atendente.replace(/[^\w\s]/gi, '').trim()}`;
-                    
-                    // Cria a subcoleção no documento da empresa
-                    await empresaRef.collection(nomeSubcolecao).doc(prestadorId).set({
-                        nomePrestador: nomeFantasia,
-                        servico: servico.servico,
-                        atendente: atendente,
-                        dataCadastro: new Date().toISOString(),
-                        ...dataToSave.horarios // Inclui todas as informações de horários
-                    });
-                }
-            }
             
             // Limpa o formulário
             limparFormulario();
