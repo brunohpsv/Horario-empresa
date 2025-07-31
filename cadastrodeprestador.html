@@ -681,53 +681,37 @@
                     return;
                 }
                 
-                // Cria um ID único para o prestador individual usando o timestamp atual
-                const prestadorId = `PI-${Date.now()}`;
-                
-                // Referência para o documento do prestador individual na coleção 'usuarios'
-                const prestadorRef = db.collection('usuarios').doc(prestadorId);
-                
-                // Objeto com todos os dados a serem salvos
-                const dataToSave = {
-                    nomeFantasia: nomeFantasia,
-                    nomeCompleto: nomeCompleto,
-                    cpf: cpf,
-                    identificacao: identificacao,
-                    empresaDocId: empresaDocId,
-                    tipo: 'painel-individual',
-                    horarios: {
-                        diasFuncionamento: diasSelecionados,
-                        horarioAbertura: horarioAbertura,
-                        horarioFechamento: horarioFechamento,
-                        duracaoAtendimento: parseInt(duracaoAtendimento),
-                        intervaloAtendimento: parseInt(intervaloAtendimento)
-                    },
-                    servicoAtendente: servicoAtendente,
-                    dataCadastro: new Date().toISOString()
+                // Objeto com os dados de horários
+                const horariosData = {
+                    diasFuncionamento: diasSelecionados,
+                    horarioAbertura: horarioAbertura,
+                    horarioFechamento: horarioFechamento,
+                    duracaoAtendimento: parseInt(duracaoAtendimento),
+                    intervaloAtendimento: parseInt(intervaloAtendimento)
                 };
                 
                 // Adiciona horário de almoço se necessário
                 if (temAlmoco) {
-                    dataToSave.horarios.almocoInicio = almocoInicio;
-                    dataToSave.horarios.almocoFim = almocoFim;
+                    horariosData.almocoInicio = almocoInicio;
+                    horariosData.almocoFim = almocoFim;
                 }
                 
-                // Salva todos os dados no Firestore
-                await prestadorRef.set(dataToSave);
-                
-                // Agora cria as subcoleções para cada atendente
+                // Cria as subcoleções para cada atendente
                 for (const servico of servicoAtendente) {
                     for (const atendente of servico.atendentes) {
                         // Remove espaços em branco e caracteres especiais para criar o nome da subcoleção
-                        const nomeSubcolecao = `PI - ${atendente.replace(/[^\w\s]/gi, '').trim()}`;
+                        const nomeSubcolecao = `PI - ${atendente.replace(/[^\w\s]/gi, '').trim()`;
                         
                         // Cria a subcoleção no documento da empresa
-                        await empresaRef.collection(nomeSubcolecao).doc(prestadorId).set({
-                            nomePrestador: nomeFantasia,
+                        await empresaRef.collection(nomeSubcolecao).add({
+                            nomeFantasia: nomeFantasia,
+                            nomeCompleto: nomeCompleto,
+                            cpf: cpf,
+                            identificacao: identificacao,
                             servico: servico.servico,
                             atendente: atendente,
                             dataCadastro: new Date().toISOString(),
-                            ...dataToSave.horarios // Inclui todas as informações de horários
+                            ...horariosData // Inclui todas as informações de horários
                         });
                     }
                 }
