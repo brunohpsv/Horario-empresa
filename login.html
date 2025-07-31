@@ -16,6 +16,7 @@
         body {
             background-color: #f8f9fa;
             color: #333;
+            min-height: 100vh;
         }
         
         header {
@@ -91,6 +92,7 @@
             max-width: 1200px;
             margin: 40px auto;
             padding: 0 25px;
+            min-height: calc(100vh - 150px);
         }
 
         .panel-selection {
@@ -323,7 +325,14 @@
             if (user) {
                 currentUser = user;
                 showLoadingState();
-                await loadPanels();
+                try {
+                    await loadPanels();
+                } catch (error) {
+                    console.error("Erro ao carregar painéis:", error);
+                    showError("Erro ao carregar painéis. Por favor, recarregue a página.");
+                } finally {
+                    hideLoadingState();
+                }
             } else {
                 redirectToLogin();
             }
@@ -338,52 +347,59 @@
             errorMessage.style.display = 'none';
         }
 
+        // Esconde estado de carregamento
+        function hideLoadingState() {
+            pageLoader.style.display = 'none';
+            loadingText.style.display = 'none';
+        }
+
         // Carrega todos os painéis com o mesmo nomeFantasia
         async function loadPanels() {
-            try {
-                // Primeiro, obtém o documento do usuário atual
-                const userDoc = await getDoc(doc(db, "usuarios", currentUser.uid));
+            // Primeiro, obtém o documento do usuário atual
+            const userDoc = await getDoc(doc(db, "usuarios", currentUser.uid));
+            
+            if (!userDoc.exists()) {
+                showError("Usuário não encontrado na base de dados.");
+                return;
+            }
+            
+            const userData = userDoc.data();
+            
+            // Verifica se o campo nomeFantasia existe
+            if (!userData.nomeFantasia) {
+                showError("Campo 'nomeFantasia' não encontrado no usuário.");
+                return;
+            }
+            
+            currentCompany = userData.nomeFantasia;
+            
+            // Atualiza mensagens de boas-vindas
+            companyName.textContent = userData.nomeFantasia;
+            welcomeMessage.textContent = `Olá, ${userData.nomeCompleto || 'Usuário'}!`;
+            
+            // Busca todos os usuários com o mesmo nomeFantasia
+            const usuariosRef = collection(db, "usuarios");
+            const q = query(usuariosRef, where("nomeFantasia", "==", userData.nomeFantasia));
+            const querySnapshot = await getDocs(q);
+            
+            // Limpa o container
+            panelsContainer.innerHTML = '';
+            
+            if (querySnapshot.empty) {
+                noPanelsMessage.style.display = 'block';
+                return;
+            }
+            
+            // Processa os documentos encontrados
+            let hasMainPanel = false;
+            
+            querySnapshot.forEach((doc) => {
+                const panelData = doc.data();
+                const panelId = doc.id;
+                const isMainPanel = panelId.startsWith("PP - ");
                 
-                if (!userDoc.exists()) {
-                    showError("Usuário não encontrado na base de dados.");
-                    return;
-                }
-                
-                const userData = userDoc.data();
-                
-                // Verifica se o campo nomeFantasia existe
-                if (!userData.nomeFantasia) {
-                    showError("Campo 'nomeFantasia' não encontrado no usuário.");
-                    return;
-                }
-                
-                currentCompany = userData.nomeFantasia;
-                
-                // Atualiza mensagens de boas-vindas
-                companyName.textContent = userData.nomeFantasia;
-                welcomeMessage.textContent = `Olá, ${userData.nomeCompleto || 'Usuário'}!`;
-                
-                // Busca todos os usuários com o mesmo nomeFantasia
-                const usuariosRef = collection(db, "usuarios");
-                const q = query(usuariosRef, where("nomeFantasia", "==", userData.nomeFantasia));
-                const querySnapshot = await getDocs(q);
-                
-                // Limpa o container
-                panelsContainer.innerHTML = '';
-                
-                if (querySnapshot.empty) {
-                    noPanelsMessage.style.display = 'block';
-                    return;
-                }
-                
-                // Processa os documentos encontrados
-                let hasMainPanel = false;
-                
-                querySnapshot.forEach((doc) => {
-                    const panelData = doc.data();
-                    const panelId = doc.id;
-                    const isMainPanel = panelId.startsWith("PP - ");
-                    
+                // Verifica se o usuário atual tem permissão para acessar este painel
+                if (panelId === currentUser.uid || isMainPanel) {
                     // Garante que só mostramos um painel principal
                     if (isMainPanel) {
                         if (!hasMainPanel) {
@@ -405,14 +421,12 @@
                             description: `Painel individual de ${panelData.nomeCompleto || "Usuário"}`
                         });
                     }
-                });
-                
-            } catch (error) {
-                console.error("Erro ao carregar painéis:", error);
-                showError("Erro ao carregar painéis. Por favor, recarregue a página.");
-            } finally {
-                pageLoader.style.display = 'none';
-                loadingText.style.display = 'none';
+                }
+            });
+            
+            // Se não encontrou nenhum painel válido para o usuário
+            if (panelsContainer.children.length === 0) {
+                noPanelsMessage.style.display = 'block';
             }
         }
 
@@ -433,7 +447,7 @@
                 if (panel.type === 'principal') {
                     window.location.href = 'painel.html';
                 } else {
-                    window.location.href = `painelindiv.html?panelId=${encodeURIComponent(panel.id)}`;
+                    window.location.href = `painelindiv.html?userId=${encodeURIComponent(panel.id)}`;
                 }
             });
             
@@ -445,6 +459,7 @@
             errorMessage.textContent = message;
             errorMessage.style.display = 'block';
             noPanelsMessage.style.display = 'none';
+            hideLoadingState();
         }
 
         // Redireciona para login
@@ -456,13 +471,12 @@
         logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             try {
-                pageLoader.style.display = 'block';
+                showLoadingState();
                 await signOut(auth);
                 redirectToLogin();
             } catch (error) {
                 console.error("Erro ao fazer logout:", error);
                 showError("Erro ao fazer logout. Tente novamente.");
-                pageLoader.style.display = 'none';
             }
         });
     </script>
