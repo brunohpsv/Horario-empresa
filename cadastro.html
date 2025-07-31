@@ -6,6 +6,91 @@
     <title>Cadastro | HORÁRIO</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
+	/* Adicione isso no final da tag <style> */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .plano-container {
+        order: -1;
+        margin-bottom: 30px;
+    }
+    
+    .form-group > div {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-group > div > div {
+        flex: 1 1 100%;
+    }
+    
+    header {
+        padding: 15px 20px;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    nav ul {
+        margin-top: 15px;
+        justify-content: center;
+    }
+    
+    nav ul li {
+        margin: 0 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .form-container, .plano-container {
+        padding: 20px;
+    }
+    
+    .plano-box, .plano-info, .aviso-demo, .aviso-termos, .contato-suporte {
+        padding: 15px;
+    }
+    
+    .servico-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .add-nome-btn {
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        font-size: 20px;
+    }
+    
+    nav ul {
+        flex-wrap: wrap;
+    }
+    
+    nav ul li {
+        margin: 5px;
+    }
+    
+    .login-btn {
+        padding: 5px 10px;
+    }
+    
+    h1 {
+        font-size: 24px;
+    }
+    
+    .plano-preco {
+        font-size: 20px;
+    }
+}
+
         * {
             margin: 0;
             padding: 0;
@@ -60,29 +145,32 @@
         }
         
         .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 20px;
-            display: flex;
-            gap: 30px;
-        }
-        
-        .form-container {
-            flex: 2;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        
-        .plano-container {
-            flex: 1;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            height: fit-content;
-        }
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 20px;
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.plano-container {
+    flex: 1;
+    min-width: 300px;
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    height: fit-content;
+}
+
+.form-container {
+    flex: 2;
+    min-width: 300px;
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
         
         h1 {
             margin-bottom: 20px;
@@ -803,17 +891,19 @@
                 const userId = userCredential.user.uid;
                 
                 // 2. Salvar dados no Firestore com a configuração de horários
-                await setDoc(doc(db, "usuarios", userId), {
-                    ...formData,
-                    horariosConfig: horariosConfig
-                });
+                const docId = `PP - ${formData.identificacao.replace(/\D/g, '')}`; // Remove caracteres não numéricos
+await setDoc(doc(db, "usuarios", docId), {
+    ...formData,
+    horariosConfig: horariosConfig,
+    userId: userId // Adiciona o UID do Authentication como referência
+});
 
                 // 3. Criar um documento de exemplo na subcoleção "horarios" (para a data atual)
                 const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-                await setDoc(doc(db, "usuarios", userId, "horarios", dataAtual), {
-                    horariosDisponiveis: gerarHorariosPadrao(horariosConfig),
-                    horariosAgendados: []
-                });
+await setDoc(doc(db, "usuarios", docId, "horarios", dataAtual), {
+    horariosDisponiveis: gerarHorariosPadrao(horariosConfig),
+    horariosAgendados: []
+});
                 
                 // 4. Mostrar mensagem de sucesso
                 document.getElementById('mensagemSucesso').style.display = 'block';
