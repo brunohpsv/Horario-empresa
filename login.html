@@ -3,147 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | HORÁRIO</title>
+    <title>Escolher Painel | HORÁRIO</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background-color: #f5f5f5;
+            background-color: #f8f9fa;
+            color: #333;
         }
         
         header {
-            background-color: #000000;
+            background-color: #1a1a1a;
             color: white;
-            padding: 20px 40px;
+            padding: 18px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         
         .logo {
-            font-size: 24px;
-            font-weight: bold;
-            letter-spacing: 1px;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
         
         nav ul {
             display: flex;
             list-style: none;
-        }
-        
-        nav ul li {
-            margin-left: 30px;
+            gap: 25px;
         }
         
         nav ul li a {
             color: white;
             text-decoration: none;
-            font-size: 16px;
-            transition: color 0.3s;
+            font-size: 15px;
+            transition: color 0.2s;
+            padding: 5px 0;
+            position: relative;
         }
         
         nav ul li a:hover {
-            color: #cccccc;
+            color: #e0e0e0;
         }
         
-        .login-btn {
-            background-color: #4CAF50;
-            padding: 8px 16px;
-            border-radius: 4px;
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #fff;
+            transition: width 0.3s;
         }
         
-        .login-btn:hover {
-            background-color: #45a049;
+        nav ul li a:hover::after {
+            width: 100%;
         }
-
+        
+        .logout-btn {
+            background-color: #d32f2f;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .logout-btn:hover {
+            background-color: #b71c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(183, 28, 28, 0.3);
+        }
+        
         .main-container {
             max-width: 1200px;
-            margin: 50px auto;
-            padding: 0 20px;
+            margin: 40px auto;
+            padding: 0 25px;
         }
 
-        .auth-container {
-            max-width: 400px;
+        .panel-selection {
+            max-width: 900px;
             margin: 0 auto;
-            padding: 30px;
+            padding: 35px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
         
-        .auth-container h2 {
-            margin-bottom: 20px;
+        .panel-selection h2 {
+            margin-bottom: 25px;
             text-align: center;
-            color: #333;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 26px;
         }
         
-        .auth-container input {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+        .panel-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 35px;
         }
         
-        .auth-container button {
-            width: 100%;
-            padding: 12px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
+        .panel-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 140px;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
         }
         
-        .auth-container button:hover {
-            background-color: #45a049;
+        .panel-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
         
-        .toggle-form {
-            text-align: center;
-            margin-top: 20px;
+        .panel-card h3 {
+            margin-bottom: 12px;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .panel-card p {
+            color: #666;
             font-size: 14px;
+            line-height: 1.5;
         }
         
-        .toggle-form a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: bold;
+        .panel-card .panel-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(0, 0, 0, 0.1);
+            color: #333;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
         }
-
-        .error-message {
-            color: #d32f2f;
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
+        
+        .panel-card.main-panel {
+            background-color: #f0f8ff;
+            border-color: #4682b4;
         }
-
+        
+        .panel-card.main-panel .panel-badge {
+            background-color: #4682b4;
+            color: white;
+        }
+        
+        .panel-card.individual-panel {
+            background-color: #f8f9fa;
+            border-color: #6c757d;
+        }
+        
+        .panel-card.individual-panel .panel-badge {
+            background-color: #6c757d;
+            color: white;
+        }
+        
         .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4CAF50;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #4CAF50;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
-            margin-right: 10px;
+            margin: 30px auto;
             display: none;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            text-align: center;
+            color: #666;
+            margin: 20px 0;
+            font-size: 16px;
+            display: none;
+        }
+        
+        .no-panels {
+            text-align: center;
+            color: #666;
+            padding: 30px;
+            grid-column: 1 / -1;
+            font-size: 16px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px dashed #ddd;
+        }
+        
+        .error-message {
+            color: #d32f2f;
+            text-align: center;
+            padding: 15px;
+            background-color: #ffebee;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 15px;
+            display: none;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .company-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 18px;
         }
     </style>
 </head>
@@ -153,51 +250,46 @@
         <nav>
             <ul>
                 <li><a href="https://horario.site">Início</a></li>
+                <li><button id="logoutBtn" class="logout-btn">Sair</button></li>
             </ul>
         </nav>
     </header>
 
     <div class="main-container">
-        <div class="auth-container">
-            <h2>Login</h2>
-            <form id="loginForm">
-                <input type="text" id="loginInput" placeholder="Digite seu Login (código fornecido)" required>
-                <div class="error-message" id="loginError"></div>
-                
-                <input type="password" id="senha" placeholder="Senha" required>
-                <div class="error-message" id="passwordError"></div>
-                
-                <button type="submit" id="loginBtn">
-                    <div class="loader" id="loader"></div>
-                    <span id="btnText">Entrar</span>
-                </button>
-            </form>
+        <div class="panel-selection">
+            <h2>Seus Painéis Disponíveis</h2>
+            <div class="company-name" id="companyName"></div>
+            <div class="welcome-message" id="welcomeMessage"></div>
             
-            <div class="toggle-form">
-                <p>Não tem uma conta? <a href="https://horario.site/cadastro.html">Cadastre-se</a></p>
-                <p><a href="#" id="forgotPassword">Esqueci minha senha</a></p>
+            <div id="errorMessage" class="error-message"></div>
+            
+            <div class="panel-options" id="panelsContainer">
+                <div class="loader" id="pageLoader"></div>
+                <div class="loading-text" id="loadingText">Carregando seus painéis...</div>
+                <div class="no-panels" id="noPanelsMessage" style="display: none;">Nenhum painel encontrado para esta empresa</div>
             </div>
         </div>
     </div>
 
     <!-- Firebase SDK v9 (modular via CDN) -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { 
             getFirestore, 
             collection,
             query,
             where,
-            getDocs
+            getDocs,
+            doc,
+            getDoc
         } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
         import {
             getAuth,
-            signInWithEmailAndPassword,
-            sendPasswordResetEmail
+            signOut,
+            onAuthStateChanged
         } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
 
-        // Your web app's Firebase configuration
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
             authDomain: "banco-de-dados-d253e.firebaseapp.com",
@@ -212,119 +304,165 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        function toggleLoader(show) {
-            document.getElementById('loader').style.display = show ? 'block' : 'none';
-            document.getElementById('btnText').style.display = show ? 'none' : 'inline';
-            document.getElementById('loginBtn').disabled = show;
-        }
+        // Elementos DOM
+        const pageLoader = document.getElementById('pageLoader');
+        const loadingText = document.getElementById('loadingText');
+        const noPanelsMessage = document.getElementById('noPanelsMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const panelsContainer = document.getElementById('panelsContainer');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const companyName = document.getElementById('companyName');
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Limpa mensagens de erro
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('passwordError').style.display = 'none';
-            
-            // Valores dos campos
-            const login = document.getElementById('loginInput').value.trim();
-            const senha = document.getElementById('senha').value;
-            
-            // Validação básica
-            if (!login) {
-                document.getElementById('loginError').textContent = 'Digite seu login';
-                document.getElementById('loginError').style.display = 'block';
-                return;
-            }
-            
-            if (!senha) {
-                document.getElementById('passwordError').textContent = 'Digite sua senha';
-                document.getElementById('passwordError').style.display = 'block';
-                return;
-            }
-            
-            try {
-                toggleLoader(true);
-                
-                // 1. Buscar usuário no Firestore pelo login
-                const q = query(collection(db, "usuarios"), where("login", "==", login));
-                const querySnapshot = await getDocs(q);
-                
-                if (querySnapshot.empty) {
-                    throw new Error('Login não encontrado. Verifique ou entre em contato com o suporte.');
-                }
-                
-                // Pega o primeiro documento (deveria ter apenas um com o mesmo login)
-                const userDoc = querySnapshot.docs[0];
-                const userData = userDoc.data();
-                
-                // Verifica se a senha fornecida corresponde à senha armazenada
-                if (userData.senha !== senha) {
-                    throw new Error('Senha incorreta. Tente novamente.');
-                }
-                
-                // Verifica o status do cadastro
-                if (userData.status !== 'ativo') {
-                    throw new Error('Seu cadastro ainda está em análise. Aguarde o contato da nossa equipe.');
-                }
-                
-                // 2. Faz login no Firebase Authentication usando o email e senha
-                await signInWithEmailAndPassword(auth, userData.email, senha);
-                
-                // 3. Redireciona para o painel
-                window.location.href = 'escolher-painel.html';
-                
-            } catch (error) {
-                console.error('Erro no login:', error);
-                let errorMessage = 'Erro ao fazer login';
-                
-                // Trata mensagens de erro específicas
-                switch(error.message) {
-                    case 'Login não encontrado. Verifique ou entre em contato com o suporte.':
-                    case 'Senha incorreta. Tente novamente.':
-                    case 'Seu cadastro ainda está em análise. Aguarde o contato da nossa equipe.':
-                        errorMessage = error.message;
-                        break;
-                    default:
-                        errorMessage = 'Erro ao fazer login. Tente novamente mais tarde.';
-                }
-                
-                document.getElementById('loginError').textContent = errorMessage;
-                document.getElementById('loginError').style.display = 'block';
-            } finally {
-                toggleLoader(false);
+        // Estados
+        let currentUser = null;
+        let currentCompany = null;
+
+        // Verifica o estado de autenticação
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                showLoadingState();
+                await loadPanels();
+            } else {
+                redirectToLogin();
             }
         });
 
-        document.getElementById('forgotPassword').addEventListener('click', async function(e) {
-            e.preventDefault();
-            const login = document.getElementById('loginInput').value.trim();
-            
-            if (!login) {
-                alert('Digite seu login para recuperar a senha');
-                return;
-            }
-            
+        // Mostra estado de carregamento
+        function showLoadingState() {
+            panelsContainer.innerHTML = '';
+            pageLoader.style.display = 'block';
+            loadingText.style.display = 'block';
+            noPanelsMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+        }
+
+        // Carrega todos os painéis com o mesmo nomeFantasia
+        async function loadPanels() {
             try {
-                // 1. Buscar usuário pelo login
-                const q = query(collection(db, "usuarios"), where("login", "==", login));
-                const querySnapshot = await getDocs(q);
+                // Primeiro, obtém o documento do usuário atual
+                const userDoc = await getDoc(doc(db, "usuarios", currentUser.uid));
                 
-                if (querySnapshot.empty) {
-                    alert('Login não encontrado. Verifique ou entre em contato com o suporte.');
+                if (!userDoc.exists()) {
+                    showError("Usuário não encontrado na base de dados.");
                     return;
                 }
                 
-                const userDoc = querySnapshot.docs[0];
                 const userData = userDoc.data();
                 
-                // 2. Envia email de redefinição de senha
-                await sendPasswordResetEmail(auth, userData.email);
+                // Verifica se o campo nomeFantasia existe
+                if (!userData.nomeFantasia) {
+                    showError("Campo 'nomeFantasia' não encontrado no usuário.");
+                    return;
+                }
                 
-                alert(`Email de redefinição de senha enviado para o email associado a este login: ${userData.email}`);
+                currentCompany = userData.nomeFantasia;
+                
+                // Atualiza mensagens de boas-vindas
+                companyName.textContent = userData.nomeFantasia;
+                welcomeMessage.textContent = `Olá, ${userData.nomeCompleto || 'Usuário'}!`;
+                
+                // Busca todos os usuários com o mesmo nomeFantasia
+                const usuariosRef = collection(db, "usuarios");
+                const q = query(usuariosRef, where("nomeFantasia", "==", userData.nomeFantasia));
+                const querySnapshot = await getDocs(q);
+                
+                // Limpa o container
+                panelsContainer.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    noPanelsMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Processa os documentos encontrados
+                let hasMainPanel = false;
+                
+                querySnapshot.forEach((doc) => {
+                    const panelData = doc.data();
+                    const panelId = doc.id;
+                    const isMainPanel = panelId.startsWith("PP - ");
+                    
+                    // Garante que só mostramos um painel principal
+                    if (isMainPanel) {
+                        if (!hasMainPanel) {
+                            createPanelCard({
+                                id: panelId,
+                                name: panelData.nomeFantasia || "Painel Principal",
+                                type: "principal",
+                                email: panelData.email || "Sem e-mail",
+                                description: "Painel administrativo principal da empresa"
+                            });
+                            hasMainPanel = true;
+                        }
+                    } else {
+                        createPanelCard({
+                            id: panelId,
+                            name: panelData.nomeCompleto || "Painel Individual",
+                            type: "individual",
+                            email: panelData.email || "Sem e-mail",
+                            description: `Painel individual de ${panelData.nomeCompleto || "Usuário"}`
+                        });
+                    }
+                });
                 
             } catch (error) {
-                console.error('Erro ao enviar email de redefinição:', error);
-                alert('Erro ao enviar email de redefinição. Entre em contato com o suporte.');
+                console.error("Erro ao carregar painéis:", error);
+                showError("Erro ao carregar painéis. Por favor, recarregue a página.");
+            } finally {
+                pageLoader.style.display = 'none';
+                loadingText.style.display = 'none';
+            }
+        }
+
+        // Cria um card de painel
+        function createPanelCard(panel) {
+            const panelCard = document.createElement('div');
+            panelCard.className = `panel-card ${panel.type}-panel`;
+            panelCard.dataset.id = panel.id;
+            
+            panelCard.innerHTML = `
+                <span class="panel-badge">${panel.type === 'principal' ? 'Principal' : 'Individual'}</span>
+                <h3>${panel.name}</h3>
+                <p>${panel.description || panel.email}</p>
+            `;
+            
+            // Adiciona evento de clique para acessar o painel
+            panelCard.addEventListener('click', () => {
+                if (panel.type === 'principal') {
+                    window.location.href = 'painel.html';
+                } else {
+                    window.location.href = `painelindiv.html?panelId=${encodeURIComponent(panel.id)}`;
+                }
+            });
+            
+            panelsContainer.appendChild(panelCard);
+        }
+
+        // Mostra mensagem de erro
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            noPanelsMessage.style.display = 'none';
+        }
+
+        // Redireciona para login
+        function redirectToLogin() {
+            window.location.href = 'login.html';
+        }
+
+        // Event Listeners
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                pageLoader.style.display = 'block';
+                await signOut(auth);
+                redirectToLogin();
+            } catch (error) {
+                console.error("Erro ao fazer logout:", error);
+                showError("Erro ao fazer logout. Tente novamente.");
+                pageLoader.style.display = 'none';
             }
         });
     </script>
