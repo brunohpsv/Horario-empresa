@@ -6,12 +6,182 @@
     <title>Login | HORÁRIO</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
-        /* (Mantido o mesmo estilo anterior) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 30px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+
+        .login-btn {
+            background-color: #4CAF50;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+
+        .login-btn:hover {
+            background-color: #45a049;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        .auth-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-container h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        .auth-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .auth-container button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .auth-container button:hover {
+            background-color: #45a049;
+        }
+
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .toggle-form a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <!-- (Mantido o mesmo HTML anterior) -->
+    <header>
+        <div class="logo">HORÁRIO</div>
+        <nav>
+            <ul>
+                <li><a href="https://horario.site">Início</a></li>
+                <li><a href="https://horario.site/cadastro.html" class="login-btn">Cadastre-se</a></li>
+            </ul>
+        </nav>
+    </header>
 
+    <div class="main-container">
+        <div class="auth-container">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="text" id="loginInput" placeholder="Digite seu Login (código fornecido)" required>
+                <div class="error-message" id="loginError"></div>
+
+                <input type="password" id="senha" placeholder="Senha" required>
+                <div class="error-message" id="passwordError"></div>
+
+                <button type="submit" id="loginBtn">
+                    <div class="loader" id="loader"></div>
+                    <span id="btnText">Entrar</span>
+                </button>
+            </form>
+
+            <div class="toggle-form">
+                <p>Não tem uma conta? <a href="https://horario.site/cadastro.html">Cadastre-se</a></p>
+                <p><a href="#" id="forgotPassword">Esqueci minha senha</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK v9 (modular via CDN) -->
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
@@ -103,10 +273,9 @@
                 await signInWithEmailAndPassword(auth, userData.email, senha);
 
                 // 3. Redireciona para o painel apropriado com base no prefixo do ID do documento
-                if (docId.startsWith("PP-")) {
+                if (docId.startsWith("PP")) {
                     window.location.href = 'painel.html';
-                } else if (docId.startsWith("P") && /^\d/.test(docId.substring(1, 2))) {
-                    // Verifica se após "P" tem um número (como "P1-")
+                } else if (docId.startsWith("P")) {
                     window.location.href = 'painelindiv.html';
                 } else {
                     // Redirecionamento padrão caso não se encaixe nos padrões
@@ -135,7 +304,38 @@
             }
         });
 
-        // (Mantido o mesmo código para recuperação de senha)
+        document.getElementById('forgotPassword').addEventListener('click', async function(e) {
+            e.preventDefault();
+            const login = document.getElementById('loginInput').value.trim();
+
+            if (!login) {
+                alert('Digite seu login para recuperar a senha');
+                return;
+            }
+
+            try {
+                // 1. Buscar usuário pelo login
+                const q = query(collection(db, "usuarios"), where("login", "==", login));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    alert('Login não encontrado. Verifique ou entre em contato com o suporte.');
+                    return;
+                }
+
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
+
+                // 2. Envia email de redefinição de senha
+                await sendPasswordResetEmail(auth, userData.email);
+
+                alert(`Email de redefinição de senha enviado para o email associado a este login: ${userData.email}`);
+
+            } catch (error) {
+                console.error('Erro ao enviar email de redefinição:', error);
+                alert('Erro ao enviar email de redefinição. Entre em contato com o suporte.');
+            }
+        });
     </script>
 </body>
 </html>
