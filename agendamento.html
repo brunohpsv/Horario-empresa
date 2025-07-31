@@ -327,12 +327,12 @@
             return;
         }
         
-        // Primeiro carrega a empresa principal
+        // Primeiro tenta carregar como empresa normal (sem PI -)
         db.collection("usuarios").doc(empresaId).get()
             .then(doc => {
                 if (!doc.exists) {
-                    mostrarErro("Empresa não encontrada.");
-                    return;
+                    // Se não encontrar como empresa normal, tenta como prestador individual
+                    return carregarComoPrestadorIndividual(empresaId);
                 }
                 
                 // Processa os dados da empresa normal
@@ -345,90 +345,70 @@
                 document.getElementById('empresa-nome').textContent = 
                     empresaSelecionada.nomeCompleto || empresaSelecionada.nomeFantasia || "Empresa";
                 
-                // Depois de carregar a empresa principal, carrega o prestador individual se existir
-                carregarPrestadorIndividual(empresaId);
+                // Carrega os prestadores individuais da empresa
+                carregarPrestadoresIndividuais(empresaId);
             })
             .catch(err => {
                 console.error("Erro ao carregar dados da empresa:", err);
-                mostrarErro("Erro ao carregar dados da empresa.");
+                // Se der erro, tenta como prestador individual
+                carregarComoPrestadorIndividual(empresaId);
             });
     }
     
-    function carregarPrestadorIndividual(empresaId) {
-        // Primeiro verifica se existe um documento PI direto
+    function carregarComoPrestadorIndividual(empresaId) {
         const piId = `PI - ${empresaId}`;
-        
-        // Verifica na subcoleção PI - Julio Bastardo
-        db.collection("usuarios").doc(empresaId).collection("PI - Julio Bastardo").doc("PI-1753965969962").get()
+        db.collection("usuarios").doc(piId).get()
             .then(doc => {
-                if (doc.exists) {
-                    // Processa os dados do prestador individual da subcoleção
-                    prestadorIndividualSelecionado = {
+                if (!doc.exists) {
+                    mostrarErro("Empresa/prestador não encontrado.");
+                    return;
+                }
+                
+                // Processa os dados do prestador individual
+                empresaSelecionada = {
+                    ...doc.data(),
+                    id: piId,
+                    isPI: true
+                };
+                
+                document.getElementById('empresa-nome').textContent = 
+                    empresaSelecionada.nomeCompleto || "Prestador Individual";
+                
+                processarServicosAtendentes(empresaSelecionada);
+            })
+            .catch(err => {
+                console.error("Erro ao carregar dados do prestador individual:", err);
+                mostrarErro("Erro ao carregar dados da empresa/prestador.");
+            });
+    }
+    
+    function carregarPrestadoresIndividuais(empresaId) {
+        // Carrega todos os documentos de prestadores individuais da empresa
+        db.collection("usuarios").doc(empresaId).collection("PI")
+            .get()
+            .then(querySnapshot => {
+                const prestadoresIndividuais = [];
+                
+                querySnapshot.forEach(doc => {
+                    prestadoresIndividuais.push({
                         ...doc.data(),
                         id: doc.id,
                         isPI: true,
-                        docId: empresaId // Mantém o ID da empresa principal como docId
-                    };
-                    
-                    // Processa os serviços e atendentes combinando empresa e PI
-                    processarServicosAtendentesCombinados(empresaSelecionada, prestadorIndividualSelecionado);
-                } else {
-                    // Se não encontrar na subcoleção, verifica se existe como documento principal
-                    db.collection("usuarios").doc(piId).get()
-                        .then(piDoc => {
-                            if (piDoc.exists) {
-                                // Processa os dados do prestador individual como documento principal
-                                prestadorIndividualSelecionado = {
-                                    ...piDoc.data(),
-                                    id: piId,
-                                    isPI: true,
-                                    docId: piId
-                                };
-                                
-                                // Processa os serviços e atendentes combinando empresa e PI
-                                processarServicosAtendentesCombinados(empresaSelecionada, prestadorIndividualSelecionado);
-                            } else {
-                                // Se não existir PI, processa apenas os dados da empresa
-                                processarServicosAtendentes(empresaSelecionada);
-                            }
-                        })
-                        .catch(err => {
-                            console.error("Erro ao verificar prestador individual:", err);
-                            // Se der erro, continua apenas com os dados da empresa
-                            processarServicosAtendentes(empresaSelecionada);
-                        });
-                }
+                        docId: `${empresaId}/PI/${doc.id}` // Caminho completo do documento
+                    });
+                });
+                
+                // Processa os serviços e atendentes combinando empresa e PIs
+                processarServicosAtendentesCombinados(empresaSelecionada, prestadoresIndividuais);
             })
             .catch(err => {
-                console.error("Erro ao verificar subcoleção do prestador individual:", err);
-                // Se der erro, tenta verificar como documento principal
-                db.collection("usuarios").doc(piId).get()
-                    .then(piDoc => {
-                        if (piDoc.exists) {
-                            // Processa os dados do prestador individual como documento principal
-                            prestadorIndividualSelecionado = {
-                                ...piDoc.data(),
-                                id: piId,
-                                isPI: true,
-                                docId: piId
-                            };
-                            
-                            // Processa os serviços e atendentes combinando empresa e PI
-                            processarServicosAtendentesCombinados(empresaSelecionada, prestadorIndividualSelecionado);
-                        } else {
-                            // Se não existir PI, processa apenas os dados da empresa
-                            processarServicosAtendentes(empresaSelecionada);
-                        }
-                    })
-                    .catch(err => {
-                        console.error("Erro ao verificar prestador individual:", err);
-                        // Se der erro, continua apenas com os dados da empresa
-                        processarServicosAtendentes(empresaSelecionada);
-                    });
+                console.error("Erro ao carregar prestadores individuais:", err);
+                // Se der erro, continua apenas com os dados da empresa
+                processarServicosAtendentes(empresaSelecionada);
             });
     }
     
-    function processarServicosAtendentesCombinados(dadosEmpresa, dadosPI) {
+    function processarServicosAtendentesCombinados(dadosEmpresa, prestadoresIndividuais) {
         servicosDisponiveis = [];
         atendentes = [];
         
@@ -437,9 +417,11 @@
             processarServicosAtendentesDeDocumento(dadosEmpresa);
         }
         
-        // Processa serviços e atendentes do prestador individual
-        if (dadosPI) {
-            processarServicosAtendentesDeDocumento(dadosPI);
+        // Processa serviços e atendentes dos prestadores individuais
+        if (prestadoresIndividuais && prestadoresIndividuais.length > 0) {
+            prestadoresIndividuais.forEach(pi => {
+                processarServicosAtendentesDeDocumento(pi);
+            });
         }
         
         preencherSelectServicosAtendentes();
@@ -453,8 +435,6 @@
     }
     
     function processarServicosAtendentesDeDocumento(dados) {
-        if (!dados) return;
-        
         if (Array.isArray(dados.servicoAtendente)) {
             dados.servicoAtendente.forEach(item => {
                 if (item && typeof item === 'object') {
@@ -479,7 +459,7 @@
                                 isPI: dados.isPI,
                                 horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
                                 diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
-                                docId: dados.docId || dados.id // Usa docId se existir, caso contrário usa id
+                                docId: dados.id // Armazena o ID do documento de origem
                             });
                         }
                     });
@@ -502,7 +482,7 @@
                                         isPI: dados.isPI,
                                         horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
                                         diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
-                                        docId: dados.docId || dados.id
+                                        docId: dados.id
                                     });
                                 }
                             });
@@ -536,13 +516,33 @@
                                     isPI: dados.isPI,
                                     horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
                                     diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
-                                    docId: dados.docId || dados.id
+                                    docId: dados.id
                                 });
                             }
                         });
                     }
                 }
             });
+        }
+        else if (dados.servico && dados.atendente) {
+            // Formato específico para prestadores individuais
+            const servico = dados.servico.trim();
+            const atendente = dados.atendente.trim();
+            
+            if (servico && atendente) {
+                if (!servicosDisponiveis.includes(servico)) {
+                    servicosDisponiveis.push(servico);
+                }
+                
+                atendentes.push({
+                    nome: atendente,
+                    servico: servico,
+                    isPI: dados.isPI,
+                    horarios: dados.horarios || dados.horariosConfig,
+                    diasFuncionamento: dados.diasFuncionamento || dados.horariosConfig?.diasFuncionamento,
+                    docId: dados.id
+                });
+            }
         }
         else {
             const nomeAtendente = dados.nomeCompleto || dados.nomeFantasia || 
@@ -559,7 +559,7 @@
                 isPI: dados.isPI,
                 horarios: dados.isPI ? dados.horarios : dados.horariosConfig,
                 diasFuncionamento: dados.isPI ? dados.diasFuncionamento : dados.horariosConfig?.diasFuncionamento,
-                docId: dados.docId || dados.id
+                docId: dados.id
             });
         }
     }
@@ -648,7 +648,16 @@
         const selectedOption = select.options[select.selectedIndex];
         const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
         
-        const docRef = db.collection("usuarios").doc(atendenteInfo.docId);
+        // Determina a referência correta para o documento
+        let docRef;
+        if (atendenteInfo.docId.includes('/PI/')) {
+            // Para prestadores individuais na subcoleção
+            const [empresaId, , piId] = atendenteInfo.docId.split('/');
+            docRef = db.collection("usuarios").doc(empresaId).collection("PI").doc(piId);
+        } else {
+            // Para empresa principal ou PI direto
+            docRef = db.collection("usuarios").doc(atendenteInfo.docId);
+        }
         
         // Busca todos os agendamentos do atendente naquela data
         docRef.collection("agendamentos")
@@ -785,8 +794,16 @@
             dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
         };
         
-        // Define a referência correta para o documento onde o agendamento será armazenado
-        const docRef = db.collection("usuarios").doc(atendenteInfo.docId);
+        // Determina a referência correta para o documento
+        let docRef;
+        if (atendenteInfo.docId.includes('/PI/')) {
+            // Para prestadores individuais na subcoleção
+            const [empresaId, , piId] = atendenteInfo.docId.split('/');
+            docRef = db.collection("usuarios").doc(empresaId).collection("PI").doc(piId);
+        } else {
+            // Para empresa principal ou PI direto
+            docRef = db.collection("usuarios").doc(atendenteInfo.docId);
+        }
         
         docRef.collection("agendamentos")
             .add(agendamento)
@@ -835,7 +852,7 @@
             verificarAgendamentoExistente(rawValue);
         }
     });
-        
+
     document.getElementById('telefone').addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
         value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
