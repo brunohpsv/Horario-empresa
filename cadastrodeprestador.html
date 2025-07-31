@@ -488,22 +488,6 @@
             }, 5000);
         }
 
-        // Função para esconder o loader
-        function hideLoader() {
-            const loader = document.getElementById('loaderOverlay');
-            if (loader) {
-                loader.style.display = 'none';
-            }
-        }
-
-        // Função para mostrar o loader
-        function showLoader() {
-            const loader = document.getElementById('loaderOverlay');
-            if (loader) {
-                loader.style.display = 'flex';
-            }
-        }
-
         // Função para adicionar um novo serviço
         function addServico(servicoData = { servico: '', atendentes: [''] }) {
             const servicosContainer = document.getElementById('servicosContainer');
@@ -619,7 +603,7 @@
         // Adiciona o primeiro serviço quando a página carrega
         document.addEventListener('DOMContentLoaded', function() {
             // Esconde o loader
-            hideLoader();
+            document.getElementById('loaderOverlay').style.display = 'none';
             
             // Adiciona evento para adicionar serviço
             document.getElementById('addServicoBtn').addEventListener('click', addServico);
@@ -685,7 +669,7 @@
             
             try {
                 // Mostra o loader enquanto cadastra
-                showLoader();
+                document.getElementById('loaderOverlay').style.display = 'flex';
                 
                 // Verifica se o documento da empresa existe
                 const empresaRef = db.collection('usuarios').doc(empresaDocId);
@@ -693,41 +677,57 @@
                 
                 if (!empresaDoc.exists) {
                     showMessage('error', 'Documento da empresa não encontrado. Verifique o ID fornecido.');
-                    hideLoader();
+                    document.getElementById('loaderOverlay').style.display = 'none';
                     return;
                 }
                 
-                // Objeto com os dados de horários
-                const horariosData = {
-                    diasFuncionamento: diasSelecionados,
-                    horarioAbertura: horarioAbertura,
-                    horarioFechamento: horarioFechamento,
-                    duracaoAtendimento: parseInt(duracaoAtendimento),
-                    intervaloAtendimento: parseInt(intervaloAtendimento)
+                // Cria um ID único para o prestador individual usando o timestamp atual
+                const prestadorId = `PI-${Date.now()}`;
+                
+                // Referência para o documento do prestador individual na coleção 'usuarios'
+                const prestadorRef = db.collection('usuarios').doc(prestadorId);
+                
+                // Objeto com todos os dados a serem salvos
+                const dataToSave = {
+                    nomeFantasia: nomeFantasia,
+                    nomeCompleto: nomeCompleto,
+                    cpf: cpf,
+                    identificacao: identificacao,
+                    empresaDocId: empresaDocId,
+                    tipo: 'painel-individual',
+                    horarios: {
+                        diasFuncionamento: diasSelecionados,
+                        horarioAbertura: horarioAbertura,
+                        horarioFechamento: horarioFechamento,
+                        duracaoAtendimento: parseInt(duracaoAtendimento),
+                        intervaloAtendimento: parseInt(intervaloAtendimento)
+                    },
+                    servicoAtendente: servicoAtendente,
+                    dataCadastro: new Date().toISOString()
                 };
                 
                 // Adiciona horário de almoço se necessário
                 if (temAlmoco) {
-                    horariosData.almocoInicio = almocoInicio;
-                    horariosData.almocoFim = almocoFim;
+                    dataToSave.horarios.almocoInicio = almocoInicio;
+                    dataToSave.horarios.almocoFim = almocoFim;
                 }
                 
-                // Cria as subcoleções para cada atendente
+                // Salva todos os dados no Firestore
+                await prestadorRef.set(dataToSave);
+                
+                // Agora cria as subcoleções para cada atendente
                 for (const servico of servicoAtendente) {
                     for (const atendente of servico.atendentes) {
                         // Remove espaços em branco e caracteres especiais para criar o nome da subcoleção
-                        const nomeSubcolecao = `PI - ${atendente.replace(/[^\w\s]/gi, '').trim()`;
+                        const nomeSubcolecao = `PI - ${atendente.replace(/[^\w\s]/gi, '').trim()}`;
                         
                         // Cria a subcoleção no documento da empresa
-                        await empresaRef.collection(nomeSubcolecao).add({
-                            nomeFantasia: nomeFantasia,
-                            nomeCompleto: nomeCompleto,
-                            cpf: cpf,
-                            identificacao: identificacao,
+                        await empresaRef.collection(nomeSubcolecao).doc(prestadorId).set({
+                            nomePrestador: nomeFantasia,
                             servico: servico.servico,
                             atendente: atendente,
                             dataCadastro: new Date().toISOString(),
-                            ...horariosData // Inclui todas as informações de horários
+                            ...dataToSave.horarios // Inclui todas as informações de horários
                         });
                     }
                 }
@@ -740,7 +740,7 @@
                 showMessage('error', 'Erro ao cadastrar prestador. Tente novamente.');
             } finally {
                 // Esconde o loader
-                hideLoader();
+                document.getElementById('loaderOverlay').style.display = 'none';
             }
         });
     </script>
