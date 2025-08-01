@@ -424,6 +424,14 @@
             .empresa-item {
                 padding: var(--padding-base) var(--padding-large);
             }
+		
+	    .servicos-lista {
+    color: #d32f2f; /* Vermelho escuro */
+    font-family: Arial, sans-serif;
+    font-size: var(--small-font-size);
+    margin-top: 0.3em;
+    line-height: 1.3;
+}
         }
     </style>
 </head>
@@ -600,53 +608,65 @@
         return R * c;
     }
 
-    // Função para criar elemento de empresa
-    function createEmpresaElement(empresa) {
-        const empresaElement = document.createElement('article');
-        empresaElement.className = 'empresa-item';
-        empresaElement.dataset.id = empresa.id || Math.random().toString(36).substring(2, 9);
-        empresaElement.setAttribute('role', 'button');
-        empresaElement.setAttribute('aria-label', `Empresa ${empresa.nomeFantasia || 'sem nome'}`);
-        empresaElement.tabIndex = 0;
-        
-        const nomeExibicao = empresa.nomeFantasia ? 
-            empresa.nomeFantasia.replace(/^PI -/, '') : 
-            'Nome não informado';
-        
-        const enderecoCompleto = [
-            empresa.endereco,
-            empresa.numero ? ', ' + empresa.numero : '',
-            empresa.complemento ? ', ' + empresa.complemento : '',
-            empresa.bairro ? ', ' + empresa.bairro : '',
-            empresa.cidade ? ', ' + empresa.cidade : '',
-            empresa.estado ? ' - ' + empresa.estado : ''
-        ].join('');
-        
-        const distanciaBadge = empresa.distancia 
-            ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
-            : '';
-        
-        empresaElement.innerHTML = `
-            <div class="empresa-info">
-                <h2 class="empresa-nome">${nomeExibicao}${distanciaBadge}</h2>
-                <address class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</address>
-            </div>
-            <div class="divider"></div>
-        `;
-        
-        empresaElement.addEventListener('click', function() {
+   // Função para criar elemento de empresa
+function createEmpresaElement(empresa) {
+    const empresaElement = document.createElement('article');
+    empresaElement.className = 'empresa-item';
+    empresaElement.dataset.id = empresa.id || Math.random().toString(36).substring(2, 9);
+    empresaElement.setAttribute('role', 'button');
+    empresaElement.setAttribute('aria-label', `Empresa ${empresa.nomeFantasia || 'sem nome'}`);
+    empresaElement.tabIndex = 0;
+    
+    const nomeExibicao = empresa.nomeFantasia ? 
+        empresa.nomeFantasia.replace(/^PI -/, '') : 
+        'Nome não informado';
+    
+    const enderecoCompleto = [
+        empresa.endereco,
+        empresa.numero ? ', ' + empresa.numero : '',
+        empresa.complemento ? ', ' + empresa.complemento : '',
+        empresa.bairro ? ', ' + empresa.bairro : '',
+        empresa.cidade ? ', ' + empresa.cidade : '',
+        empresa.estado ? ' - ' + empresa.estado : ''
+    ].join('');
+    
+    const distanciaBadge = empresa.distancia 
+        ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
+        : '';
+    
+    // Extrair todos os serviços únicos da empresa
+    const servicos = extrairServicos(empresa);
+    const servicosUnicos = [...new Set(servicos.map(s => s.nome))];
+    
+    // Criar lista de serviços em vermelho
+    const servicosHTML = servicosUnicos.length > 0 
+        ? `<div class="servicos-lista" style="color: red; font-family: Arial, sans-serif; font-size: 0.8em; margin-top: 0.3em;">
+              Serviços: ${servicosUnicos.join(', ')}
+           </div>`
+        : '';
+    
+    empresaElement.innerHTML = `
+        <div class="empresa-info">
+            <h2 class="empresa-nome">${nomeExibicao}${distanciaBadge}</h2>
+            ${servicosHTML}
+            <address class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</address>
+        </div>
+        <div class="divider"></div>
+    `;
+    
+    empresaElement.addEventListener('click', function() {
+        window.location.href = `agendamento.html?id=${empresa.id}`;
+    });
+    
+    empresaElement.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
             window.location.href = `agendamento.html?id=${empresa.id}`;
-        });
-        
-        empresaElement.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                window.location.href = `agendamento.html?id=${empresa.id}`;
-            }
-        });
-        
-        return empresaElement;
-    }
+        }
+    });
+    
+    return empresaElement;
+}
 
     // Função para exibir empresas
     function exibirEmpresas(empresas) {
