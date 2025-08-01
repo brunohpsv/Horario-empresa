@@ -609,6 +609,7 @@
     }
 
    // Função para criar elemento de empresa
+// Função para criar elemento de empresa
 function createEmpresaElement(empresa) {
     const empresaElement = document.createElement('article');
     empresaElement.className = 'empresa-item';
@@ -640,16 +641,14 @@ function createEmpresaElement(empresa) {
     
     // Criar lista de serviços em vermelho
     const servicosHTML = servicosUnicos.length > 0 
-        ? `<div class="servicos-lista" style="color: red; font-family: Arial, sans-serif; font-size: 0.8em; margin-top: 0.3em;">
-              Serviços: ${servicosUnicos.join(', ')}
-           </div>`
+        ? `<div class="servicos-lista">Serviços: ${servicosUnicos.join(', ')}</div>`
         : '';
     
     empresaElement.innerHTML = `
         <div class="empresa-info">
-            <h2 class="empresa-nome">${nomeExibicao}${distanciaBadge}</h2>
-            ${servicosHTML}
+            <h2 class="empresa-nome">${nomeExibicao} ${distanciaBadge}</h2>
             <address class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</address>
+            ${servicosHTML}
         </div>
         <div class="divider"></div>
     `;
