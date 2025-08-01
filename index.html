@@ -487,7 +487,7 @@
         </div>
     </main>
 
-    <script>
+   <script>
     // Configuração do Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
@@ -514,83 +514,125 @@
     let watchId = null;
     let timeout = null;
 
-    // Função para extrair serviços APENAS dos campos "servico" e "servicos"
+    // Função para extrair serviços de todas as fontes possíveis
     function extrairServicos(empresa) {
         const servicos = [];
         
-        // Campos permitidos (apenas "servico" e "servicos")
-        const camposPermitidos = ['servico', 'servicos'];
-        
-        camposPermitidos.forEach(campo => {
-            if (empresa[campo]) {
-                const valor = empresa[campo];
-                
-                // Se for string (ex: "Consulta, Exame")
-                if (typeof valor === 'string') {
-                    valor.split(',').forEach(servico => {
-                        const servicoFormatado = servico.trim();
-                        if (servicoFormatado) {
-                            servicos.push({
-                                nome: servicoFormatado,
-                                empresa: empresa.nomeFantasia || "Sem nome"
-                            });
-                        }
-                    });
-                } 
-                // Se for array (ex: ["Consulta", "Exame"])
-                else if (Array.isArray(valor)) {
-                    valor.forEach(servico => {
-                        const servicoFormatado = String(servico).trim();
-                        if (servicoFormatado) {
-                            servicos.push({
-                                nome: servicoFormatado,
-                                empresa: empresa.nomeFantasia || "Sem nome"
-                            });
-                        }
+        // 1. Verifica servicoAtendente (para PP- e P1-P30)
+        if (empresa.servicoAtendente && Array.isArray(empresa.servicoAtendente)) {
+            empresa.servicoAtendente.forEach(item => {
+                if (item.servico) {
+                    servicos.push({
+                        nome: item.servico.trim(),
+                        empresa: empresa.nomeFantasia || "Sem nome"
                     });
                 }
+            });
+        }
+        
+        // 2. Verifica campo servico (string ou array)
+        if (empresa.servico) {
+            if (typeof empresa.servico === 'string') {
+                empresa.servico.split(',').forEach(servico => {
+                    const servicoFormatado = servico.trim();
+                    if (servicoFormatado) {
+                        servicos.push({
+                            nome: servicoFormatado,
+                            empresa: empresa.nomeFantasia || "Sem nome"
+                        });
+                    }
+                });
+            } else if (Array.isArray(empresa.servico)) {
+                empresa.servico.forEach(servico => {
+                    const servicoFormatado = String(servico).trim();
+                    if (servicoFormatado) {
+                        servicos.push({
+                            nome: servicoFormatado,
+                            empresa: empresa.nomeFantasia || "Sem nome"
+                        });
+                    }
+                });
             }
-        });
+        }
+        
+        // 3. Verifica campo servicos (string ou array)
+        if (empresa.servicos) {
+            if (typeof empresa.servicos === 'string') {
+                empresa.servicos.split(',').forEach(servico => {
+                    const servicoFormatado = servico.trim();
+                    if (servicoFormatado) {
+                        servicos.push({
+                            nome: servicoFormatado,
+                            empresa: empresa.nomeFantasia || "Sem nome"
+                        });
+                    }
+                });
+            } else if (Array.isArray(empresa.servicos)) {
+                empresa.servicos.forEach(servico => {
+                    const servicoFormatado = String(servico).trim();
+                    if (servicoFormatado) {
+                        servicos.push({
+                            nome: servicoFormatado,
+                            empresa: empresa.nomeFantasia || "Sem nome"
+                        });
+                    }
+                });
+            }
+        }
         
         return servicos;
     }
 
-    // Função para agrupar empresas mãe e filhas (PI -)
+    // Função para agrupar empresas com o mesmo nome (removendo PP-, P1-, etc)
     function agruparEmpresas(empresas) {
         const empresasAgrupadas = [];
         const empresasMap = new Map();
         
         empresas.forEach(empresa => {
-            const nome = empresa.nomeFantasia || '';
+            // Remove prefixos como PP-, P1-, P2-, etc
+            const nomeBase = (empresa.nomeFantasia || '')
+                .replace(/^(PP|P\d+)\s*-\s*/i, '')
+                .trim();
             
-            if (nome.startsWith("PI -")) {
-                const nomeMae = nome.substring(4).trim();
-                if (!empresasMap.has(nomeMae)) {
-                    empresasMap.set(nomeMae, { filhas: [] });
-                }
-                empresasMap.get(nomeMae).filhas.push(empresa);
+            if (!empresasMap.has(nomeBase)) {
+                empresasMap.set(nomeBase, {
+                    principal: empresa,
+                    servicos: extrairServicos(empresa),
+                    filhas: []
+                });
             } else {
-                if (!empresasMap.has(nome)) {
-                    empresasMap.set(nome, { 
-                        mae: empresa,
-                        filhas: [] 
-                    });
-                } else {
-                    empresasMap.get(nome).mae = empresa;
+                // Adiciona como filha se for um documento com prefixo
+                if (/^(PP|P\d+)\s*-/i.test(empresa.nomeFantasia || '')) {
+                    empresasMap.get(nomeBase).filhas.push(empresa);
                 }
+                // Atualiza como principal se não tiver prefixo
+                else {
+                    empresasMap.set(nomeBase, {
+                        principal: empresa,
+                        servicos: extrairServicos(empresa),
+                        filhas: empresasMap.get(nomeBase).filhas
+                    });
+                }
+                
+                // Adiciona serviços das filhas
+                const servicosFilha = extrairServicos(empresa);
+                empresasMap.get(nomeBase).servicos.push(...servicosFilha);
             }
         });
         
-        empresasMap.forEach((grupo, nome) => {
-            if (grupo.mae) {
-                const empresaConsolidada = { ...grupo.mae };
-                if (grupo.filhas.length > 0) {
-                    empresaConsolidada.filhas = grupo.filhas;
-                }
-                empresasAgrupadas.push(empresaConsolidada);
-            } else if (grupo.filhas.length > 0) {
-                empresasAgrupadas.push(grupo.filhas[0]);
+        // Cria a lista consolidada de empresas
+        empresasMap.forEach((grupo, nomeBase) => {
+            const empresaConsolidada = { 
+                ...grupo.principal,
+                id: grupo.principal.id,
+                servicosUnicos: [...new Set(grupo.servicos.map(s => s.nome))] 
+            };
+            
+            if (grupo.filhas.length > 0) {
+                empresaConsolidada.filhas = grupo.filhas;
             }
+            
+            empresasAgrupadas.push(empresaConsolidada);
         });
         
         return empresasAgrupadas;
@@ -618,9 +660,10 @@
         empresaElement.setAttribute('aria-label', `Empresa ${empresa.nomeFantasia || 'sem nome'}`);
         empresaElement.tabIndex = 0;
         
-        const nomeExibicao = empresa.nomeFantasia ? 
-            empresa.nomeFantasia.replace(/^PI -/, '') : 
-            'Nome não informado';
+        // Remove prefixos como PP-, P1-, etc para exibição
+        const nomeExibicao = (empresa.nomeFantasia || '')
+            .replace(/^(PP|P\d+)\s*-\s*/i, '')
+            .trim() || 'Nome não informado';
         
         const enderecoCompleto = [
             empresa.endereco,
@@ -635,13 +678,9 @@
             ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
             : '';
         
-        // Extrair todos os serviços únicos da empresa
-        const servicos = extrairServicos(empresa);
-        const servicosUnicos = [...new Set(servicos.map(s => s.nome))];
-        
-        // Criar lista de serviços em vermelho
-        const servicosHTML = servicosUnicos.length > 0 
-            ? `<div class="servicos-lista">Serviços: ${servicosUnicos.join(', ')}</div>`
+        // Cria lista de serviços únicos
+        const servicosHTML = empresa.servicosUnicos && empresa.servicosUnicos.length > 0 
+            ? `<div class="servicos-lista">Serviços: ${empresa.servicosUnicos.join(', ')}</div>`
             : '';
         
         empresaElement.innerHTML = `
@@ -742,7 +781,6 @@
         const servico = document.getElementById('servico').value.toLowerCase();
         const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
         
-        // Determina se o filtro que está sendo alterado é de cidade, estado ou nome
         const isFilteringLocation = cidade || estado || nomeEmpresa;
         
         if (isFilteringLocation) {
@@ -754,7 +792,6 @@
             const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
             const estadoEmpresa = (empresa.estado || '');
             
-            // Verifica se o serviço selecionado está nos campos "servico" ou "servicos"
             const servicosEmpresa = extrairServicos(empresa)
                 .map(s => s.nome.toLowerCase());
             
@@ -872,7 +909,6 @@
         const estado = document.getElementById('estado').value;
         const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
         
-        // Filtra as empresas com base nos filtros atuais (exceto serviço)
         let empresasFiltradas = todasEmpresas.filter(empresa => {
             const nome = (empresa.nomeFantasia || '').toLowerCase();
             const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
@@ -885,7 +921,6 @@
             return cidadeMatch && estadoMatch && nomeMatch;
         });
         
-        // Extrai todos os serviços das empresas filtradas
         const servicosFiltrados = [];
         empresasFiltradas.forEach(empresa => {
             const servicos = extrairServicos(empresa);
@@ -899,12 +934,10 @@
             });
         });
         
-        // Preenche o dropdown de serviços
         const selectServico = document.getElementById('servico');
         const servicoSelecionado = selectServico.value.toLowerCase();
         selectServico.innerHTML = '<option value="">Todos os serviços</option>';
         
-        // Agrupa serviços por nome
         const servicosAgrupados = {};
         servicosFiltrados.forEach(servico => {
             const chave = servico.nome.toLowerCase();
@@ -918,7 +951,6 @@
             }
         });
         
-        // Ordena e adiciona ao select
         Object.values(servicosAgrupados)
             .sort((a, b) => a.nome.localeCompare(b.nome))
             .forEach(servico => {
@@ -927,7 +959,6 @@
                 option.textContent = `${servico.nome} - ${servico.empresas.join(', ')}`;
                 selectServico.appendChild(option);
                 
-                // Mantém o item selecionado se ainda estiver disponível
                 if (servico.nome.toLowerCase() === servicoSelecionado) {
                     option.selected = true;
                 }
@@ -976,7 +1007,6 @@
                 });
             });
             
-            // Preenche o dropdown de serviços (agrupando por nome)
             const selectServico = document.getElementById('servico');
             selectServico.innerHTML = '<option value="">Todos os serviços</option>';
             
@@ -993,7 +1023,6 @@
                 }
             });
             
-            // Ordena e adiciona ao select (formato: "Serviço - Empresa")
             Object.values(servicosAgrupados)
                 .sort((a, b) => a.nome.localeCompare(b.nome))
                 .forEach(servico => {
@@ -1003,7 +1032,6 @@
                     selectServico.appendChild(option);
                 });
             
-            // Preenche dropdown de estados
             const selectEstado = document.getElementById('estado');
             selectEstado.innerHTML = '<option value="">Todos os estados</option>';
             Array.from(estadosDisponiveis)
