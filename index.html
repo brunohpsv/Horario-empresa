@@ -25,7 +25,7 @@
             --error-bg: #fde8e8;
             --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
-
+            
             /* Variáveis de tamanho responsivas */
             --base-font-size: clamp(14px, 2vw, 16px);
             --heading-font-size: clamp(1.25rem, 3vw, 1.5rem);
@@ -37,14 +37,14 @@
             --element-height: clamp(2.5rem, 5vw, 3rem);
             --header-height: clamp(3.5rem, 7vw, 4.5rem);
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
-
+        
         body {
             background-color: var(--light-gray);
             color: var(--text-color);
@@ -54,7 +54,7 @@
             flex-direction: column;
             font-size: var(--base-font-size);
         }
-
+        
         header {
             background-color: var(--primary-color);
             color: var(--white);
@@ -70,7 +70,7 @@
             box-shadow: var(--box-shadow);
             height: var(--header-height);
         }
-
+        
         .logo {
             font-size: var(--heading-font-size);
             font-weight: bold;
@@ -78,7 +78,7 @@
             color: var(--white);
             white-space: nowrap;
         }
-
+        
         nav ul {
             display: flex;
             list-style: none;
@@ -88,11 +88,11 @@
             justify-content: center;
             margin: 0;
         }
-
+        
         nav ul li {
             margin: 0;
         }
-
+        
         nav ul li a {
             color: var(--white);
             text-decoration: none;
@@ -105,25 +105,20 @@
             border-radius: var(--border-radius);
             white-space: nowrap;
         }
-
+        
         @media (hover: hover) {
             nav ul li a:hover {
                 color: #cccccc;
             }
         }
-
+        
         .login-btn {
-    color: white !important; /* Texto branco */
-    text-decoration: underline !important; /* Traço embaixo */
-    text-decoration-color: white !important; /* Cor do traço */
-    text-underline-offset: 3px; /* Espaçamento do traço */
-}
             color: white !important; /* Texto branco */
             text-decoration: underline !important; /* Traço embaixo */
             text-decoration-color: white !important; /* Cor do traço */
             text-underline-offset: 3px; /* Espaçamento do traço */
         }
-
+        
         @media (hover: hover) {
             .login-btn:hover {
                 background-color: #45a049;
@@ -143,7 +138,7 @@
             transition: var(--transition);
             font-size: 1em;
         }
-
+        
         @media (hover: hover) {
             .location-btn:hover {
                 background-color: #0b7dda;
@@ -334,52 +329,52 @@
                 --padding-large: clamp(0.75rem, 2vw, 1rem);
                 --gap-base: clamp(0.5rem, 2vw, 0.75rem);
             }
-
+            
             header {
                 padding: 0 var(--padding-base);
                 height: auto;
                 min-height: var(--header-height);
             }
-
+            
             .logo {
                 font-size: clamp(1rem, 5vw, 1.25rem);
             }
-
+            
             nav ul {
                 gap: 0.25em;
             }
-
+            
             .login-btn {
                 padding: 0.4em 0.8em;
                 font-size: 0.9em;
             }
-
+            
             .location-btn {
                 width: 2.25em;
                 height: 2.25em;
                 font-size: 0.9em;
             }
-
+            
             .filtro-section {
                 padding: var(--padding-base);
             }
-
+            
             .filtro-container {
                 gap: 0.5em;
             }
-
+            
             .filtro-item {
                 min-width: calc(50% - 0.25em);
             }
-
+            
             .empresas-container {
                 padding: var(--padding-base);
             }
-
+            
             .empresa-item {
                 padding: var(--padding-base);
             }
-
+            
             .loading {
                 padding: var(--padding-large);
             }
@@ -405,27 +400,27 @@
                 --base-font-size: clamp(16px, 1.2vw, 18px);
                 --heading-font-size: clamp(1.5rem, 2.5vw, 1.75rem);
             }
-
+            
             header {
                 padding: 0 clamp(2rem, 3vw, 4rem);
             }
-
+            
             .logo {
                 font-size: var(--heading-font-size);
             }
-
+            
             nav ul li a {
                 font-size: 1.1em;
             }
-
+            
             .filtro-section {
                 padding: var(--padding-large) clamp(2rem, 3vw, 4rem);
             }
-
+            
             .empresas-container {
                 padding: var(--padding-large) clamp(2rem, 3vw, 4rem);
             }
-
+            
             .empresa-item {
                 padding: var(--padding-base) var(--padding-large);
             }
@@ -439,14 +434,12 @@
             <ul>
                 <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização" aria-label="Localização"><i class="fas fa-map-marker-alt"></i></a></li>
                 <a href="https://horario.site/login.html" class="login-btn" onclick="event.preventDefault(); window.location.href='https://horario.site/login.html';">
-    <i class="fas fa-user"></i> Login/Cadastro
-</a>
                     <i class="fas fa-user"></i> Login/Cadastro
                 </a>
             </ul>
         </nav>
     </header>
-
+    
     <section class="filtro-section">
         <div class="filtro-container">
             <div class="filtro-item">
@@ -455,19 +448,19 @@
                     <option value="">Todas as cidades</option>
                 </select>
             </div>
-
+            
             <div class="filtro-item">
                 <label for="estado">ESTADO</label>
                 <select id="estado" aria-label="Filtrar por estado">
                     <option value="">Todos os estados</option>
                 </select>
             </div>
-
+            
             <div class="filtro-item">
                 <label for="nome-empresa">NOME DA EMPRESA</label>
                 <input type="text" id="nome-empresa" placeholder="Digite o nome" aria-label="Filtrar por nome da empresa">
             </div>
-
+            
             <div class="filtro-item">
                 <label for="servico">TIPOS DE SERVIÇO</label>
                 <select id="servico" aria-label="Filtrar por tipo de serviço">
@@ -476,7 +469,7 @@
             </div>
         </div>
     </section>
-
+    
     <main class="empresas-container">
         <div id="empresas-lista" class="loading">
             <div class="spinner-border text-primary" role="status">
@@ -516,11 +509,11 @@
         function agruparEmpresas(empresas) {
             const empresasAgrupadas = [];
             const empresasMap = new Map();
-
+            
             // Primeiro, identificamos todas as empresas mãe e filhas
             empresas.forEach(empresa => {
                 const nome = empresa.nomeFantasia || '';
-
+                
                 // Verifica se é uma empresa filha (começa com "PI -")
                 if (nome.startsWith("PI -")) {
                     const nomeMae = nome.substring(4).trim();
@@ -541,18 +534,18 @@
                     }
                 }
             });
-
+            
             // Agora criamos a lista consolidada
             empresasMap.forEach((grupo, nome) => {
                 if (grupo.mae) {
                     // Se tem empresa mãe, adiciona ela com as filhas consolidadas
                     const empresaConsolidada = { ...grupo.mae };
-
+                    
                     // Adiciona informações das filhas se necessário
                     if (grupo.filhas.length > 0) {
                         empresaConsolidada.filhas = grupo.filhas;
                     }
-
+                    
                     empresasAgrupadas.push(empresaConsolidada);
                 } else {
                     // Se não tem mãe, mas tem filhas, adiciona a primeira filha como representante
@@ -561,7 +554,7 @@
                     }
                 }
             });
-
+            
             return empresasAgrupadas;
         }
 
@@ -586,12 +579,12 @@
             empresaElement.setAttribute('role', 'button');
             empresaElement.setAttribute('aria-label', `Empresa ${empresa.nomeFantasia || 'sem nome'}`);
             empresaElement.tabIndex = 0;
-
+            
             // Remove "PI -" do nome se existir
             const nomeExibicao = empresa.nomeFantasia ? 
                 empresa.nomeFantasia.replace(/^PI -/, '') : 
                 'Nome não informado';
-
+            
             const enderecoCompleto = [
                 empresa.endereco,
                 empresa.numero ? ', ' + empresa.numero : '',
@@ -600,12 +593,12 @@
                 empresa.cidade ? ', ' + empresa.cidade : '',
                 empresa.estado ? ' - ' + empresa.estado : ''
             ].join('');
-
+            
             // Adiciona badge de distância se disponível
             const distanciaBadge = empresa.distancia 
                 ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
                 : '';
-
+            
             empresaElement.innerHTML = `
                 <div class="empresa-info">
                     <h2 class="empresa-nome">${nomeExibicao}${distanciaBadge}</h2>
@@ -613,12 +606,12 @@
                 </div>
                 <div class="divider"></div>
             `;
-
+            
             // Adiciona evento de clique para redirecionar para a página de agendamento
             empresaElement.addEventListener('click', function() {
                 window.location.href = `agendamento.html?id=${empresa.id}`;
             });
-
+            
             // Suporte para navegação por teclado
             empresaElement.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -626,14 +619,14 @@
                     window.location.href = `agendamento.html?id=${empresa.id}`;
                 }
             });
-
+            
             return empresaElement;
         }
 
         // Função para exibir empresas
         function exibirEmpresas(empresas) {
             const listaEmpresas = document.getElementById('empresas-lista');
-
+            
             if (empresas.length === 0) {
                 if (isFirstLoad) {
                     listaEmpresas.innerHTML = '<div class="error-message" role="alert">Nenhuma empresa cadastrada no momento.</div>';
@@ -642,14 +635,14 @@
                 }
                 return;
             }
-
+            
             // Agrupa empresas mãe e filhas antes de exibir
             const empresasAgrupadas = agruparEmpresas(empresas);
-
+            
             // Limpa completamente a lista antes de adicionar novos itens
             listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid" role="list"></div>';
             const gridEmpresas = document.getElementById('empresas-grid');
-
+            
             // Ordena por distância se disponível e ativo
             if (geolocationActive && userLocation) {
                 empresasAgrupadas.sort((a, b) => {
@@ -658,14 +651,14 @@
                     return distA - distB;
                 });
             }
-
+            
             empresasAgrupadas.forEach(empresa => {
                 const empresaElement = createEmpresaElement(empresa);
                 empresaElement.dataset.id = empresa.id || JSON.stringify(empresa);
                 empresaElement.setAttribute('role', 'listitem');
                 gridEmpresas.appendChild(empresaElement);
             });
-
+            
             isFirstLoad = false;
         }
 
@@ -673,10 +666,10 @@
         function atualizarCidades() {
             const estadoSelecionado = document.getElementById('estado').value;
             const selectCidade = document.getElementById('cidade');
-
+            
             // Limpa as opções atuais, mantendo apenas a primeira
             selectCidade.innerHTML = '<option value="">Todas as cidades</option>';
-
+            
             if (!estadoSelecionado) {
                 // Se nenhum estado selecionado, mostra todas as cidades
                 Array.from(cidadesDisponiveis).sort().forEach(cidade => {
@@ -691,10 +684,10 @@
                     .filter(empresa => empresa.estado === estadoSelecionado)
                     .map(empresa => empresa.cidade)
                     .filter(cidade => cidade); // Remove valores undefined
-
+                
                 // Usamos Set para remover duplicatas
                 const cidadesUnicas = [...new Set(cidadesFiltradas)];
-
+                
                 cidadesUnicas.sort().forEach(cidade => {
                     const option = document.createElement('option');
                     option.value = cidade;
@@ -702,40 +695,13 @@
                     selectCidade.appendChild(option);
                 });
             }
-
+            
             // Reaplica o filtro
             filtrarEmpresas();
         }
 
         // Função melhorada para extrair serviços
         function extrairServicos(empresa) {
-    const servicos = [];
-    
-    // Verifica campos específicos que podem conter serviços
-    const camposServicos = [
-        'servicos', 'serviços', 'services',
-        'tipoServico', 'tipoServiço', 'serviceType',
-        'categoria', 'category',
-        'especialidade', 'specialty'
-    ];
-    
-    // Verifica campos genéricos que podem conter serviços
-    const camposGenericos = Object.keys(empresa).filter(key => 
-        key.toLowerCase().includes('servico') || 
-        key.toLowerCase().includes('serviço') || 
-        key.toLowerCase().includes('service') ||
-        key.toLowerCase().includes('categoria') ||
-        key.toLowerCase().includes('category') ||
-        key.toLowerCase().includes('especialidade') ||
-        key.toLowerCase().includes('specialty')
-    );
-    
-    // Combina todos os campos relevantes
-    const todosCampos = [...new Set([...camposServicos, ...camposGenericos])];
-    
-    todosCampos.forEach(campo => {
-        if (empresa[campo]) {
-            const valor = empresa[campo];
             const servicos = [];
             
             // 1. Verifica campos específicos que podem conter serviços
@@ -758,19 +724,7 @@
                 key.toLowerCase().includes('tipo') ||
                 key.toLowerCase().includes('type')
             );
-
-            if (typeof valor === 'string') {
-                // Remove caracteres especiais e divide por múltiplos separadores
-                const cleaned = valor.replace(/[.,;\/\\|•-]/g, ',');
-                const partes = cleaned.split(',')
-                    .map(p => p.trim())
-                    .filter(p => p);
-                servicos.push(...partes);
-            } 
-            else if (Array.isArray(valor)) {
-                valor.forEach(item => {
-                    if (typeof item === 'string') {
-                        servicos.push(item.trim());
+            
             // 3. Combina todos os campos relevantes
             const todosCampos = [...new Set([...camposServicos, ...camposGenericos])];
             
@@ -833,9 +787,6 @@
                     }
                 });
             }
-            else if (typeof valor === 'object' && valor !== null) {
-                servicos.push(...extrairServicos(valor));
-            }
             
             // 6. Remove duplicatas (case insensitive) e strings vazias
             const servicosUnicos = [...new Set(
@@ -846,52 +797,9 @@
             
             return servicosUnicos;
         }
-    });
-    
-    // Remove duplicatas (case insensitive) e strings vazias
-    return [...new Set(
-        servicos
-            .filter(s => s && s.trim() !== '')
-            .map(s => s.trim().toLowerCase())
-    )].map(s => s.charAt(0).toUpperCase() + s.slice(1)); // Capitaliza a primeira letra
-}
 
         // Função para filtrar empresas de forma inteligente
         function filtrarEmpresas() {
-    const cidade = document.getElementById('cidade').value.toLowerCase();
-    const estado = document.getElementById('estado').value;
-    const servico = document.getElementById('servico').value.toLowerCase();
-    const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
-    
-    let empresasFiltradas = todasEmpresas.filter(empresa => {
-        const nome = (empresa.nomeFantasia || '').toLowerCase();
-        const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
-        const estadoEmpresa = (empresa.estado || '');
-        
-        // Extrai serviços da empresa e converte para lowercase
-        const servicosEmpresa = extrairServicos(empresa)
-            .map(s => s.toLowerCase());
-        
-        // Verifica todos os filtros
-        const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
-        const estadoMatch = !estado || estadoEmpresa === estado;
-        const servicoMatch = !servico || servicosEmpresa.some(s => s.includes(servico));
-        const nomeMatch = !nomeEmpresa || nome.includes(nomeEmpresa);
-        
-        return cidadeMatch && estadoMatch && servicoMatch && nomeMatch;
-    });
-    
-    // Restante da função permanece igual...
-    if (geolocationActive && userLocation) {
-        empresasFiltradas = empresasFiltradas.map(empresa => {
-            if (empresa.latitude && empresa.longitude) {
-                const distancia = calcularDistancia(
-                    userLocation.latitude,
-                    userLocation.longitude,
-                    parseFloat(empresa.latitude),
-                    parseFloat(empresa.longitude)
-                );
-                return {...empresa, distancia};
             const cidade = document.getElementById('cidade').value.toLowerCase();
             const estado = document.getElementById('estado').value;
             const servico = document.getElementById('servico').value.toLowerCase();
@@ -936,14 +844,6 @@
                 
                 empresasComDistancia = [...empresasFiltradas];
             }
-            return empresa;
-        });
-        
-        empresasComDistancia = [...empresasFiltradas];
-    }
-    
-    exibirEmpresas(empresasFiltradas);
-}
             
             exibirEmpresas(empresasFiltradas);
         }
@@ -951,21 +851,21 @@
         // Função para obter a localização do usuário
         function obterLocalizacaoUsuario() {
             const geolocationBtn = document.getElementById('geolocation-btn');
-
+            
             // Alterna o estado de ativo/inativo
             geolocationActive = !geolocationActive;
-
+            
             if (geolocationActive) {
                 if (!navigator.geolocation) {
                     alert('Geolocalização não é suportada pelo seu navegador.');
                     geolocationActive = false;
                     return;
                 }
-
+                
                 geolocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 geolocationBtn.classList.add('active');
                 geolocationBtn.setAttribute('aria-label', 'Localização ativa - carregando');
-
+                
                 // Primeiro obtemos a posição atual
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
@@ -973,10 +873,10 @@
                             latitude: position.coords.latitude,
                             longitude: position.coords.longitude
                         };
-
+                        
                         geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
                         geolocationBtn.setAttribute('aria-label', 'Localização ativa');
-
+                        
                         // Depois começamos a monitorar a posição
                         watchId = navigator.geolocation.watchPosition(
                             (updatedPosition) => {
@@ -992,7 +892,7 @@
                             },
                             { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
                         );
-
+                        
                         // Aplica os filtros com a nova localização
                         filtrarEmpresas();
                     },
@@ -1002,7 +902,7 @@
                         geolocationBtn.classList.remove('active');
                         geolocationBtn.setAttribute('aria-label', 'Localização');
                         geolocationActive = false;
-
+                        
                         let errorMessage = 'Erro ao obter localização.';
                         switch(error.code) {
                             case error.PERMISSION_DENIED:
@@ -1015,7 +915,7 @@
                                 errorMessage = 'Tempo de espera para localização expirado. Tente novamente.';
                                 break;
                         }
-
+                        
                         alert(errorMessage);
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -1030,7 +930,7 @@
                 geolocationBtn.classList.remove('active');
                 geolocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
                 geolocationBtn.setAttribute('aria-label', 'Localização');
-
+                
                 // Reaplica os filtros sem a localização
                 filtrarEmpresas();
             }
@@ -1040,7 +940,7 @@
         async function carregarEmpresas() {
             try {
                 const listaEmpresas = document.getElementById('empresas-lista');
-
+                
                 if (isFirstLoad) {
                     listaEmpresas.innerHTML = `
                         <div class="loading">
@@ -1051,53 +951,38 @@
                         </div>
                     `;
                 }
-
+                
                 // Busca os dados do Firestore
                 const querySnapshot = await db.collection("usuarios").get();
-
+                
                 todasEmpresas = [];
                 cidadesDisponiveis = new Set();
                 estadosDisponiveis = new Set();
                 servicosDisponiveis = new Set();
-
+                
                 querySnapshot.forEach((doc) => {
                     const empresaData = doc.data();
                     empresaData.id = doc.id; // Adiciona o ID do documento
                     todasEmpresas.push(empresaData);
-
+                    
                     // Adiciona cidade e estado aos conjuntos
                     if (empresaData.cidade) cidadesDisponiveis.add(empresaData.cidade);
                     if (empresaData.estado) estadosDisponiveis.add(empresaData.estado);
-
+                    
                     // Extrai serviços da empresa
                     const servicos = extrairServicos(empresaData);
                     servicos.forEach(servico => {
                         if (servico && typeof servico === 'string') {
-                            servicosDisponiveis.add(servico.trim());
                             servicosDisponiveis.add(servico);
                         }
                     });
                 });
-
+                
                 // Atualiza o dropdown de serviços (sem duplicatas)
                 const selectServico = document.getElementById('servico');
                 const currentService = selectServico.value;
                 selectServico.innerHTML = '<option value="">Todos os serviços</option>';
-
-                // Converte Set para Array, ordena e remove duplicatas
-                // No carregarEmpresas(), atualize esta parte:
-Array.from(servicosDisponiveis)
-    .filter((servico, index, self) => 
-        index === self.findIndex(s => s.toLowerCase() === servico.toLowerCase())
-    )
-    .sort((a, b) => a.localeCompare(b))
-    .forEach(servico => {
-        const option = document.createElement('option');
-        option.value = servico.toLowerCase(); // Armazena em lowercase para comparação
-        option.textContent = servico; // Exibe formatado
-        if (servico.toLowerCase() === currentService.toLowerCase()) option.selected = true;
-        selectServico.appendChild(option);
-    });
+                
                 // Converte Set para Array, ordena e remove duplicatas case insensitive
                 const servicosUnicos = Array.from(servicosDisponiveis)
                     .filter((servico, index, self) => 
@@ -1113,11 +998,11 @@ Array.from(servicosDisponiveis)
                     if (servico.toLowerCase() === currentService.toLowerCase()) option.selected = true;
                     selectServico.appendChild(option);
                 });
-
+                
                 // Atualiza dropdown de estados apenas com os estados existentes
                 const selectEstado = document.getElementById('estado');
                 selectEstado.innerHTML = '<option value="">Todos os estados</option>'; // Limpa e mantém apenas a opção padrão
-
+                
                 // Adiciona apenas os estados que existem nas empresas
                 Array.from(estadosDisponiveis)
                     .sort()
@@ -1127,16 +1012,16 @@ Array.from(servicosDisponiveis)
                         option.textContent = estado;
                         selectEstado.appendChild(option);
                     });
-
+                
                 // Atualiza dropdown de cidades
                 atualizarCidades();
-
+                
                 // Exibe as empresas com os filtros atuais
                 filtrarEmpresas();
-
+                
             } catch (error) {
                 console.error('Erro ao carregar empresas:', error);
-
+                
                 const errorMessage = document.getElementById('empresas-lista');
                 errorMessage.innerHTML = `
                     <div class="error-message" role="alert">
@@ -1145,7 +1030,7 @@ Array.from(servicosDisponiveis)
                         <button onclick="carregarEmpresas()" class="btn btn-sm btn-primary mt-2">Tentar novamente</button>
                     </div>
                 `;
-
+                
                 // Se não for o primeiro carregamento, mantém os dados antigos
                 if (!isFirstLoad) {
                     return;
@@ -1158,7 +1043,7 @@ Array.from(servicosDisponiveis)
             const agora = new Date();
             const horas = agora.getHours();
             const minutos = agora.getMinutes();
-
+            
             // Verifica se são 00:10
             if (horas === 0 && minutos === 10) {
                 carregarEmpresas();
@@ -1175,17 +1060,17 @@ Array.from(servicosDisponiveis)
             });
             document.getElementById('servico').addEventListener('change', filtrarEmpresas);
             document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
-
+            
             // Adiciona busca inteligente com debounce para o campo de nome da empresa
             let timeout;
             document.getElementById('nome-empresa').addEventListener('input', () => {
                 clearTimeout(timeout);
                 timeout = setTimeout(filtrarEmpresas, 300);
             });
-
+            
             // Event listener para o botão de geolocalização
             document.getElementById('geolocation-btn').addEventListener('click', obterLocalizacaoUsuario);
-
+            
             // Suporte para teclado no botão de geolocalização
             document.getElementById('geolocation-btn').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -1195,20 +1080,6 @@ Array.from(servicosDisponiveis)
             });
 
             document.querySelector('.login-btn').addEventListener('click', function(e) {
-  e.preventDefault();
-  fetch('/login.html')
-    .then(response => {
-      if (response.ok) {
-        window.location.href = '/login.html';
-      } else {
-        alert('Página de login não encontrada. Entre em contato com o suporte.');
-      }
-    })
-    .catch(error => {
-      console.error('Erro:', error);
-      alert('Não foi possível acessar a página de login.');
-    });
-});
                 e.preventDefault();
                 fetch('/login.html')
                     .then(response => {
@@ -1226,10 +1097,10 @@ Array.from(servicosDisponiveis)
             
             // Inicia o carregamento
             carregarEmpresas();
-
+            
             // Configura a verificação diária às 00:10
             setInterval(verificarAtualizacaoDiaria, 60000); // Verifica a cada minuto
-
+            
             // Limpa o watch de geolocalização quando a página é fechada
             window.addEventListener('beforeunload', () => {
                 if (watchId) {
