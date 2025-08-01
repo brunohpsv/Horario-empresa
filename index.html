@@ -522,10 +522,7 @@
         if (empresa.servicoAtendente && Array.isArray(empresa.servicoAtendente)) {
             empresa.servicoAtendente.forEach(item => {
                 if (item.servico) {
-                    servicos.push({
-                        nome: item.servico.trim(),
-                        empresa: empresa.nomeFantasia || "Sem nome"
-                    });
+                    servicos.push(item.servico.trim());
                 }
             });
         }
@@ -536,20 +533,14 @@
                 empresa.servico.split(',').forEach(servico => {
                     const servicoFormatado = servico.trim();
                     if (servicoFormatado) {
-                        servicos.push({
-                            nome: servicoFormatado,
-                            empresa: empresa.nomeFantasia || "Sem nome"
-                        });
+                        servicos.push(servicoFormatado);
                     }
                 });
             } else if (Array.isArray(empresa.servico)) {
                 empresa.servico.forEach(servico => {
                     const servicoFormatado = String(servico).trim();
                     if (servicoFormatado) {
-                        servicos.push({
-                            nome: servicoFormatado,
-                            empresa: empresa.nomeFantasia || "Sem nome"
-                        });
+                        servicos.push(servicoFormatado);
                     }
                 });
             }
@@ -561,20 +552,14 @@
                 empresa.servicos.split(',').forEach(servico => {
                     const servicoFormatado = servico.trim();
                     if (servicoFormatado) {
-                        servicos.push({
-                            nome: servicoFormatado,
-                            empresa: empresa.nomeFantasia || "Sem nome"
-                        });
+                        servicos.push(servicoFormatado);
                     }
                 });
             } else if (Array.isArray(empresa.servicos)) {
                 empresa.servicos.forEach(servico => {
                     const servicoFormatado = String(servico).trim();
                     if (servicoFormatado) {
-                        servicos.push({
-                            nome: servicoFormatado,
-                            empresa: empresa.nomeFantasia || "Sem nome"
-                        });
+                        servicos.push(servicoFormatado);
                     }
                 });
             }
@@ -625,7 +610,7 @@
             const empresaConsolidada = { 
                 ...grupo.principal,
                 id: grupo.principal.id,
-                servicosUnicos: [...new Set(grupo.servicos.map(s => s.nome))] 
+                servicosUnicos: [...new Set(grupo.servicos)] 
             };
             
             if (grupo.filhas.length > 0) {
@@ -678,7 +663,7 @@
             ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
             : '';
         
-        // Cria lista de serviços únicos
+        // Cria lista de serviços únicos em vermelho
         const servicosHTML = empresa.servicosUnicos && empresa.servicosUnicos.length > 0 
             ? `<div class="servicos-lista">Serviços: ${empresa.servicosUnicos.join(', ')}</div>`
             : '';
@@ -793,7 +778,7 @@
             const estadoEmpresa = (empresa.estado || '');
             
             const servicosEmpresa = extrairServicos(empresa)
-                .map(s => s.nome.toLowerCase());
+                .map(s => s.toLowerCase());
             
             const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
             const estadoMatch = !estado || estadoEmpresa === estado;
@@ -925,10 +910,10 @@
         empresasFiltradas.forEach(empresa => {
             const servicos = extrairServicos(empresa);
             servicos.forEach(servico => {
-                if (servico.nome && typeof servico.nome === 'string') {
+                if (servico && typeof servico === 'string') {
                     servicosFiltrados.push({
-                        nome: servico.nome,
-                        empresa: servico.empresa
+                        nome: servico,
+                        empresa: empresa.nomeFantasia || "Sem nome"
                     });
                 }
             });
@@ -998,10 +983,10 @@
                 
                 const servicos = extrairServicos(empresaData);
                 servicos.forEach(servico => {
-                    if (servico.nome && typeof servico.nome === 'string') {
+                    if (servico && typeof servico === 'string') {
                         servicosDisponiveis.push({
-                            nome: servico.nome,
-                            empresa: servico.empresa
+                            nome: servico,
+                            empresa: empresaData.nomeFantasia || "Sem nome"
                         });
                     }
                 });
