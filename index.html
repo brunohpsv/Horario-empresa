@@ -701,71 +701,55 @@
         }
 
         // Função melhorada para extrair serviços
-        function extrairServicos(empresa) {
-            const servicos = [];
+        // Função corrigida para extrair serviços APENAS dos campos 'servico' e 'servicos'
+function extrairServicos(empresa) {
+    const servicos = [];
+    
+    // 1. Verifica os campos específicos que queremos
+    const camposRelevantes = ['servico', 'servicos'];
+    
+    camposRelevantes.forEach(campo => {
+        if (!empresa[campo]) return;
+        
+        const valor = empresa[campo];
+        
+        // Caso 1: Valor é uma string
+        if (typeof valor === 'string') {
+            // Limpa e divide a string
+            const servicosSeparados = valor
+                .split(/[,;|/\\-]+/) // Divide por vários separadores
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
             
-            // 1. Verifica campos específicos que podem conter serviços
-            const camposServicos = [
-                'servico', 'servicos', 'serviço', 'serviços',
-                'service', 'services', 'tipoServico', 'tipoServiço',
-                'serviceType', 'categoria', 'category',
-                'especialidade', 'specialty', 'tipo', 'type'
-            ];
-            
-            // 2. Verifica campos genéricos que podem conter serviços
-            const camposGenericos = Object.keys(empresa).filter(key => 
-                key.toLowerCase().includes('servico') || 
-                key.toLowerCase().includes('serviço') || 
-                key.toLowerCase().includes('service') ||
-                key.toLowerCase().includes('categoria') ||
-                key.toLowerCase().includes('category') ||
-                key.toLowerCase().includes('especialidade') ||
-                key.toLowerCase().includes('specialty') ||
-                key.toLowerCase().includes('tipo') ||
-                key.toLowerCase().includes('type')
-            );
-            
-            // 3. Combina todos os campos relevantes
-            const todosCampos = [...new Set([...camposServicos, ...camposGenericos])];
-            
-            // 4. Processa cada campo
-            todosCampos.forEach(campo => {
-                if (empresa[campo]) {
-                    const valor = empresa[campo];
-                    
-                    // Caso 1: String - divide por múltiplos separadores
-                    if (typeof valor === 'string') {
-                        const cleaned = valor
-                            .replace(/[.,;\/\\|•\-–—]/g, ',') // Substitui vários separadores por vírgula
-                            .replace(/\s+/g, ' ') // Remove espaços múltiplos
-                            .trim();
-                        
-                        const partes = cleaned.split(',')
-                            .map(p => p.trim())
-                            .filter(p => p);
-                        
-                        servicos.push(...partes);
-                    } 
-                    // Caso 2: Array - adiciona cada item
-                    else if (Array.isArray(valor)) {
-                        valor.forEach(item => {
-                            if (typeof item === 'string') {
-                                servicos.push(item.trim());
-                            } else if (typeof item === 'object' && item !== null) {
-                                // Se for um objeto, tenta extrair o nome
-                                if (item.nome) servicos.push(item.nome.trim());
-                                if (item.descricao) servicos.push(item.descricao.trim());
-                            }
-                        });
-                    }
-                    // Caso 3: Objeto - extrai propriedades relevantes
-                    else if (typeof valor === 'object' && valor !== null) {
-                        if (valor.nome) servicos.push(valor.nome.trim());
-                        if (valor.descricao) servicos.push(valor.descricao.trim());
-                        if (valor.tipo) servicos.push(valor.tipo.trim());
-                    }
+            servicos.push(...servicosSeparados);
+        } 
+        // Caso 2: Valor é um array
+        else if (Array.isArray(valor)) {
+            valor.forEach(item => {
+                if (typeof item === 'string') {
+                    servicos.push(item.trim());
+                }
+                // Se for um objeto no array, pega a propriedade 'nome' se existir
+                else if (typeof item === 'object' && item !== null && item.nome) {
+                    servicos.push(item.nome.trim());
                 }
             });
+        }
+        // Caso 3: Valor é um objeto (não array)
+        else if (typeof valor === 'object' && valor !== null) {
+            if (valor.nome) {
+                servicos.push(valor.nome.trim());
+            }
+        }
+    });
+    
+    // Filtra e formata os resultados
+    return [...new Set(
+        servicos
+            .filter(s => s && typeof s === 'string' && s.trim().length > 0)
+            .map(s => s.trim().toLowerCase())
+    )].map(s => s.charAt(0).toUpperCase() + s.slice(1));
+}
             
             // 5. Processa o nome fantasia da empresa para extrair serviços
             if (empresa.nomeFantasia) {
