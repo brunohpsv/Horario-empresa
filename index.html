@@ -717,49 +717,55 @@
         filtrarEmpresas();
     }
 
-    // Função para filtrar empresas
     function filtrarEmpresas() {
-        const cidade = document.getElementById('cidade').value.toLowerCase();
-        const estado = document.getElementById('estado').value;
-        const servico = document.getElementById('servico').value.toLowerCase();
-        const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
+    const cidade = document.getElementById('cidade').value.toLowerCase();
+    const estado = document.getElementById('estado').value;
+    const servico = document.getElementById('servico').value.toLowerCase();
+    const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
+    
+    // Determina se o filtro que está sendo alterado é de cidade, estado ou nome
+    const isFilteringLocation = cidade || estado || nomeEmpresa;
+    
+    if (isFilteringLocation) {
+        atualizarServicos();
+    }
+    
+    let empresasFiltradas = todasEmpresas.filter(empresa => {
+        const nome = (empresa.nomeFantasia || '').toLowerCase();
+        const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
+        const estadoEmpresa = (empresa.estado || '');
         
-        let empresasFiltradas = todasEmpresas.filter(empresa => {
-            const nome = (empresa.nomeFantasia || '').toLowerCase();
-            const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
-            const estadoEmpresa = (empresa.estado || '');
-            
-            // Verifica se o serviço selecionado está nos campos "servico" ou "servicos"
-            const servicosEmpresa = extrairServicos(empresa)
-                .map(s => s.nome.toLowerCase());
-            
-            const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
-            const estadoMatch = !estado || estadoEmpresa === estado;
-            const servicoMatch = !servico || servicosEmpresa.some(s => s.includes(servico));
-            const nomeMatch = !nomeEmpresa || nome.includes(nomeEmpresa);
-            
-            return cidadeMatch && estadoMatch && servicoMatch && nomeMatch;
+        // Verifica se o serviço selecionado está nos campos "servico" ou "servicos"
+        const servicosEmpresa = extrairServicos(empresa)
+            .map(s => s.nome.toLowerCase());
+        
+        const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
+        const estadoMatch = !estado || estadoEmpresa === estado;
+        const servicoMatch = !servico || servicosEmpresa.some(s => s.includes(servico));
+        const nomeMatch = !nomeEmpresa || nome.includes(nomeEmpresa);
+        
+        return cidadeMatch && estadoMatch && servicoMatch && nomeMatch;
+    });
+    
+    if (geolocationActive && userLocation) {
+        empresasFiltradas = empresasFiltradas.map(empresa => {
+            if (empresa.latitude && empresa.longitude) {
+                const distancia = calcularDistancia(
+                    userLocation.latitude,
+                    userLocation.longitude,
+                    parseFloat(empresa.latitude),
+                    parseFloat(empresa.longitude)
+                );
+                return {...empresa, distancia};
+            }
+            return empresa;
         });
         
-        if (geolocationActive && userLocation) {
-            empresasFiltradas = empresasFiltradas.map(empresa => {
-                if (empresa.latitude && empresa.longitude) {
-                    const distancia = calcularDistancia(
-                        userLocation.latitude,
-                        userLocation.longitude,
-                        parseFloat(empresa.latitude),
-                        parseFloat(empresa.longitude)
-                    );
-                    return {...empresa, distancia};
-                }
-                return empresa;
-            });
-            
-            empresasComDistancia = [...empresasFiltradas];
-        }
-        
-        exibirEmpresas(empresasFiltradas);
+        empresasComDistancia = [...empresasFiltradas];
     }
+    
+    exibirEmpresas(empresasFiltradas);
+}
 
     // Função para obter a localização do usuário
     function obterLocalizacaoUsuario() {
@@ -841,6 +847,73 @@
             filtrarEmpresas();
         }
     }
+
+function atualizarServicos() {
+    const cidade = document.getElementById('cidade').value.toLowerCase();
+    const estado = document.getElementById('estado').value;
+    const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
+    
+    // Filtra as empresas com base nos filtros atuais (exceto serviço)
+    let empresasFiltradas = todasEmpresas.filter(empresa => {
+        const nome = (empresa.nomeFantasia || '').toLowerCase();
+        const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
+        const estadoEmpresa = (empresa.estado || '');
+        
+        const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
+        const estadoMatch = !estado || estadoEmpresa === estado;
+        const nomeMatch = !nomeEmpresa || nome.includes(nomeEmpresa);
+        
+        return cidadeMatch && estadoMatch && nomeMatch;
+    });
+    
+    // Extrai todos os serviços das empresas filtradas
+    const servicosFiltrados = [];
+    empresasFiltradas.forEach(empresa => {
+        const servicos = extrairServicos(empresa);
+        servicos.forEach(servico => {
+            if (servico.nome && typeof servico.nome === 'string') {
+                servicosFiltrados.push({
+                    nome: servico.nome,
+                    empresa: servico.empresa
+                });
+            }
+        });
+    });
+    
+    // Preenche o dropdown de serviços
+    const selectServico = document.getElementById('servico');
+    const servicoSelecionado = selectServico.value.toLowerCase();
+    selectServico.innerHTML = '<option value="">Todos os serviços</option>';
+    
+    // Agrupa serviços por nome
+    const servicosAgrupados = {};
+    servicosFiltrados.forEach(servico => {
+        const chave = servico.nome.toLowerCase();
+        if (!servicosAgrupados[chave]) {
+            servicosAgrupados[chave] = {
+                nome: servico.nome,
+                empresas: [servico.empresa]
+            };
+        } else if (!servicosAgrupados[chave].empresas.includes(servico.empresa)) {
+            servicosAgrupados[chave].empresas.push(servico.empresa);
+        }
+    });
+    
+    // Ordena e adiciona ao select
+    Object.values(servicosAgrupados)
+        .sort((a, b) => a.nome.localeCompare(b.nome))
+        .forEach(servico => {
+            const option = document.createElement('option');
+            option.value = servico.nome.toLowerCase();
+            option.textContent = `${servico.nome} - ${servico.empresas.join(', ')}`;
+            selectServico.appendChild(option);
+            
+            // Mantém o item selecionado se ainda estiver disponível
+            if (servico.nome.toLowerCase() === servicoSelecionado) {
+                option.selected = true;
+            }
+        });
+}
 
     // Função para carregar empresas do Firestore
     async function carregarEmpresas() {
@@ -955,19 +1028,27 @@
 
     // Inicialização
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('cidade').addEventListener('change', filtrarEmpresas);
-        document.getElementById('estado').addEventListener('change', () => {
-            atualizarCidades();
+    document.getElementById('cidade').addEventListener('change', () => {
+        atualizarServicos();
+        filtrarEmpresas();
+    });
+    
+    document.getElementById('estado').addEventListener('change', () => {
+        atualizarCidades();
+        atualizarServicos();
+        filtrarEmpresas();
+    });
+    
+    document.getElementById('nome-empresa').addEventListener('input', () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            atualizarServicos();
             filtrarEmpresas();
-        });
-        document.getElementById('servico').addEventListener('change', filtrarEmpresas);
-        document.getElementById('nome-empresa').addEventListener('input', filtrarEmpresas);
-        
-        let timeout;
-        document.getElementById('nome-empresa').addEventListener('input', () => {
-            clearTimeout(timeout);
-            timeout = setTimeout(filtrarEmpresas, 300);
-        });
+        }, 300);
+    });
+    
+    document.getElementById('servico').addEventListener('change', filtrarEmpresas);
+    
         
         document.getElementById('geolocation-btn').addEventListener('click', obterLocalizacaoUsuario);
         
