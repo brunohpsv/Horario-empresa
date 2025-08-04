@@ -626,120 +626,115 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/pt-br.js'></script>
 
     <script>
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
-            authDomain: "banco-de-dados-d253e.firebaseapp.com",
-            projectId: "banco-de-dados-d253e",
-            storageBucket: "banco-de-dados-d253e.appspot.com",
-            messagingSenderId: "1005413315224",
-            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
-        };
+    // Configuração do Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+        authDomain: "banco-de-dados-d253e.firebaseapp.com",
+        projectId: "banco-de-dados-d253e",
+        storageBucket: "banco-de-dados-d253e.appspot.com",
+        messagingSenderId: "1005413315224",
+        appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+    };
 
-        // Inicializa o Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+    // Inicializa o Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-        // Variável para armazenar os dados do usuário
-        let currentUserData = null;
-        let isDayView = false;
+    // Variável para armazenar os dados do usuário
+    let currentUserData = null;
+    let isDayView = false;
 
-        // Verificação de autenticação
-        document.addEventListener('DOMContentLoaded', function() {
-            // Menu dropdown
-            const menuBtn = document.getElementById('menuBtn');
-            const dropdownMenu = document.getElementById('dropdownMenu');
+    // Verificação de autenticação
+    document.addEventListener('DOMContentLoaded', function() {
+        // Menu dropdown
+        const menuBtn = document.getElementById('menuBtn');
+        const dropdownMenu = document.getElementById('dropdownMenu');
 
-            menuBtn.addEventListener('click', function() {
-                dropdownMenu.classList.toggle('show');
-            });
-
-            // Fecha o menu quando clicar fora
-            window.addEventListener('click', function(event) {
-                if (!event.target.matches('.menu-btn') && !event.target.closest('.dropdown-menu')) {
-                    if (dropdownMenu.classList.contains('show')) {
-                        dropdownMenu.classList.remove('show');
-                    }
-                }
-            });
-
-            auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-        window.location.href = 'https://horario.site/login.html';
-    } else {
-        try {
-            document.getElementById('loaderOverlay').style.display = 'flex';
-            
-            // Busca o usuário pelo UID do Firebase Auth
-            const userDoc = await db.collection('usuarios').doc(user.uid).get();
-            
-            if (!userDoc.exists) {
-                throw new Error('Nenhum usuário encontrado');
-            }
-            
-            currentUserData = userDoc.data();
-            currentUserData.id = userDoc.id;
-            
-            showMainContent();
-            document.getElementById('loaderOverlay').style.display = 'none';
-
-        } catch (error) {
-            console.error('Erro ao carregar dados:', error);
-            document.getElementById('loaderOverlay').style.display = 'none';
-            alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
-            auth.signOut();
-            window.location.href = 'https://horario.site/login.html';
-        }
-    }
-});
-
-            
-            // Adiciona evento para adicionar serviço
-            document.getElementById('addServicoBtn').addEventListener('click', addServico);
-
-            // Evento para carregar dados quando o nome completo mudar
-            document.getElementById('nomeCompleto').addEventListener('change', async function() {
-                const nomeCompleto = this.value.trim();
-                if (nomeCompleto) {
-                    try {
-                        document.getElementById('loaderOverlay').style.display = 'flex';
-
-                        // Busca os dados do usuário
-                        await loadUserData(nomeCompleto);
-
-                        document.getElementById('loaderOverlay').style.display = 'none';
-
-                    } catch (error) {
-                        console.error('Erro ao carregar dados por nome:', error);
-                        document.getElementById('loaderOverlay').style.display = 'none';
-                        showConfigMessage('error', 'Nenhum usuário encontrado com este nome');
-                    }
-                }
-            });
+        menuBtn.addEventListener('click', function() {
+            dropdownMenu.classList.toggle('show');
         });
 
-        // Função para carregar dados do usuário
-        async function loadUserData(nomeCompleto) {
-            // Remove "PI -" se existir no início do nome
-            const nomeBusca = nomeCompleto.replace(/^PI\s*-\s*/i, '').trim();
-
-            // Busca usuários onde o nome completo corresponde (ignorando "PI -")
-            const userQuery = await db.collection('usuarios')
-                .where('nomeCompleto', '>=', nomeBusca)
-                .where('nomeCompleto', '<=', nomeBusca + '\uf8ff')
-                .get();
-
-            if (userQuery.empty) {
-                throw new Error('Nenhum usuário encontrado com este nome');
+        // Fecha o menu quando clicar fora
+        window.addEventListener('click', function(event) {
+            if (!event.target.matches('.menu-btn') && !event.target.closest('.dropdown-menu')) {
+                if (dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.classList.remove('show');
+                }
             }
+        });
 
-            // Pega o primeiro documento que corresponde
-            const userDoc = userQuery.docs[0];
-            currentUserData = userDoc.data();
-            currentUserData.id = userDoc.id;
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'https://horario.site/login.html';
+            } else {
+                try {
+                    document.getElementById('loaderOverlay').style.display = 'flex';
+                    
+                    // Busca o usuário pelo UID do Firebase Auth
+                    const userDoc = await db.collection('usuarios').doc(user.uid).get();
+                    
+                    if (!userDoc.exists) {
+                        // Se não existir, cria um documento básico para o usuário
+                        const newUserData = {
+                            email: user.email,
+                            nomeCompleto: user.displayName || '',
+                            nomeFantasia: '',
+                            identificacao: '',
+                            servicoAtendente: [{
+                                servico: '',
+                                atendentes: ['']
+                            }],
+                            horarios: {
+                                diasFuncionamento: [],
+                                horarioAbertura: '',
+                                horarioFechamento: '',
+                                almocoInicio: '',
+                                almocoFim: '',
+                                duracaoAtendimento: 30,
+                                intervaloAtendimento: 15
+                            },
+                            dataCriacao: new Date().toISOString()
+                        };
+                        
+                        await db.collection('usuarios').doc(user.uid).set(newUserData);
+                        currentUserData = newUserData;
+                        currentUserData.id = user.uid;
+                    } else {
+                        currentUserData = userDoc.data();
+                        currentUserData.id = userDoc.id;
+                    }
+                    
+                    showMainContent();
+                    document.getElementById('loaderOverlay').style.display = 'none';
 
-            // Preenche os campos do formulário
+                } catch (error) {
+                    console.error('Erro ao carregar dados:', error);
+                    document.getElementById('loaderOverlay').style.display = 'none';
+                    alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
+                    auth.signOut();
+                    window.location.href = 'https://horario.site/login.html';
+                }
+            }
+        });
+        
+        // Adiciona evento para adicionar serviço
+        document.getElementById('addServicoBtn').addEventListener('click', addServico);
+
+        // Evento para salvar configurações
+        document.getElementById('painelForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await saveConfig();
+        });
+    });
+
+    // Função para mostrar o conteúdo principal
+    function showMainContent() {
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('configSection').style.display = 'block';
+        
+        // Preenche os campos do formulário com os dados do usuário
+        if (currentUserData) {
             document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
             document.getElementById('nomeFantasia').value = currentUserData.nomeFantasia || '';
             document.getElementById('identificacao').value = currentUserData.identificacao || '';
@@ -780,412 +775,382 @@
                 document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento || '15';
             }
         }
+        
+        initializeCalendar();
+    }
 
-        function showMainContent() {
-    document.getElementById('mainContent').style.display = 'block';
-    document.getElementById('configSection').style.display = 'block';
-    initializeCalendar();
-}
+    // Função para salvar configurações
+    async function saveConfig() {
+        try {
+            document.getElementById('loaderOverlay').style.display = 'flex';
 
-        // Função para inicializar o calendário
-        function initializeCalendar() {
-            $('#calendar').fullCalendar({
-                header: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'month,agendaDay'
-                },
-                defaultView: 'month',
-                locale: 'pt-br',
-                navLinks: true,
-                selectable: true,
-                selectHelper: false,
-                editable: false,
-                eventLimit: false,
-                height: 600,
-                dayRender: function(date, cell) {
-                    checkDayForAgendamentos(date, cell);
+            // Coletar dados pessoais
+            const nomeCompleto = document.getElementById('nomeCompleto').value;
+            const nomeFantasia = document.getElementById('nomeFantasia').value;
+            const identificacao = document.getElementById('identificacao').value;
 
-                    if (date.day() === 0 || date.day() === 6) {
-                        cell.css('background-color', '#f9f9f9');
-                    }
-                },
-                dayClick: function(date, jsEvent, view) {
-                    if (view.name === 'month') {
-                        $('#calendar').fullCalendar('changeView', 'agendaDay');
-                        $('#calendar').fullCalendar('gotoDate', date);
-                    }
-                },
-                viewRender: function(view, element) {
-                    if (view.name === 'agendaDay') {
-                        isDayView = true;
-                        document.getElementById('configSection').style.display = 'none';
-                        const date = view.intervalStart;
-                        const dateStr = date.format('DD/MM/YYYY');
-                        const dateKey = date.format('YYYY-MM-DD');
-
-                        loadAgendamentosForDay(dateKey, dateStr);
-                    } else {
-                        isDayView = false;
-                        document.getElementById('configSection').style.display = 'block';
-                    }
-                }
-            });
-        }
-
-        // Função para verificar agendamentos em um dia
-        async function checkDayForAgendamentos(date, cell) {
-            try {
-                const dateKey = date.format('YYYY-MM-DD');
-                const today = moment().startOf('day');
-                const isFutureOrToday = date.isSameOrAfter(today, 'day');
-
-                // Busca agendamentos para esta data no documento do usuário atual
-                const agendamentosRef = db.collection('usuarios').doc(currentUserData.id)
-                    .collection('agendamentos')
-                    .where('data', '==', dateKey);
-
-                const querySnapshot = await agendamentosRef.get();
-
-                if (!querySnapshot.empty) {
-                    const cellElement = $(cell);
-                    if (isFutureOrToday) {
-                        cellElement.addClass('has-agendamento');
-                    } else {
-                        cellElement.addClass('past-agendamento');
-                    }
-                }
-            } catch (error) {
-                console.error("Erro ao verificar agendamentos:", error);
+            if (!nomeCompleto) {
+                showConfigMessage('error', 'O nome completo é obrigatório');
+                return;
             }
+
+            // Coletar serviços e atendentes
+            const servicoAtendente = [];
+            const servicoItems = document.querySelectorAll('.servico-item');
+
+            for (const item of servicoItems) {
+                const servico = item.querySelector('.servico-input').value.trim();
+                const atendentes = Array.from(item.querySelectorAll('.atendente-input')).map(input => input.value.trim()).filter(a => a);
+
+                if (!servico || atendentes.length === 0) {
+                    showConfigMessage('error', 'Preencha todos os campos de serviços e atendentes');
+                    return;
+                }
+
+                servicoAtendente.push({
+                    servico: servico,
+                    atendentes: atendentes
+                });
+            }
+
+            // Coletar horários
+            const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
+            const horarioAbertura = document.getElementById('horarioAbertura').value;
+            const horarioFechamento = document.getElementById('horarioFechamento').value;
+            const almocoInicio = document.getElementById('almocoInicio').value;
+            const almocoFim = document.getElementById('almocoFim').value;
+            const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
+            const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
+
+            if (diasSelecionados.length === 0 || !horarioAbertura || !horarioFechamento) {
+                showConfigMessage('error', 'Preencha todos os campos de horários');
+                return;
+            }
+
+            // Dados para salvar
+            const dataToSave = {
+                nomeCompleto: nomeCompleto,
+                nomeFantasia: nomeFantasia,
+                identificacao: identificacao,
+                servicoAtendente: servicoAtendente,
+                horarios: {
+                    diasFuncionamento: diasSelecionados,
+                    horarioAbertura: horarioAbertura,
+                    horarioFechamento: horarioFechamento,
+                    almocoInicio: almocoInicio,
+                    almocoFim: almocoFim,
+                    duracaoAtendimento: parseInt(duracaoAtendimento),
+                    intervaloAtendimento: parseInt(intervaloAtendimento)
+                },
+                ultimaAtualizacao: new Date().toISOString()
+            };
+
+            // Salva no Firestore
+            await db.collection('usuarios').doc(currentUserData.id).set(dataToSave, { merge: true });
+
+            // Atualiza os dados locais
+            currentUserData = { ...currentUserData, ...dataToSave };
+
+            showConfigMessage('success', 'Configurações salvas com sucesso!');
+
+        } catch (error) {
+            console.error('Erro ao salvar configurações:', error);
+            showConfigMessage('error', 'Erro ao salvar configurações');
+        } finally {
+            document.getElementById('loaderOverlay').style.display = 'none';
         }
+    }
 
-        // Função para carregar agendamentos de um dia
-        // Função para carregar agendamentos de um dia - ATUALIZADA COM NOVO DESIGN
-        async function loadAgendamentosForDay(dateKey, dateStr) {
-            try {
-                // Busca agendamentos para esta data no documento do usuário atual
-                const agendamentosRef = db.collection('usuarios').doc(currentUserData.id)
-                    .collection('agendamentos')
-                    .where('data', '==', dateKey);
+    // Função para inicializar o calendário
+    function initializeCalendar() {
+        $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaDay'
+            },
+            defaultView: 'month',
+            locale: 'pt-br',
+            navLinks: true,
+            selectable: true,
+            selectHelper: false,
+            editable: false,
+            eventLimit: false,
+            height: 600,
+            dayRender: function(date, cell) {
+                checkDayForAgendamentos(date, cell);
 
-                const querySnapshot = await agendamentosRef.get();
+                if (date.day() === 0 || date.day() === 6) {
+                    cell.css('background-color', '#f9f9f9');
+                }
+            },
+            dayClick: function(date, jsEvent, view) {
+                if (view.name === 'month') {
+                    $('#calendar').fullCalendar('changeView', 'agendaDay');
+                    $('#calendar').fullCalendar('gotoDate', date);
+                }
+            },
+            viewRender: function(view, element) {
+                if (view.name === 'agendaDay') {
+                    isDayView = true;
+                    document.getElementById('configSection').style.display = 'none';
+                    const date = view.intervalStart;
+                    const dateStr = date.format('DD/MM/YYYY');
+                    const dateKey = date.format('YYYY-MM-DD');
 
-                let agendamentosHTML = `
-                    <div class="agendamentos-container">
-                        <div class="agendamentos-header">
-                            <button id="voltar-mes" class="btn">← Voltar para o Mês</button>
-                            <button id="voltar-mes" class="btn btn-outline">← Voltar para o Mês</button>
-                            <h2>Agendamentos - ${dateStr}</h2>
-                        </div>
-                        <div class="agendamentos-list">
-                `;
-
-                if (!querySnapshot.empty) {
-                    const agendamentos = [];
-                    querySnapshot.forEach(doc => {
-                        const agendamento = doc.data();
-                        agendamento.id = doc.id;
-                        agendamentos.push(agendamento);
-                    });
-
-                    // Ordena por horário
-                    agendamentos.sort((a, b) => a.horario.localeCompare(b.horario));
-
-                    // Separa concluídos e não concluídos
-                    const concluidos = agendamentos.filter(a => a.status && a.status.toLowerCase() === 'concluído');
-                    const naoConcluidos = agendamentos.filter(a => !a.status || a.status.toLowerCase() !== 'concluído');
-
-                    // Mostra primeiro os não concluídos
-                    if (naoConcluidos.length > 0) {
-                        naoConcluidos.forEach(agendamento => {
-                            agendamentosHTML += `
-                                <div class="agendamento-item">
-                                    <div class="agendamento-info">
-                                        <span style="font-weight: bold;">${agendamento.horario}</span>
-                                        <span style="font-weight: bold;">${agendamento.servico || 'Serviço'}</span>
-                                        <span>${agendamento.clienteNome || 'Cliente'}</span>
-                                        <div class="agendamento-horario">${agendamento.horario}</div>
-                                        <div class="agendamento-servico">${agendamento.servico || 'Serviço'}</div>
-                                        <div class="agendamento-cliente">${agendamento.clienteNome || 'Cliente'}</div>
-                                        <div class="agendamento-status status-pendente">Pendente</div>
-                                    </div>
-                                    <div class="agendamento-actions">
-                                        <button class="btn" data-id="${agendamento.id}">Concluir</button>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                    }
-
-                    // Mostra os concluídos
-                    if (concluidos.length > 0) {
-                        concluidos.forEach(agendamento => {
-                            agendamentosHTML += `
-                                <div class="agendamento-item concluido">
-                                    <div class="agendamento-info">
-                                        <span style="font-weight: bold;">${agendamento.horario}</span>
-                                        <span style="font-weight: bold;">${agendamento.servico || 'Serviço'}</span>
-                                        <span>${agendamento.clienteNome || 'Cliente'}</span>
-                                        <div class="agendamento-horario">${agendamento.horario}</div>
-                                        <div class="agendamento-servico">${agendamento.servico || 'Serviço'}</div>
-                                        <div class="agendamento-cliente">${agendamento.clienteNome || 'Cliente'}</div>
-                                        <div class="agendamento-status status-concluido">Concluído</div>
-                                    </div>
-                                    <div class="agendamento-actions">
-                                        <button class="btn btn-secondary" data-id="${agendamento.id}">Desconcluir</button>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                    }
+                    loadAgendamentosForDay(dateKey, dateStr);
                 } else {
-                    agendamentosHTML += `
-                        <div class="agendamento-item">
-                        <div class="agendamento-empty">
-                            Nenhum agendamento encontrado para este dia.
-                        </div>
-                    `;
+                    isDayView = false;
+                    document.getElementById('configSection').style.display = 'block';
                 }
-
-                agendamentosHTML += `</div>`;
-                agendamentosHTML += `
-                        </div>
-                    </div>
-                `;
-                
-                $('#calendar').html(agendamentosHTML);
-
-                // Adiciona eventos aos botões
-                $('.btn:not(#voltar-mes)').click(async function() {
-                    const agendamentoId = $(this).data('id');
-                    const isConcluir = $(this).text() === 'Concluir';
-
-                    try {
-                        await db.collection('usuarios').doc(currentUserData.id)
-                            .collection('agendamentos').doc(agendamentoId).update({
-                                status: isConcluir ? 'concluído' : 'confirmado',
-                                concluidoEm: isConcluir ? new Date() : firebase.firestore.FieldValue.delete()
-                            });
-
-                        // Recarrega os agendamentos
-                        loadAgendamentosForDay(dateKey, dateStr);
-                    } catch (error) {
-                        console.error('Erro ao atualizar agendamento:', error);
-                        alert('Erro ao atualizar agendamento');
-                    }
-                });
-
-                $('#voltar-mes').click(function() {
-                    location.reload();
-                });
-
-            } catch (error) {
-                console.error("Erro ao carregar agendamentos:", error);
-                $('#calendar').html(`
-                    <div class="agendamentos-container">
-                        <button id="voltar-mes" class="btn">← Voltar para o Mês</button>
-                        <div class="agendamento-item">
-                        <div class="agendamentos-header">
-                            <button id="voltar-mes" class="btn btn-outline">← Voltar para o Mês</button>
-                            <h2>Agendamentos - ${dateStr}</h2>
-                        </div>
-                        <div class="agendamento-empty">
-                            Ocorreu um erro ao carregar os agendamentos.
-                        </div>
-                    </div>
-                `);
-
-                $('#voltar-mes').click(function() {
-                    location.reload();
-                });
             }
+        });
+    }
+
+    // Função para verificar agendamentos em um dia
+    async function checkDayForAgendamentos(date, cell) {
+        try {
+            const dateKey = date.format('YYYY-MM-DD');
+            const today = moment().startOf('day');
+            const isFutureOrToday = date.isSameOrAfter(today, 'day');
+
+            // Busca agendamentos para esta data no documento do usuário atual
+            const agendamentosRef = db.collection('usuarios').doc(currentUserData.id)
+                .collection('agendamentos')
+                .where('data', '==', dateKey);
+
+            const querySnapshot = await agendamentosRef.get();
+
+            if (!querySnapshot.empty) {
+                const cellElement = $(cell);
+                if (isFutureOrToday) {
+                    cellElement.addClass('has-agendamento');
+                } else {
+                    cellElement.addClass('past-agendamento');
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao verificar agendamentos:", error);
         }
+    }
 
-        // Função para adicionar um serviço
-        function addServico(servicoData = { servico: '', atendentes: [''] }) {
-            const servicosContainer = document.getElementById('servicosContainer');
-            const servicoId = Date.now();
+    // Função para carregar agendamentos de um dia
+    async function loadAgendamentosForDay(dateKey, dateStr) {
+        try {
+            // Busca agendamentos para esta data no documento do usuário atual
+            const agendamentosRef = db.collection('usuarios').doc(currentUserData.id)
+                .collection('agendamentos')
+                .where('data', '==', dateKey);
 
-            const servicoItem = document.createElement('div');
-            servicoItem.className = 'servico-item';
-            servicoItem.dataset.id = servicoId;
+            const querySnapshot = await agendamentosRef.get();
 
-            servicoItem.innerHTML = `
-                <div style="display: flex; margin-bottom: 10px;">
-                    <input type="text" class="servico-input" placeholder="Nome do serviço" value="${servicoData.servico}" style="flex: 1;">
-                    <button type="button" class="btn btn-danger" style="margin-left: 10px;">Remover</button>
-                </div>
-                <div class="atendentes-list">
-                    ${servicoData.atendentes.map(atendente => `
-                        <div class="atendente-item">
-                            <input type="text" class="atendente-input" placeholder="Nome do atendente" value="${atendente}">
-                            <button type="button" class="btn btn-danger">×</button>
-                        </div>
-                    `).join('')}
-                </div>
-                <button type="button" class="btn btn-secondary" style="margin-top: 5px;">Adicionar Atendente</button>
+            let agendamentosHTML = `
+                <div class="agendamentos-container">
+                    <div class="agendamentos-header">
+                        <button id="voltar-mes" class="btn btn-outline">← Voltar para o Mês</button>
+                        <h2>Agendamentos - ${dateStr}</h2>
+                    </div>
+                    <div class="agendamentos-list">
             `;
 
-            servicosContainer.appendChild(servicoItem);
-
-            // Eventos
-            servicoItem.querySelector('.btn-danger:not(.atendente-item .btn-danger)').addEventListener('click', function() {
-                if (document.querySelectorAll('.servico-item').length > 1) {
-                    servicoItem.remove();
-                } else {
-                    showConfigMessage('error', 'Você deve ter pelo menos um serviço');
-                }
-            });
-
-            servicoItem.querySelector('.btn-secondary').addEventListener('click', function() {
-                const atendentesList = servicoItem.querySelector('.atendentes-list');
-                const atendenteItem = document.createElement('div');
-                atendenteItem.className = 'atendente-item';
-                atendenteItem.innerHTML = `
-                    <input type="text" class="atendente-input" placeholder="Nome do atendente">
-                    <button type="button" class="btn btn-danger">×</button>
-                `;
-                atendentesList.appendChild(atendenteItem);
-
-                atendenteItem.querySelector('.btn-danger').addEventListener('click', function() {
-                    if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
-                        atendenteItem.remove();
-                    } else {
-                        showConfigMessage('error', 'Cada serviço deve ter pelo menos um atendente');
-                    }
+            if (!querySnapshot.empty) {
+                const agendamentos = [];
+                querySnapshot.forEach(doc => {
+                    const agendamento = doc.data();
+                    agendamento.id = doc.id;
+                    agendamentos.push(agendamento);
                 });
-            });
 
-            servicoItem.querySelectorAll('.atendente-item .btn-danger').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
-                        this.closest('.atendente-item').remove();
-                    } else {
-                        showConfigMessage('error', 'Cada serviço deve ter pelo menos um atendente');
-                    }
-                });
-            });
-        }
+                // Ordena por horário
+                agendamentos.sort((a, b) => a.horario.localeCompare(b.horario));
 
-        // Função para mostrar mensagens
-        function showMessage(type, text) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.className = `message ${type}`;
-            messageDiv.textContent = text;
-            messageDiv.style.display = 'block';
+                // Separa concluídos e não concluídos
+                const concluidos = agendamentos.filter(a => a.status && a.status.toLowerCase() === 'concluído');
+                const naoConcluidos = agendamentos.filter(a => !a.status || a.status.toLowerCase() !== 'concluído');
 
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        // Função para mostrar mensagens na seção de configuração
-        function showConfigMessage(type, text) {
-            const messageDiv = document.getElementById('configMessage');
-            messageDiv.className = `message ${type}`;
-            messageDiv.textContent = text;
-            messageDiv.style.display = 'block';
-
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        // Formulário de configurações
-        document.getElementById('painelForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            try {
-                document.getElementById('loaderOverlay').style.display = 'flex';
-
-                // Coletar dados pessoais
-                const nomeCompleto = document.getElementById('nomeCompleto').value;
-                const nomeFantasia = document.getElementById('nomeFantasia').value;
-                const identificacao = document.getElementById('identificacao').value;
-
-                if (!nomeCompleto) {
-                    showConfigMessage('error', 'O nome completo é obrigatório');
-                    return;
-                }
-
-                // Coletar serviços e atendentes
-                const servicoAtendente = [];
-                const servicoItems = document.querySelectorAll('.servico-item');
-
-                for (const item of servicoItems) {
-                    const servico = item.querySelector('.servico-input').value.trim();
-                    const atendentes = Array.from(item.querySelectorAll('.atendente-input')).map(input => input.value.trim()).filter(a => a);
-
-                    if (!servico || atendentes.length === 0) {
-                        showConfigMessage('error', 'Preencha todos os campos de serviços e atendentes');
-                        return;
-                    }
-
-                    servicoAtendente.push({
-                        servico: servico,
-                        atendentes: atendentes
+                // Mostra primeiro os não concluídos
+                if (naoConcluidos.length > 0) {
+                    naoConcluidos.forEach(agendamento => {
+                        agendamentosHTML += `
+                            <div class="agendamento-item">
+                                <div class="agendamento-info">
+                                    <div class="agendamento-horario">${agendamento.horario}</div>
+                                    <div class="agendamento-servico">${agendamento.servico || 'Serviço'}</div>
+                                    <div class="agendamento-cliente">${agendamento.clienteNome || 'Cliente'}</div>
+                                    <div class="agendamento-status status-pendente">Pendente</div>
+                                </div>
+                                <div class="agendamento-actions">
+                                    <button class="btn" data-id="${agendamento.id}">Concluir</button>
+                                </div>
+                            </div>
+                        `;
                     });
                 }
 
-                // Coletar horários
-                const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
-                const horarioAbertura = document.getElementById('horarioAbertura').value;
-                const horarioFechamento = document.getElementById('horarioFechamento').value;
-                const almocoInicio = document.getElementById('almocoInicio').value;
-                const almocoFim = document.getElementById('almocoFim').value;
-                const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
-                const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
-
-                if (diasSelecionados.length === 0 || !horarioAbertura || !horarioFechamento) {
-                    showConfigMessage('error', 'Preencha todos os campos de horários');
-                    return;
+                // Mostra os concluídos
+                if (concluidos.length > 0) {
+                    concluidos.forEach(agendamento => {
+                        agendamentosHTML += `
+                            <div class="agendamento-item concluido">
+                                <div class="agendamento-info">
+                                    <div class="agendamento-horario">${agendamento.horario}</div>
+                                    <div class="agendamento-servico">${agendamento.servico || 'Serviço'}</div>
+                                    <div class="agendamento-cliente">${agendamento.clienteNome || 'Cliente'}</div>
+                                    <div class="agendamento-status status-concluido">Concluído</div>
+                                </div>
+                                <div class="agendamento-actions">
+                                    <button class="btn btn-secondary" data-id="${agendamento.id}">Desconcluir</button>
+                                </div>
+                            </div>
+                        `;
+                    });
                 }
+            } else {
+                agendamentosHTML += `
+                    <div class="agendamento-empty">
+                        Nenhum agendamento encontrado para este dia.
+                    </div>
+                `;
+            }
 
-                // Dados para salvar
-                const dataToSave = {
-                    nomeCompleto: nomeCompleto,
-                    nomeFantasia: nomeFantasia,
-                    identificacao: identificacao,
-                    servicoAtendente: servicoAtendente,
-                    horarios: {
-                        diasFuncionamento: diasSelecionados,
-                        horarioAbertura: horarioAbertura,
-                        horarioFechamento: horarioFechamento,
-                        almocoInicio: almocoInicio,
-                        almocoFim: almocoFim,
-                        duracaoAtendimento: parseInt(duracaoAtendimento),
-                        intervaloAtendimento: parseInt(intervaloAtendimento)
-                    },
-                    ultimaAtualizacao: new Date().toISOString()
-                };
+            agendamentosHTML += `
+                    </div>
+                </div>
+            `;
+            
+            $('#calendar').html(agendamentosHTML);
 
-                // Salva no Firestore
-                await db.collection('usuarios').doc(currentUserData.id).set(dataToSave, { merge: true });
+            // Adiciona eventos aos botões
+            $('.btn:not(#voltar-mes)').click(async function() {
+                const agendamentoId = $(this).data('id');
+                const isConcluir = $(this).text() === 'Concluir';
 
-                // Atualiza os dados locais
-                currentUserData = { ...currentUserData, ...dataToSave };
+                try {
+                    await db.collection('usuarios').doc(currentUserData.id)
+                        .collection('agendamentos').doc(agendamentoId).update({
+                            status: isConcluir ? 'concluído' : 'confirmado',
+                            concluidoEm: isConcluir ? new Date() : firebase.firestore.FieldValue.delete()
+                        });
 
-                showConfigMessage('success', 'Configurações salvas com sucesso!');
+                    // Recarrega os agendamentos
+                    loadAgendamentosForDay(dateKey, dateStr);
+                } catch (error) {
+                    console.error('Erro ao atualizar agendamento:', error);
+                    alert('Erro ao atualizar agendamento');
+                }
+            });
 
-            } catch (error) {
-                console.error('Erro ao salvar configurações:', error);
-                showConfigMessage('error', 'Erro ao salvar configurações');
-            } finally {
-                document.getElementById('loaderOverlay').style.display = 'none';
+            $('#voltar-mes').click(function() {
+                location.reload();
+            });
+
+        } catch (error) {
+            console.error("Erro ao carregar agendamentos:", error);
+            $('#calendar').html(`
+                <div class="agendamentos-container">
+                    <div class="agendamentos-header">
+                        <button id="voltar-mes" class="btn btn-outline">← Voltar para o Mês</button>
+                        <h2>Agendamentos - ${dateStr}</h2>
+                    </div>
+                    <div class="agendamento-empty">
+                        Ocorreu um erro ao carregar os agendamentos.
+                    </div>
+                </div>
+            `);
+
+            $('#voltar-mes').click(function() {
+                location.reload();
+            });
+        }
+    }
+
+    // Função para adicionar um serviço
+    function addServico(servicoData = { servico: '', atendentes: [''] }) {
+        const servicosContainer = document.getElementById('servicosContainer');
+        const servicoId = Date.now();
+
+        const servicoItem = document.createElement('div');
+        servicoItem.className = 'servico-item';
+        servicoItem.dataset.id = servicoId;
+
+        servicoItem.innerHTML = `
+            <div style="display: flex; margin-bottom: 10px;">
+                <input type="text" class="servico-input" placeholder="Nome do serviço" value="${servicoData.servico}" style="flex: 1;">
+                <button type="button" class="btn btn-danger" style="margin-left: 10px;">Remover</button>
+            </div>
+            <div class="atendentes-list">
+                ${servicoData.atendentes.map(atendente => `
+                    <div class="atendente-item">
+                        <input type="text" class="atendente-input" placeholder="Nome do atendente" value="${atendente}">
+                        <button type="button" class="btn btn-danger">×</button>
+                    </div>
+                `).join('')}
+            </div>
+            <button type="button" class="btn btn-secondary" style="margin-top: 5px;">Adicionar Atendente</button>
+        `;
+
+        servicosContainer.appendChild(servicoItem);
+
+        // Eventos
+        servicoItem.querySelector('.btn-danger:not(.atendente-item .btn-danger)').addEventListener('click', function() {
+            if (document.querySelectorAll('.servico-item').length > 1) {
+                servicoItem.remove();
+            } else {
+                showConfigMessage('error', 'Você deve ter pelo menos um serviço');
             }
         });
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            auth.signOut().then(() => {
-                // Limpa o localStorage ao fazer logout
-                window.location.href = 'https://horario.site/login.html';
-            }).catch(error => {
-                console.error('Erro ao fazer logout:', error);
+        servicoItem.querySelector('.btn-secondary').addEventListener('click', function() {
+            const atendentesList = servicoItem.querySelector('.atendentes-list');
+            const atendenteItem = document.createElement('div');
+            atendenteItem.className = 'atendente-item';
+            atendenteItem.innerHTML = `
+                <input type="text" class="atendente-input" placeholder="Nome do atendente">
+                <button type="button" class="btn btn-danger">×</button>
+            `;
+            atendentesList.appendChild(atendenteItem);
+
+            atendenteItem.querySelector('.btn-danger').addEventListener('click', function() {
+                if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
+                    atendenteItem.remove();
+                } else {
+                    showConfigMessage('error', 'Cada serviço deve ter pelo menos um atendente');
+                }
             });
         });
-    </script>
+
+        servicoItem.querySelectorAll('.atendente-item .btn-danger').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
+                    this.closest('.atendente-item').remove();
+                } else {
+                    showConfigMessage('error', 'Cada serviço deve ter pelo menos um atendente');
+                }
+            });
+        });
+    }
+
+    // Função para mostrar mensagens na seção de configuração
+    function showConfigMessage(type, text) {
+        const messageDiv = document.getElementById('configMessage');
+        messageDiv.className = `message ${type}`;
+        messageDiv.textContent = text;
+        messageDiv.style.display = 'block';
+
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        auth.signOut().then(() => {
+            window.location.href = 'https://horario.site/login.html';
+        }).catch(error => {
+            console.error('Erro ao fazer logout:', error);
+        });
+    });
+</script>
 </body>
 </html>
