@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -15,14 +14,14 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
-        
+
         body {
             background-color: #f5f5f5;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
-        
+
         /* Header */
         header {
             background-color: #000000;
@@ -35,12 +34,12 @@
             position: relative;
             z-index: 1000;
         }
-        
+
         .logo {
             font-size: 20px;
             font-weight: bold;
         }
-        
+
         .menu-btn {
             background: none;
             border: none;
@@ -49,7 +48,7 @@
             cursor: pointer;
             padding: 5px;
         }
-        
+
         .dropdown-menu {
             display: none;
             position: absolute;
@@ -61,11 +60,11 @@
             z-index: 1001;
             border-radius: 4px;
         }
-        
+
         .dropdown-menu.show {
             display: block;
         }
-        
+
         .dropdown-menu a {
             color: black;
             padding: 12px 16px;
@@ -73,15 +72,15 @@
             display: block;
             font-size: 14px;
         }
-        
+
         .dropdown-menu a:hover {
             background-color: #f1f1f1;
         }
-        
+
         .logout-btn {
             color: #f44336;
         }
-        
+
         /* Main Content */
         .container {
             max-width: 1200px;
@@ -89,7 +88,7 @@
             padding: 0 15px;
             flex: 1;
         }
-        
+
         /* Calendar */
         #calendar {
             background-color: white;
@@ -98,7 +97,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             margin-bottom: 30px;
         }
-        
+
         /* Config Section */
         .config-section {
             background-color: white;
@@ -107,25 +106,25 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             margin-bottom: 30px;
         }
-        
+
         .config-section h2 {
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 1px solid #eee;
             color: #333;
         }
-        
+
         .form-group {
             margin-bottom: 15px;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
             color: #555;
         }
-        
+
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -135,7 +134,7 @@
             border-radius: 4px;
             font-size: 14px;
         }
-        
+
         .btn {
             padding: 10px 16px;
             background-color: #4CAF50;
@@ -147,49 +146,49 @@
             font-weight: 500;
             transition: all 0.3s ease;
         }
-        
+
         .btn:hover {
             opacity: 0.9;
             transform: translateY(-1px);
         }
-        
+
         .btn:active {
             transform: translateY(0);
         }
-        
+
         .btn-secondary {
             background-color: #2196F3;
         }
-        
+
         .btn-danger {
             background-color: #f44336;
         }
-        
+
         .btn-outline {
             background: transparent;
             border: 1px solid #2196F3;
             color: #2196F3;
         }
-        
+
         .message {
             padding: 12px;
             margin: 10px 0;
             border-radius: 4px;
             font-size: 14px;
         }
-        
+
         .success {
             background-color: #e8f5e9;
             color: #2e7d32;
             border-left: 4px solid #2e7d32;
         }
-        
+
         .error {
             background-color: #ffebee;
             color: #c62828;
             border-left: 4px solid #c62828;
         }
-        
+
         /* Footer */
         footer {
             background-color: #000000;
@@ -199,7 +198,7 @@
             font-size: 14px;
             margin-top: auto;
         }
-        
+
         /* Loader */
         .loader-overlay {
             position: fixed;
@@ -227,7 +226,7 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         /* Serviços e Atendentes */
         .servico-item {
             background-color: #f9f9f9;
@@ -236,17 +235,17 @@
             border-radius: 4px;
             border: 1px solid #eee;
         }
-        
+
         .atendente-item {
             display: flex;
             margin-bottom: 5px;
         }
-        
+
         .atendente-item input {
             flex: 1;
             margin-right: 5px;
         }
-        
+
         /* Dias da semana */
         .dias-semana {
             display: flex;
@@ -254,7 +253,7 @@
             gap: 10px;
             margin-bottom: 10px;
         }
-        
+
         .dia-checkbox {
             display: flex;
             align-items: center;
@@ -262,22 +261,22 @@
             padding: 8px 12px;
             border-radius: 20px;
         }
-        
+
         .dia-checkbox input {
             margin-right: 5px;
         }
-        
+
         /* Horários */
         .horarios-container {
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
         }
-        
+
         .horario-input {
             flex: 1;
         }
-        
+
         /* Nome inicial */
         .nome-inicial {
             max-width: 500px;
@@ -288,22 +287,22 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             flex: 1;
         }
-        
+
         .nome-inicial h2 {
             margin-bottom: 20px;
             color: #333;
         }
-        
+
         .nome-inicial .form-group {
             display: flex;
             gap: 10px;
         }
-        
+
         .nome-inicial input {
             flex: 1;
             padding: 10px;
         }
-        
+
         /* Agendamentos do dia - NOVO DESIGN */
         .agendamentos-container {
             width: 100%;
@@ -314,7 +313,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             overflow: hidden;
         }
-        
+
         .agendamentos-header {
             display: flex;
             justify-content: space-between;
@@ -323,109 +322,98 @@
             background: #f8f9fa;
             border-bottom: 1px solid #eee;
         }
-        
+
         .agendamentos-header h2 {
             font-size: 18px;
             color: #333;
             margin: 0;
         }
-        
-        /* Estilo de caderno com pauta */
-.agendamentos-list {
-    background: linear-gradient(to bottom, white 0%, white 24px, #f0f4ff 25px);
-    background-size: 100% 25px;
-    padding: 15px 20px;
-    position: relative;
-}
 
-.agendamento-item {
-    position: relative;
-    padding: 8px 0;
-    margin-bottom: 8px;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex;
-    align-items: center;
-    min-height: 25px;
-}
+        .agendamentos-list {
+            padding: 0;
+            width: 100%;
+        }
 
-.agendamento-item:last-child {
-    border-bottom: none;
-}
+        .agendamento-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
 
-.agendamento-horario {
-    font-weight: bold;
-    color: #333;
-    min-width: 60px;
-    margin-right: 15px;
-    position: relative;
-}
+        .agendamento-item:hover {
+            background-color: #f8f9fa;
+        }
 
-.agendamento-horario:after {
-    content: "=";
-    margin-left: 5px;
-    color: #999;
-}
+        .agendamento-item.concluido {
+            background-color: #f9f9f9;
+        }
 
-.agendamento-details {
-    flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
+        .agendamento-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
 
-.agendamento-info-item {
-    background: #f5f5f5;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-}
+        .agendamento-horario {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+            min-width: 70px;
+        }
 
-.agendamento-info-item i {
-    margin-right: 5px;
-    color: #666;
-}
+        .agendamento-servico {
+            font-weight: 600;
+            color: #2196F3;
+            margin: 0 15px;
+            flex: 1;
+        }
 
-.agendamento-status {
-    margin-left: auto;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-}
+        .agendamento-cliente {
+            color: #555;
+            flex: 2;
+        }
 
-.agendamento-actions {
-    margin-left: 15px;
-}
-        
+        .agendamento-status {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-right: 10px;
+        }
+
         .status-pendente {
             background-color: #fff3e0;
             color: #e65100;
         }
-        
+
         .status-concluido {
             background-color: #e8f5e9;
             color: #2e7d32;
         }
-        
+
         .agendamento-actions {
             display: flex;
             gap: 8px;
         }
-        
+
         .agendamento-empty {
             padding: 30px;
             text-align: center;
             color: #777;
         }
-        
+
         /* Estilo para dias com agendamentos */
         .has-agendamento {
             background-color: #e8f5e9 !important;
             position: relative;
         }
-        
+
         .has-agendamento:after {
             content: '';
             position: absolute;
@@ -437,12 +425,12 @@
             background-color: #4CAF50;
             border-radius: 50%;
         }
-        
+
         .past-agendamento {
             background-color: #f5f5f5 !important;
             position: relative;
         }
-        
+
         .past-agendamento:after {
             content: '';
             position: absolute;
@@ -479,25 +467,25 @@
                 align-items: flex-start;
                 gap: 10px;
             }
-            
+
             .agendamento-info {
                 width: 100%;
                 display: flex;
                 flex-wrap: wrap;
                 gap: 10px;
             }
-            
+
             .agendamento-actions {
                 width: 100%;
                 justify-content: flex-end;
             }
-            
+
             .agendamentos-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 10px;
             }
-            
+
             .agendamentos-header h2 {
                 font-size: 16px;
             }
@@ -529,39 +517,39 @@
                 <button id="adicionarNomeBtn" class="btn">Adicionar Nome</button>
             </div>
         </div>
-        
+
         <!-- Conteúdo principal (mostra apenas após selecionar nome) -->
         <div id="mainContent" style="display: none;">
             <div id="calendar"></div>
-            
+
             <div id="configSection" class="config-section" style="display: none;">
                 <h2>Configurações do Painel</h2>
-                
+
                 <div id="configMessage" class="message" style="display: none;"></div>
-                
+
                 <form id="painelForm">
                     <div class="form-group">
                         <label for="nomeCompleto">Nome Completo:</label>
                         <input type="text" id="nomeCompleto" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="nomeFantasia">Nome Fantasia:</label>
                         <input type="text" id="nomeFantasia" placeholder="Nome do seu estabelecimento">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="identificacao">Identificação:</label>
                         <input type="text" id="identificacao" placeholder="Sua identificação na empresa">
                     </div>
-                    
+
                     <div id="servicosContainer" class="form-group">
                         <label>Serviços e Atendentes:</label>
                         <!-- Serviços serão adicionados aqui -->
                     </div>
-                    
+
                     <button type="button" id="addServicoBtn" class="btn">Adicionar Serviço</button>
-                    
+
                     <div class="form-group">
                         <label>Dias de Funcionamento:</label>
                         <div class="dias-semana">
@@ -574,7 +562,7 @@
                             <label class="dia-checkbox"><input type="checkbox" name="dia" value="0"> Domingo</label>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label>Horário de Funcionamento:</label>
                         <div class="horarios-container">
@@ -588,7 +576,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label>Horário de Almoço:</label>
                         <div class="horarios-container">
@@ -602,7 +590,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="duracaoAtendimento">Duração de cada atendimento:</label>
                         <select id="duracaoAtendimento" required>
@@ -612,7 +600,7 @@
                             <option value="60">60 minutos</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="intervaloAtendimento">Intervalo entre atendimentos:</label>
                         <select id="intervaloAtendimento" required>
@@ -622,7 +610,7 @@
                             <option value="15" selected>15 minutos</option>
                         </select>
                     </div>
-                    
+
                     <button type="submit" class="btn">Salvar Configurações</button>
                 </form>
             </div>
@@ -660,22 +648,22 @@
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        
+
         // Variável para armazenar os dados do usuário
         let currentUserData = null;
         let selectedNomeCompleto = localStorage.getItem('selectedNomeCompleto');
         let isDayView = false;
-        
+
         // Verificação de autenticação
         document.addEventListener('DOMContentLoaded', function() {
             // Menu dropdown
             const menuBtn = document.getElementById('menuBtn');
             const dropdownMenu = document.getElementById('dropdownMenu');
-            
+
             menuBtn.addEventListener('click', function() {
                 dropdownMenu.classList.toggle('show');
             });
-            
+
             // Fecha o menu quando clicar fora
             window.addEventListener('click', function(event) {
                 if (!event.target.matches('.menu-btn') && !event.target.closest('.dropdown-menu')) {
@@ -684,14 +672,14 @@
                     }
                 }
             });
-            
+
             auth.onAuthStateChanged(async (user) => {
                 if (!user) {
                     window.location.href = 'https://horario.site/login.html';
                 } else {
                     try {
                         document.getElementById('loaderOverlay').style.display = 'flex';
-                        
+
                         // Verifica se já tem um nome selecionado no localStorage
                         if (selectedNomeCompleto) {
                             // Busca o usuário pelo nome completo
@@ -701,9 +689,9 @@
                             // Mostra a seção para inserir o nome
                             document.getElementById('nomeInicialSection').style.display = 'block';
                         }
-                        
+
                         document.getElementById('loaderOverlay').style.display = 'none';
-                        
+
                     } catch (error) {
                         console.error('Erro ao carregar dados:', error);
                         document.getElementById('loaderOverlay').style.display = 'none';
@@ -715,7 +703,7 @@
                     }
                 }
             });
-            
+
             // Evento para adicionar nome
             document.getElementById('adicionarNomeBtn').addEventListener('click', async function() {
                 const nomeCompleto = document.getElementById('nomeInicial').value.trim();
@@ -723,48 +711,48 @@
                     showMessage('error', 'Por favor, digite seu nome completo');
                     return;
                 }
-                
+
                 try {
                     document.getElementById('loaderOverlay').style.display = 'flex';
-                    
+
                     // Busca os dados do usuário
                     await loadUserData(nomeCompleto);
-                    
+
                     // Salva no localStorage
                     localStorage.setItem('selectedNomeCompleto', nomeCompleto);
                     selectedNomeCompleto = nomeCompleto;
-                    
+
                     // Mostra o conteúdo principal
                     showMainContent();
-                    
+
                     document.getElementById('loaderOverlay').style.display = 'none';
-                    
+
                 } catch (error) {
                     console.error('Erro ao carregar dados:', error);
                     document.getElementById('loaderOverlay').style.display = 'none';
                     showMessage('error', 'Erro ao carregar dados. Verifique se o nome está correto.');
                 }
             });
-            
+
             // Adiciona evento para adicionar serviço
             document.getElementById('addServicoBtn').addEventListener('click', addServico);
-            
+
             // Evento para carregar dados quando o nome completo mudar
             document.getElementById('nomeCompleto').addEventListener('change', async function() {
                 const nomeCompleto = this.value.trim();
                 if (nomeCompleto) {
                     try {
                         document.getElementById('loaderOverlay').style.display = 'flex';
-                        
+
                         // Busca os dados do usuário
                         await loadUserData(nomeCompleto);
-                        
+
                         // Atualiza o localStorage
                         localStorage.setItem('selectedNomeCompleto', nomeCompleto);
                         selectedNomeCompleto = nomeCompleto;
-                        
+
                         document.getElementById('loaderOverlay').style.display = 'none';
-                        
+
                     } catch (error) {
                         console.error('Erro ao carregar dados por nome:', error);
                         document.getElementById('loaderOverlay').style.display = 'none';
@@ -778,31 +766,31 @@
         async function loadUserData(nomeCompleto) {
             // Remove "PI -" se existir no início do nome
             const nomeBusca = nomeCompleto.replace(/^PI\s*-\s*/i, '').trim();
-            
+
             // Busca usuários onde o nome completo corresponde (ignorando "PI -")
             const userQuery = await db.collection('usuarios')
                 .where('nomeCompleto', '>=', nomeBusca)
                 .where('nomeCompleto', '<=', nomeBusca + '\uf8ff')
                 .get();
-            
+
             if (userQuery.empty) {
                 throw new Error('Nenhum usuário encontrado com este nome');
             }
-            
+
             // Pega o primeiro documento que corresponde
             const userDoc = userQuery.docs[0];
             currentUserData = userDoc.data();
             currentUserData.id = userDoc.id;
-            
+
             // Preenche os campos do formulário
             document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
             document.getElementById('nomeFantasia').value = currentUserData.nomeFantasia || '';
             document.getElementById('identificacao').value = currentUserData.identificacao || '';
-            
+
             // Preenche serviços e atendentes
             const servicosContainer = document.getElementById('servicosContainer');
             servicosContainer.innerHTML = '<label>Serviços e Atendentes:</label>';
-            
+
             if (currentUserData.servicoAtendente && currentUserData.servicoAtendente.length > 0) {
                 currentUserData.servicoAtendente.forEach(servico => {
                     addServico({
@@ -813,11 +801,11 @@
             } else {
                 addServico();
             }
-            
+
             // Preenche horários
             if (currentUserData.horarios) {
                 const horarios = currentUserData.horarios;
-                
+
                 // Dias de funcionamento
                 if (horarios.diasFuncionamento) {
                     horarios.diasFuncionamento.forEach(dia => {
@@ -825,7 +813,7 @@
                         if (checkbox) checkbox.checked = true;
                     });
                 }
-                
+
                 // Horários
                 document.getElementById('horarioAbertura').value = horarios.horarioAbertura || '';
                 document.getElementById('horarioFechamento').value = horarios.horarioFechamento || '';
@@ -840,12 +828,12 @@
         function showMainContent() {
             document.getElementById('nomeInicialSection').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
-            
+
             // Mostra a seção de configurações apenas se não estiver na visualização de dia
             if (!isDayView) {
                 document.getElementById('configSection').style.display = 'block';
             }
-            
+
             // Inicializa o calendário
             initializeCalendar();
         }
@@ -868,7 +856,7 @@
                 height: 600,
                 dayRender: function(date, cell) {
                     checkDayForAgendamentos(date, cell);
-                    
+
                     if (date.day() === 0 || date.day() === 6) {
                         cell.css('background-color', '#f9f9f9');
                     }
@@ -886,7 +874,7 @@
                         const date = view.intervalStart;
                         const dateStr = date.format('DD/MM/YYYY');
                         const dateKey = date.format('YYYY-MM-DD');
-                        
+
                         loadAgendamentosForDay(dateKey, dateStr);
                     } else {
                         isDayView = false;
@@ -902,14 +890,14 @@
                 const dateKey = date.format('YYYY-MM-DD');
                 const today = moment().startOf('day');
                 const isFutureOrToday = date.isSameOrAfter(today, 'day');
-                
+
                 // Busca agendamentos para esta data no documento do usuário atual
                 const agendamentosRef = db.collection('usuarios').doc(currentUserData.id)
                     .collection('agendamentos')
                     .where('data', '==', dateKey);
-                
+
                 const querySnapshot = await agendamentosRef.get();
-                
+
                 if (!querySnapshot.empty) {
                     const cellElement = $(cell);
                     if (isFutureOrToday) {
@@ -930,28 +918,19 @@
                 const agendamentosRef = db.collection('usuarios').doc(currentUserData.id)
                     .collection('agendamentos')
                     .where('data', '==', dateKey);
-                
-                const querySnapshot = await agendamentosRef.get();
-                
-                let agendamentosHTML = `
-    <div class="agendamentos-container">
-        <div class="agendamentos-header">
-            <button class="voltar-btn" id="voltar-mes"><i class="fas fa-arrow-left"></i> Voltar</button>
-            <h2>Agenda - ${dateStr}</h2>
-        </div>
-        <div class="agendamentos-list">
-`;
 
-// E o estado vazio:
-agendamentosHTML += `
-    <div class="agendamento-empty">
-        <i class="far fa-calendar-check" style="font-size: 24px; margin-bottom: 10px;"></i>
-        <p>Nenhum agendamento para este dia</p>
-    </div>
-`;
+                const querySnapshot = await agendamentosRef.get();
+
+                let agendamentosHTML = `
+                    <div class="agendamentos-container">
+                        <div class="agendamentos-header">
+                            <button id="voltar-mes" class="btn btn-outline">← Voltar para o Mês</button>
+                            <button class="voltar-btn" id="voltar-mes"><i class="fas fa-arrow-left"></i> Voltar</button>
+                            <h2>Agendamentos - ${dateStr}</h2>
+                        </div>
                         <div class="agendamentos-list">
                 `;
-                
+
                 if (!querySnapshot.empty) {
                     const agendamentos = [];
                     querySnapshot.forEach(doc => {
@@ -959,14 +938,14 @@ agendamentosHTML += `
                         agendamento.id = doc.id;
                         agendamentos.push(agendamento);
                     });
-                    
+
                     // Ordena por horário
                     agendamentos.sort((a, b) => a.horario.localeCompare(b.horario));
-                    
+
                     // Separa concluídos e não concluídos
                     const concluidos = agendamentos.filter(a => a.status && a.status.toLowerCase() === 'concluído');
                     const naoConcluidos = agendamentos.filter(a => !a.status || a.status.toLowerCase() !== 'concluído');
-                    
+
                     // Mostra primeiro os não concluídos
                     if (naoConcluidos.length > 0) {
                         naoConcluidos.forEach(agendamento => {
@@ -985,7 +964,7 @@ agendamentosHTML += `
                             `;
                         });
                     }
-                    
+
                     // Mostra os concluídos
                     if (concluidos.length > 0) {
                         concluidos.forEach(agendamento => {
@@ -1011,66 +990,27 @@ agendamentosHTML += `
                         </div>
                     `;
                 }
-                
-                // Para agendamentos não concluídos
-agendamentosHTML += `
-    <div class="agendamento-item">
-        <div class="agendamento-horario">${agendamento.horario}</div>
-        <div class="agendamento-details">
-            <div class="agendamento-info-item">
-                <i class="fas fa-user"></i> ${agendamento.clienteNome || 'Cliente'}
-            </div>
-            <div class="agendamento-info-item">
-                <i class="fas fa-scissors"></i> ${agendamento.servico || 'Serviço'}
-            </div>
-            ${agendamento.atendente ? `<div class="agendamento-info-item">
-                <i class="fas fa-user-tie"></i> ${agendamento.atendente}
-            </div>` : ''}
-            ${agendamento.telefone ? `<div class="agendamento-info-item">
-                <i class="fas fa-phone"></i> ${agendamento.telefone}
-            </div>` : ''}
-        </div>
-        <div class="agendamento-actions">
-            <button class="btn" data-id="${agendamento.id}">Concluir</button>
-        </div>
-    </div>
-`;
 
-// Para agendamentos concluídos
-agendamentosHTML += `
-    <div class="agendamento-item concluido">
-        <div class="agendamento-horario">${agendamento.horario}</div>
-        <div class="agendamento-details">
-            <div class="agendamento-info-item">
-                <i class="fas fa-user"></i> ${agendamento.clienteNome || 'Cliente'}
-            </div>
-            <div class="agendamento-info-item">
-                <i class="fas fa-scissors"></i> ${agendamento.servico || 'Serviço'}
-            </div>
-            ${agendamento.atendente ? `<div class="agendamento-info-item">
-                <i class="fas fa-user-tie"></i> ${agendamento.atendente}
-            </div>` : ''}
-        </div>
-        <div class="agendamento-actions">
-            <button class="btn btn-secondary" data-id="${agendamento.id}">Desfazer</button>
-        </div>
-    </div>
-`;
-                
+                agendamentosHTML += `
+                        </div>
+                    </div>
+                `;
+
                 $('#calendar').html(agendamentosHTML);
-                
+
                 // Adiciona eventos aos botões
+                $('.btn:not(#voltar-mes)').click(async function() {
                 $('.btn:not(.voltar-btn)').click(async function() {
                     const agendamentoId = $(this).data('id');
                     const isConcluir = $(this).text() === 'Concluir';
-                    
+
                     try {
                         await db.collection('usuarios').doc(currentUserData.id)
                             .collection('agendamentos').doc(agendamentoId).update({
                                 status: isConcluir ? 'concluído' : 'confirmado',
                                 concluidoEm: isConcluir ? new Date() : firebase.firestore.FieldValue.delete()
                             });
-                        
+
                         // Recarrega os agendamentos
                         loadAgendamentosForDay(dateKey, dateStr);
                     } catch (error) {
@@ -1078,16 +1018,17 @@ agendamentosHTML += `
                         alert('Erro ao atualizar agendamento');
                     }
                 });
-                
+
                 $('#voltar-mes').click(function() {
                     location.reload();
                 });
-                
+
             } catch (error) {
                 console.error("Erro ao carregar agendamentos:", error);
                 $('#calendar').html(`
                     <div class="agendamentos-container">
                         <div class="agendamentos-header">
+                            <button id="voltar-mes" class="btn btn-outline">← Voltar para o Mês</button>
                             <button class="voltar-btn" id="voltar-mes"><i class="fas fa-arrow-left"></i> Voltar</button>
                             <h2>Agendamentos - ${dateStr}</h2>
                         </div>
@@ -1096,7 +1037,7 @@ agendamentosHTML += `
                         </div>
                     </div>
                 `);
-                
+
                 $('#voltar-mes').click(function() {
                     location.reload();
                 });
@@ -1107,11 +1048,11 @@ agendamentosHTML += `
         function addServico(servicoData = { servico: '', atendentes: [''] }) {
             const servicosContainer = document.getElementById('servicosContainer');
             const servicoId = Date.now();
-            
+
             const servicoItem = document.createElement('div');
             servicoItem.className = 'servico-item';
             servicoItem.dataset.id = servicoId;
-            
+
             servicoItem.innerHTML = `
                 <div style="display: flex; margin-bottom: 10px;">
                     <input type="text" class="servico-input" placeholder="Nome do serviço" value="${servicoData.servico}" style="flex: 1;">
@@ -1127,9 +1068,9 @@ agendamentosHTML += `
                 </div>
                 <button type="button" class="btn btn-secondary" style="margin-top: 5px;">Adicionar Atendente</button>
             `;
-            
+
             servicosContainer.appendChild(servicoItem);
-            
+
             // Eventos
             servicoItem.querySelector('.btn-danger:not(.atendente-item .btn-danger)').addEventListener('click', function() {
                 if (document.querySelectorAll('.servico-item').length > 1) {
@@ -1138,7 +1079,7 @@ agendamentosHTML += `
                     showConfigMessage('error', 'Você deve ter pelo menos um serviço');
                 }
             });
-            
+
             servicoItem.querySelector('.btn-secondary').addEventListener('click', function() {
                 const atendentesList = servicoItem.querySelector('.atendentes-list');
                 const atendenteItem = document.createElement('div');
@@ -1148,7 +1089,7 @@ agendamentosHTML += `
                     <button type="button" class="btn btn-danger">×</button>
                 `;
                 atendentesList.appendChild(atendenteItem);
-                
+
                 atendenteItem.querySelector('.btn-danger').addEventListener('click', function() {
                     if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
                         atendenteItem.remove();
@@ -1157,7 +1098,7 @@ agendamentosHTML += `
                     }
                 });
             });
-            
+
             servicoItem.querySelectorAll('.atendente-item .btn-danger').forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (servicoItem.querySelectorAll('.atendente-item').length > 1) {
@@ -1175,19 +1116,19 @@ agendamentosHTML += `
             messageDiv.className = `message ${type}`;
             messageDiv.textContent = text;
             messageDiv.style.display = 'block';
-            
+
             setTimeout(() => {
                 messageDiv.style.display = 'none';
             }, 5000);
         }
-        
+
         // Função para mostrar mensagens na seção de configuração
         function showConfigMessage(type, text) {
             const messageDiv = document.getElementById('configMessage');
             messageDiv.className = `message ${type}`;
             messageDiv.textContent = text;
             messageDiv.style.display = 'block';
-            
+
             setTimeout(() => {
                 messageDiv.style.display = 'none';
             }, 5000);
@@ -1196,39 +1137,39 @@ agendamentosHTML += `
         // Formulário de configurações
         document.getElementById('painelForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             try {
                 document.getElementById('loaderOverlay').style.display = 'flex';
-                
+
                 // Coletar dados pessoais
                 const nomeCompleto = document.getElementById('nomeCompleto').value;
                 const nomeFantasia = document.getElementById('nomeFantasia').value;
                 const identificacao = document.getElementById('identificacao').value;
-                
+
                 if (!nomeCompleto) {
                     showConfigMessage('error', 'O nome completo é obrigatório');
                     return;
                 }
-                
+
                 // Coletar serviços e atendentes
                 const servicoAtendente = [];
                 const servicoItems = document.querySelectorAll('.servico-item');
-                
+
                 for (const item of servicoItems) {
                     const servico = item.querySelector('.servico-input').value.trim();
                     const atendentes = Array.from(item.querySelectorAll('.atendente-input')).map(input => input.value.trim()).filter(a => a);
-                    
+
                     if (!servico || atendentes.length === 0) {
                         showConfigMessage('error', 'Preencha todos os campos de serviços e atendentes');
                         return;
                     }
-                    
+
                     servicoAtendente.push({
                         servico: servico,
                         atendentes: atendentes
                     });
                 }
-                
+
                 // Coletar horários
                 const diasSelecionados = Array.from(document.querySelectorAll('.dias-semana input:checked')).map(el => el.value);
                 const horarioAbertura = document.getElementById('horarioAbertura').value;
@@ -1237,12 +1178,12 @@ agendamentosHTML += `
                 const almocoFim = document.getElementById('almocoFim').value;
                 const duracaoAtendimento = document.getElementById('duracaoAtendimento').value;
                 const intervaloAtendimento = document.getElementById('intervaloAtendimento').value;
-                
+
                 if (diasSelecionados.length === 0 || !horarioAbertura || !horarioFechamento) {
                     showConfigMessage('error', 'Preencha todos os campos de horários');
                     return;
                 }
-                
+
                 // Dados para salvar
                 const dataToSave = {
                     nomeCompleto: nomeCompleto,
@@ -1260,15 +1201,15 @@ agendamentosHTML += `
                     },
                     ultimaAtualizacao: new Date().toISOString()
                 };
-                
+
                 // Salva no Firestore
                 await db.collection('usuarios').doc(currentUserData.id).set(dataToSave, { merge: true });
-                
+
                 // Atualiza os dados locais
                 currentUserData = { ...currentUserData, ...dataToSave };
-                
+
                 showConfigMessage('success', 'Configurações salvas com sucesso!');
-                
+
             } catch (error) {
                 console.error('Erro ao salvar configurações:', error);
                 showConfigMessage('error', 'Erro ao salvar configurações');
