@@ -340,6 +340,39 @@
         .text-primary {
             color: #007bff;
         }
+        
+        .modification-type {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .document-upload {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px dashed #ccc;
+        }
+        
+        .two-columns {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .two-columns > div {
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .two-columns {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -362,62 +395,65 @@
     <div class="container">
         <h1 class="page-title">Gerenciar Serviços e Atendentes</h1>
         
-        <!-- Seção de Serviços e Atendentes -->
+        <!-- Seção de Formulário de Modificação -->
         <div class="section">
-            <div class="section-title">
-                <span>Serviços e Atendentes</span>
+            <div class="section-title">Formulário de modificação, remoção ou adição de Atendentes e Serviços</div>
+            
+            <div class="alert alert-info">
+                <strong>Atenção:</strong> Suas alterações serão processadas e atualizadas em no máximo 1 hora.
+            </div>
+            
+            <div class="two-columns">
                 <div>
-                    <button id="addServicoBtn" class="btn btn-primary">Adicionar Serviço</button>
-                    <button id="addAtendenteBtn" class="btn btn-primary" style="margin-left: 10px;">Adicionar Atendente</button>
+                    <div class="form-group">
+                        <label for="atendenteInput">Atendente</label>
+                        <input type="text" id="atendenteInput" class="form-control" placeholder="Nome do atendente">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="servicoInput">Serviço</label>
+                        <input type="text" id="servicoInput" class="form-control" placeholder="Nome do serviço">
+                    </div>
+                    
+                    <div class="form-group modification-type">
+                        <label for="acaoSelect">Ação</label>
+                        <select id="acaoSelect" class="form-control">
+                            <option value="adicionar">Adicionar</option>
+                            <option value="remover">Remover</option>
+                            <option value="modificar">Modificar</option>
+                        </select>
+                    </div>
+                    
+                    <div id="modificarCampos" class="hidden">
+                        <div class="form-group">
+                            <label for="novoAtendente">Modificar atendente por:</label>
+                            <input type="text" id="novoAtendente" class="form-control" placeholder="Novo nome do atendente">
+                        </div>
+                        <div class="form-group">
+                            <label for="novoServico">Modificar serviço por:</label>
+                            <input type="text" id="novoServico" class="form-control" placeholder="Novo nome do serviço">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="document-upload">
+                    <div class="form-group">
+                        <label for="documentoIdentidade">Documento de Identificação</label>
+                        <input type="file" id="documentoIdentidade" class="form-control" accept="image/*,.pdf" required>
+                        <small>Envie um documento de identificação do atendente (RG, CPF ou CNH)</small>
+                    </div>
                 </div>
             </div>
             
+            <button id="enviarSolicitacaoBtn" class="btn btn-primary">Enviar Solicitação</button>
+        </div>
+        
+        <!-- Seção de Visualização Atual -->
+        <div class="section">
+            <div class="section-title">Lista Atual de Serviços e Atendentes</div>
             <div id="servicosAtendentesContainer" class="list-container">
                 <!-- Os serviços e atendentes serão carregados aqui -->
             </div>
-        </div>
-    </div>
-
-    <!-- Modal para serviço -->
-    <div id="servicoModal" class="modal">
-        <div class="modal-content">
-            <h2 id="servicoModalTitle">Adicionar Serviço</h2>
-            <form id="servicoForm">
-                <input type="hidden" id="servicoId">
-                <div class="form-group">
-                    <label for="servicoNome">Nome do Serviço</label>
-                    <input type="text" id="servicoNome" class="form-control" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" id="cancelServicoBtn" class="btn btn-danger">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Modal para atendente -->
-    <div id="atendenteModal" class="modal">
-        <div class="modal-content">
-            <h2 id="atendenteModalTitle">Adicionar Atendente</h2>
-            <form id="atendenteForm">
-                <input type="hidden" id="atendenteId">
-                <div class="form-group">
-                    <label for="atendenteNome">Nome do Atendente</label>
-                    <input type="text" id="atendenteNome" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="atendenteServico">Serviço</label>
-                    <select id="atendenteServico" class="form-control" required>
-                        <option value="">Selecione um serviço</option>
-                        <!-- Os serviços serão carregados aqui -->
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" id="cancelAtendenteBtn" class="btn btn-danger">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -496,8 +532,8 @@
                 servicosAtendentes = [];
             }
             
-            // Exibe a lista de serviços e atendentes (somente leitura)
-            displayServicosAtendentesReadOnly();
+            // Exibe a lista de serviços e atendentes
+            displayServicosAtendentes();
             
         } catch (error) {
             console.error('Erro ao carregar serviços e atendentes:', error);
@@ -506,7 +542,7 @@
         }
     }
     
-    function displayServicosAtendentesReadOnly() {
+    function displayServicosAtendentes() {
         const container = document.getElementById('servicosAtendentesContainer');
         container.innerHTML = '';
         
@@ -515,153 +551,57 @@
             return;
         }
         
-        // Cria o formulário de solicitação de modificação
-        const formSection = document.createElement('div');
-        formSection.className = 'section';
-        formSection.innerHTML = `
-            <div class="section-title">Solicitar Modificação de Atendentes</div>
-            <div class="form-group">
-                <label>Para modificar, adicionar e remover atendentes, informe nos campos necessários:</label>
-            </div>
-            <div class="form-group">
-                <label for="solicitacaoAtendentes">Atendente(s)</label>
-                <input type="text" id="solicitacaoAtendentes" class="form-control" placeholder="Nome dos atendentes (separados por vírgula)">
-            </div>
-            <div class="form-group">
-                <label for="solicitacaoServicos">Serviço(s)</label>
-                <input type="text" id="solicitacaoServicos" class="form-control" placeholder="Nome dos serviços (separados por vírgula)">
-            </div>
-            <div class="form-group">
-                <label for="solicitacaoDocumento">Documento de Identidade (Obrigatório)</label>
-                <input type="file" id="solicitacaoDocumento" class="form-control" accept="image/*,.pdf" required>
-                <small>Envie uma imagem ou PDF da identidade do(s) atendente(s)</small>
-            </div>
-            <div class="alert alert-info">
-                Iremos analisar sua solicitação e em até 1 hora será modificado.
-            </div>
-            <button id="enviarSolicitacaoBtn" class="btn btn-primary">Enviar Solicitação</button>
-        `;
-        container.appendChild(formSection);
+        // Agrupa serviços e atendentes
+        const servicosAgrupados = {};
         
-        // Cria a seção de visualização somente leitura
-        const viewSection = document.createElement('div');
-        viewSection.className = 'section';
-        viewSection.innerHTML = `
-            <div class="section-title">Lista Atual de Serviços e Atendentes (Somente Leitura)</div>
-            <div id="readOnlyList"></div>
-        `;
-        container.appendChild(viewSection);
-        
-        // Preenche a lista somente leitura
-        const readOnlyList = document.getElementById('readOnlyList');
-        
-        if (servicosAtendentes.length === 0) {
-            readOnlyList.innerHTML = '<div class="empty-message">Nenhum serviço ou atendente cadastrado</div>';
-        } else {
-            // Agrupa serviços e atendentes
-            const servicosAgrupados = {};
+        servicosAtendentes.forEach(item => {
+            if (!item || typeof item !== 'object') return;
             
-            servicosAtendentes.forEach(item => {
-                if (!item || typeof item !== 'object') return;
-                
-                const servico = item.servico || 'Serviço não especificado';
-                if (!servicosAgrupados[servico]) {
-                    servicosAgrupados[servico] = {
-                        servico: servico,
-                        atendentes: []
-                    };
-                }
-                
-                if (item.atendentes && Array.isArray(item.atendentes)) {
-                    item.atendentes.forEach(atendente => {
-                        if (atendente && !servicosAgrupados[servico].atendentes.includes(atendente)) {
-                            servicosAgrupados[servico].atendentes.push(atendente);
-                        }
-                    });
-                }
-            });
-            
-            // Exibe na lista somente leitura
-            for (const servico in servicosAgrupados) {
-                const serviceDiv = document.createElement('div');
-                serviceDiv.className = 'service-with-attendants';
-                
-                const serviceHeader = document.createElement('div');
-                serviceHeader.className = 'service-header';
-                serviceHeader.innerHTML = `<span>${servico}</span>`;
-                
-                const attendantsList = document.createElement('div');
-                attendantsList.className = 'attendants-list';
-                
-                if (servicosAgrupados[servico].atendentes.length === 0) {
-                    attendantsList.innerHTML = '<div class="empty-message">Nenhum atendente para este serviço</div>';
-                } else {
-                    servicosAgrupados[servico].atendentes.forEach(atendente => {
-                        if (!atendente) return;
-                        
-                        const attendantItem = document.createElement('div');
-                        attendantItem.className = 'attendant-item';
-                        attendantItem.innerHTML = `<span>${atendente}</span>`;
-                        attendantsList.appendChild(attendantItem);
-                    });
-                }
-                
-                serviceDiv.appendChild(serviceHeader);
-                serviceDiv.appendChild(attendantsList);
-                readOnlyList.appendChild(serviceDiv);
+            const servico = item.servico || 'Serviço não especificado';
+            if (!servicosAgrupados[servico]) {
+                servicosAgrupados[servico] = {
+                    servico: servico,
+                    atendentes: []
+                };
             }
-        }
-        
-        // Adiciona evento ao botão de enviar solicitação
-        document.getElementById('enviarSolicitacaoBtn').addEventListener('click', async () => {
-            await enviarSolicitacaoModificacao();
+            
+            if (item.atendentes && Array.isArray(item.atendentes)) {
+                item.atendentes.forEach(atendente => {
+                    if (atendente && !servicosAgrupados[servico].atendentes.includes(atendente)) {
+                        servicosAgrupados[servico].atendentes.push(atendente);
+                    }
+                });
+            }
         });
-    }
-    
-    async function enviarSolicitacaoModificacao() {
-        const atendentes = document.getElementById('solicitacaoAtendentes').value.trim();
-        const servicos = document.getElementById('solicitacaoServicos').value.trim();
-        const documentoInput = document.getElementById('solicitacaoDocumento');
-        const documentoFile = documentoInput.files[0];
         
-        if (!atendentes || !servicos || !documentoFile) {
-            alert('Por favor, preencha todos os campos e envie o documento de identidade');
-            return;
-        }
-        
-        try {
-            document.getElementById('loaderOverlay').style.display = 'flex';
+        // Exibe na lista
+        for (const servico in servicosAgrupados) {
+            const serviceDiv = document.createElement('div');
+            serviceDiv.className = 'service-with-attendants';
             
-            // Upload do documento
-            const storageRef = storage.ref();
-            const documentoRef = storageRef.child(`documentos/${currentUser.uid}/${Date.now()}_${documentoFile.name}`);
-            await documentoRef.put(documentoFile);
-            const documentoUrl = await documentoRef.getDownloadURL();
+            const serviceHeader = document.createElement('div');
+            serviceHeader.className = 'service-header';
+            serviceHeader.innerHTML = `<span>${servico}</span>`;
             
-            // Cria a solicitação no Firestore
-            await db.collection('solicitacoesAtendentes').add({
-                userId: currentUser.uid,
-                atendentes: atendentes.split(',').map(a => a.trim()).filter(a => a),
-                servicos: servicos.split(',').map(s => s.trim()).filter(s => s),
-                documentoUrl: documentoUrl,
-                status: 'pendente',
-                dataSolicitacao: firebase.firestore.FieldValue.serverTimestamp(),
-                dataAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            const attendantsList = document.createElement('div');
+            attendantsList.className = 'attendants-list';
             
-            alert('Solicitação enviada com sucesso! Nossa equipe irá analisar e em até 1 hora as modificações serão aplicadas.');
+            if (servicosAgrupados[servico].atendentes.length === 0) {
+                attendantsList.innerHTML = '<div class="empty-message">Nenhum atendente para este serviço</div>';
+            } else {
+                servicosAgrupados[servico].atendentes.forEach(atendente => {
+                    if (!atendente) return;
+                    
+                    const attendantItem = document.createElement('div');
+                    attendantItem.className = 'attendant-item';
+                    attendantItem.innerHTML = `<span>${atendente}</span>`;
+                    attendantsList.appendChild(attendantItem);
+                });
+            }
             
-            // Limpa o formulário
-            document.getElementById('solicitacaoAtendentes').value = '';
-            document.getElementById('solicitacaoServicos').value = '';
-            documentoInput.value = '';
-            
-            document.getElementById('loaderOverlay').style.display = 'none';
-            
-        } catch (error) {
-            console.error('Erro ao enviar solicitação:', error);
-            alert('Erro ao enviar solicitação. Por favor, tente novamente.');
-            document.getElementById('loaderOverlay').style.display = 'none';
+            serviceDiv.appendChild(serviceHeader);
+            serviceDiv.appendChild(attendantsList);
+            container.appendChild(serviceDiv);
         }
     }
     
@@ -674,14 +614,105 @@
             });
         });
         
-        // Botões de adicionar (desativados no modo somente leitura)
-        document.getElementById('addServicoBtn').addEventListener('click', () => {
-            alert('Para adicionar um serviço, utilize o formulário de solicitação acima.');
+        // Mostrar/ocultar campos de modificação
+        document.getElementById('acaoSelect').addEventListener('change', function() {
+            const modificarCampos = document.getElementById('modificarCampos');
+            if (this.value === 'modificar') {
+                modificarCampos.classList.remove('hidden');
+            } else {
+                modificarCampos.classList.add('hidden');
+            }
         });
         
-        document.getElementById('addAtendenteBtn').addEventListener('click', () => {
-            alert('Para adicionar um atendente, utilize o formulário de solicitação acima.');
+        // Enviar solicitação
+        document.getElementById('enviarSolicitacaoBtn').addEventListener('click', async () => {
+            await enviarSolicitacaoModificacao();
         });
+    }
+    
+    async function enviarSolicitacaoModificacao() {
+        const atendente = document.getElementById('atendenteInput').value.trim();
+        const servico = document.getElementById('servicoInput').value.trim();
+        const acao = document.getElementById('acaoSelect').value;
+        const novoAtendente = document.getElementById('novoAtendente').value.trim();
+        const novoServico = document.getElementById('novoServico').value.trim();
+        const documentoInput = document.getElementById('documentoIdentidade');
+        const documentoFile = documentoInput.files[0];
+        
+        if (!documentoFile) {
+            alert('Por favor, envie o documento de identificação do atendente');
+            return;
+        }
+        
+        if (acao === 'modificar' && !novoAtendente && !novoServico) {
+            alert('Para modificar, informe pelo menos um novo nome de atendente ou serviço');
+            return;
+        }
+        
+        try {
+            document.getElementById('loaderOverlay').style.display = 'flex';
+            
+            // Upload do documento
+            const storageRef = storage.ref();
+            const documentoRef = storageRef.child(`documentos_identidade/${currentUser.uid}/${Date.now()}_${documentoFile.name}`);
+            await documentoRef.put(documentoFile);
+            const documentoUrl = await documentoRef.getDownloadURL();
+            
+            // Cria a solicitação no Firestore
+            const solicitacaoRef = await db.collection('solicitacoesAtendentes').add({
+                userId: currentUser.uid,
+                atendente: atendente,
+                servico: servico,
+                acao: acao,
+                novoAtendente: acao === 'modificar' ? novoAtendente : null,
+                novoServico: acao === 'modificar' ? novoServico : null,
+                documentoUrl: documentoUrl,
+                status: 'pendente',
+                dataSolicitacao: firebase.firestore.FieldValue.serverTimestamp(),
+                dataAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Envia e-mail (simulado - na prática você precisaria de um backend para isso)
+            const emailBody = `
+                Nova solicitação de ${acao} de atendente/serviço:
+                
+                Usuário: ${currentUser.email}
+                ID do documento: ${solicitacaoRef.id}
+                
+                Detalhes:
+                - Atendente: ${atendente || 'Não informado'}
+                - Serviço: ${servico || 'Não informado'}
+                - Ação: ${acao}
+                ${acao === 'modificar' ? `- Novo Atendente: ${novoAtendente || 'Não alterado'}` : ''}
+                ${acao === 'modificar' ? `- Novo Serviço: ${novoServico || 'Não alterado'}` : ''}
+                
+                Documento de identificação: ${documentoUrl}
+            `;
+            
+            // Simula envio de e-mail (na prática, você precisaria de um backend para isso)
+            console.log('E-mail enviado para horario@outlook.com.br com o conteúdo:', emailBody);
+            
+            alert('Solicitação enviada com sucesso! As alterações serão processadas em até 1 hora.');
+            
+            // Limpa o formulário
+            document.getElementById('atendenteInput').value = '';
+            document.getElementById('servicoInput').value = '';
+            document.getElementById('acaoSelect').value = 'adicionar';
+            document.getElementById('novoAtendente').value = '';
+            document.getElementById('novoServico').value = '';
+            documentoInput.value = '';
+            document.getElementById('modificarCampos').classList.add('hidden');
+            
+            // Recarrega a lista
+            await loadServicosAtendentes();
+            
+            document.getElementById('loaderOverlay').style.display = 'none';
+            
+        } catch (error) {
+            console.error('Erro ao enviar solicitação:', error);
+            alert('Erro ao enviar solicitação. Por favor, tente novamente.');
+            document.getElementById('loaderOverlay').style.display = 'none';
+        }
     }
 </script>
 </body>
