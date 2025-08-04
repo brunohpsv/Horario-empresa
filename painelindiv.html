@@ -713,6 +713,7 @@
             
             // Busca o usuário pelo UID (ID do Firebase Auth)
             const userDoc = await db.collection('usuarios').doc(user.uid).get();
+	    console.log('Documento do usuário:', userDoc.exists ? userDoc.data() : 'Não encontrado');
             
             if (!userDoc.exists) {
                 throw new Error('Nenhum usuário encontrado');
@@ -737,6 +738,22 @@
         }
     }
 });
+
+// Esta função deve estar fora do onAuthStateChanged
+async function showMainContent() {
+    document.getElementById('mainContent').style.display = 'block';
+
+    // Mostra a seção de configurações apenas se não estiver na visualização de dia
+    if (!isDayView) {
+        document.getElementById('configSection').style.display = 'block';
+    }
+
+    // Carrega os dados do usuário
+    await loadUserData(); // Adicionei await aqui
+    
+    // Inicializa o calendário
+    initializeCalendar();
+}
 
 
         async function loadUserData() {
@@ -847,6 +864,12 @@
                     }
                 }
             });
+    } catch (error) {
+        console.error('Erro ao inicializar calendário:', error);
+        document.getElementById('loaderOverlay').style.display = 'none';
+    }
+}
+
         }
 
         // Função para verificar agendamentos em um dia
