@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Controle | HORÁRIO</title>
-    <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' rel='stylesheet' />
+    <title>Painel de Controle | SERVIÇOS/ATENDENTES</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
@@ -12,106 +11,162 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: Arial, sans-serif;
         }
         
         body {
             background-color: #f5f5f5;
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
         }
         
-        /* Header */
         header {
             background-color: #000000;
             color: white;
-            padding: 15px 20px;
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 1000;
         }
         
         .logo {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
+            letter-spacing: 1px;
         }
         
-        .menu-btn {
-            background: none;
-            border: none;
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
             color: white;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
-        }
-        
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            right: 20px;
-            top: 60px;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            z-index: 1001;
-            border-radius: 4px;
-        }
-        
-        .dropdown-menu.show {
-            display: block;
-        }
-        
-        .dropdown-menu a {
-            color: black;
-            padding: 12px 16px;
             text-decoration: none;
-            display: block;
-            font-size: 14px;
+            font-size: 16px;
+            transition: color 0.3s;
         }
         
-        .dropdown-menu a:hover {
-            background-color: #f1f1f1;
+        nav ul li a:hover {
+            color: #cccccc;
+        }
+        
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .servicatend-btn {
+            background-color: #2196F3;
+        }
+        
+        .servicatend-btn:hover {
+            background-color: #0b7dda;
         }
         
         .logout-btn {
-            color: #f44336;
+            background-color: #f44336;
         }
         
-        /* Main Content */
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+        
         .container {
             max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 15px;
-            flex: 1;
-        }
-        
-        /* Calendar */
-        #calendar {
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        
-        /* Config Section */
-        .config-section {
-            background-color: white;
+            margin: 0 auto;
             padding: 20px;
+            flex: 1;
+            width: 100%;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        .section {
+            background-color: white;
             border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
             margin-bottom: 30px;
         }
         
-        .config-section h2 {
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            color: #333;
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        
+        .list-container {
+            margin-top: 15px;
+        }
+        
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .list-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .list-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 20px;
+            color: #777;
         }
         
         .form-group {
@@ -125,9 +180,7 @@
             color: #555;
         }
         
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .form-control {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -135,71 +188,6 @@
             font-size: 14px;
         }
         
-        .btn {
-            padding: 10px 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn-secondary {
-            background-color: #2196F3;
-        }
-        
-        .btn-danger {
-            background-color: #f44336;
-        }
-        
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #2196F3;
-            color: #2196F3;
-        }
-        
-        .message {
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        .success {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border-left: 4px solid #2e7d32;
-        }
-        
-        .error {
-            background-color: #ffebee;
-            color: #c62828;
-            border-left: 4px solid #c62828;
-        }
-        
-        /* Footer */
-        footer {
-            background-color: #000000;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 14px;
-            margin-top: auto;
-        }
-        
-        /* Loader */
         .loader-overlay {
             position: fixed;
             top: 0;
@@ -227,411 +215,179 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Serviços e Atendentes */
-        .servico-item {
-            background-color: #f9f9f9;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-            border: 1px solid #eee;
-        }
-        
-        .atendente-item {
-            display: flex;
-            margin-bottom: 5px;
-        }
-        
-        .atendente-item input {
-            flex: 1;
-            margin-right: 5px;
-        }
-        
-        /* Dias da semana */
-        .dias-semana {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .dia-checkbox {
-            display: flex;
-            align-items: center;
-            background: #f5f5f5;
-            padding: 8px 12px;
-            border-radius: 20px;
-        }
-        
-        .dia-checkbox input {
-            margin-right: 5px;
-        }
-        
-        /* Horários */
-        .horarios-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .horario-input {
-            flex: 1;
-        }
-        
-        /* Nome inicial */
-        .nome-inicial {
-            max-width: 500px;
-            margin: 50px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            flex: 1;
-        }
-        
-        .nome-inicial h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        
-        .nome-inicial .form-group {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .nome-inicial input {
-            flex: 1;
-            padding: 10px;
-        }
-        
-        /* Agendamentos do dia - NOVO DESIGN */
-        .agendamentos-container {
+        footer {
+            background-color: #000000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
             width: 100%;
-            max-width: 100%;
-            margin: 20px 0;
-            background: white;
+        }
+        
+        .contato-rodape {
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .contato-rodape a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .service-with-attendants {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             overflow: hidden;
         }
         
-        .agendamentos-header {
+        .service-header {
+            background-color: #f0f0f0;
+            padding: 10px 15px;
+            font-weight: bold;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #eee;
         }
         
-        .agendamentos-header h2 {
-            font-size: 18px;
-            color: #333;
-            margin: 0;
+        .attendants-list {
+            padding: 10px 15px;
         }
         
-        .agendamentos-list {
-            padding: 0;
-            width: 100%;
-        }
-        
-        .agendamento-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
-            transition: all 0.3s ease;
+        .attendant-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 100%;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
         }
         
-        .agendamento-item:hover {
-            background-color: #f8f9fa;
-        }
-        
-        .agendamento-item.concluido {
-            background-color: #f9f9f9;
-        }
-        
-        .agendamento-info {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-        
-        .agendamento-horario {
-            font-weight: 600;
-            color: #333;
-            font-size: 15px;
-            min-width: 70px;
-        }
-        
-        .agendamento-servico {
-            font-weight: 600;
-            color: #2196F3;
-            margin: 0 15px;
-            flex: 1;
-        }
-        
-        .agendamento-cliente {
-            color: #555;
-            flex: 2;
-        }
-        
-        .agendamento-status {
-            padding: 5px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-            text-transform: uppercase;
-            margin-right: 10px;
-        }
-        
-        .status-pendente {
-            background-color: #fff3e0;
-            color: #e65100;
-        }
-        
-        .status-concluido {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-        }
-        
-        .agendamento-actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .agendamento-empty {
-            padding: 30px;
-            text-align: center;
-            color: #777;
-        }
-        
-        /* Estilo para dias com agendamentos */
-        .has-agendamento {
-            background-color: #e8f5e9 !important;
-            position: relative;
-        }
-        
-        .has-agendamento:after {
-            content: '';
-            position: absolute;
-            bottom: 5px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 6px;
-            height: 6px;
-            background-color: #4CAF50;
-            border-radius: 50%;
-        }
-        
-        .past-agendamento {
-            background-color: #f5f5f5 !important;
-            position: relative;
-        }
-        
-        .past-agendamento:after {
-            content: '';
-            position: absolute;
-            bottom: 5px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 6px;
-            height: 6px;
-            background-color: #9e9e9e;
-            border-radius: 50%;
-        }
-
-        /* Botão voltar */
-        .voltar-btn {
-            background: none;
-            border: none;
-            color: #2196F3;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 5px 0;
-            margin-right: 15px;
-            display: flex;
-            align-items: center;
-        }
-
-        .voltar-btn i {
-            margin-right: 5px;
-        }
-
-        /* Responsividade */
-        @media (max-width: 768px) {
-            .agendamento-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            
-            .agendamento-info {
-                width: 100%;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-            
-            .agendamento-actions {
-                width: 100%;
-                justify-content: flex-end;
-            }
-            
-            .agendamentos-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            
-            .agendamentos-header h2 {
-                font-size: 16px;
-            }
+        .attendant-item:last-child {
+            border-bottom: none;
         }
     </style>
 </head>
 <body>
-    <!-- Loader inicial -->
     <div class="loader-overlay" id="loaderOverlay">
         <div class="loader"></div>
     </div>
 
     <header>
         <div class="logo">PAINEL DE CONTROLE</div>
-        <button class="menu-btn" id="menuBtn">&#9776;</button>
-        <div class="dropdown-menu" id="dropdownMenu">
-            <a href="escolher-painel.html">Escolher Painel</a>
-            <a href="#" id="logoutBtn" class="logout-btn">Sair</a>
-        </div>
+        <nav>
+            <ul>
+                <li><a href="painel.html">CALENDÁRIO</a></li>
+                <li><a href="servicos.html" class="nav-btn servicatend-btn active">SERVIÇOS/ATEND.</a></li>
+                <li><a href="painelconfig.html">CONFIGURAÇÕES</a></li>
+                <li><a href="#" id="logoutBtn" class="nav-btn logout-btn">SAIR</a></li>
+            </ul>
+        </nav>
     </header>
 
     <div class="container">
-        <!-- Seção de nome inicial (mostra apenas se não tiver nome selecionado) -->
-        <div id="nomeInicialSection" class="nome-inicial" style="display: none;">
-            <h2>Identifique-se</h2>
-            <div id="message" class="message" style="display: none;"></div>
-            <div class="form-group">
-                <input type="text" id="nomeInicial" placeholder="Digite seu nome completo">
-                <button id="adicionarNomeBtn" class="btn">Adicionar Nome</button>
+        <h1 class="page-title">Gerenciar Serviços e Atendentes</h1>
+        
+        <!-- Seção de Serviços e Atendentes -->
+        <div class="section">
+            <div class="section-title">
+                <span>Serviços e Atendentes</span>
+                <div>
+                    <button id="addServicoBtn" class="btn btn-primary">Adicionar Serviço</button>
+                    <button id="addAtendenteBtn" class="btn btn-primary" style="margin-left: 10px;">Adicionar Atendente</button>
+                </div>
+            </div>
+            
+            <div id="servicosAtendentesContainer" class="list-container">
+                <!-- Os serviços e atendentes serão carregados aqui -->
             </div>
         </div>
-        
-        <!-- Conteúdo principal (mostra apenas após selecionar nome) -->
-        <div id="mainContent" style="display: none;">
-            <div id="calendar"></div>
-            
-            <div id="configSection" class="config-section" style="display: none;">
-                <h2>Configurações do Painel</h2>
-                
-                <div id="configMessage" class="message" style="display: none;"></div>
-                
-                <form id="painelForm">
-                    <div class="form-group">
-                        <label for="nomeCompleto">Nome Completo:</label>
-                        <input type="text" id="nomeCompleto" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="nomeFantasia">Nome Fantasia:</label>
-                        <input type="text" id="nomeFantasia" placeholder="Nome do seu estabelecimento">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="identificacao">Identificação:</label>
-                        <input type="text" id="identificacao" placeholder="Sua identificação na empresa">
-                    </div>
-                    
-                    <div id="servicosContainer" class="form-group">
-                        <label>Serviços e Atendentes:</label>
-                        <!-- Serviços serão adicionados aqui -->
-                    </div>
-                    
-                    <button type="button" id="addServicoBtn" class="btn">Adicionar Serviço</button>
-                    
-                    <div class="form-group">
-                        <label>Dias de Funcionamento:</label>
-                        <div class="dias-semana">
-                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="1"> Segunda</label>
-                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="2"> Terça</label>
-                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="3"> Quarta</label>
-                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="4"> Quinta</label>
-                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="5"> Sexta</label>
-                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="6"> Sábado</label>
-                            <label class="dia-checkbox"><input type="checkbox" name="dia" value="0"> Domingo</label>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Horário de Funcionamento:</label>
-                        <div class="horarios-container">
-                            <div class="horario-input">
-                                <label>Abertura</label>
-                                <input type="time" id="horarioAbertura" required>
-                            </div>
-                            <div class="horario-input">
-                                <label>Fechamento</label>
-                                <input type="time" id="horarioFechamento" required>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Horário de Almoço:</label>
-                        <div class="horarios-container">
-                            <div class="horario-input">
-                                <label>Início</label>
-                                <input type="time" id="almocoInicio">
-                            </div>
-                            <div class="horario-input">
-                                <label>Fim</label>
-                                <input type="time" id="almocoFim">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="duracaoAtendimento">Duração de cada atendimento:</label>
-                        <select id="duracaoAtendimento" required>
-                            <option value="15">15 minutos</option>
-                            <option value="30" selected>30 minutos</option>
-                            <option value="45">45 minutos</option>
-                            <option value="60">60 minutos</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="intervaloAtendimento">Intervalo entre atendimentos:</label>
-                        <select id="intervaloAtendimento" required>
-                            <option value="0">Sem intervalo</option>
-                            <option value="5">5 minutos</option>
-                            <option value="10">10 minutos</option>
-                            <option value="15" selected>15 minutos</option>
-                        </select>
-                    </div>
-                    
-                    <button type="submit" class="btn">Salvar Configurações</button>
-                </form>
-            </div>
+    </div>
+
+    <!-- Modal para serviço -->
+    <div id="servicoModal" class="modal">
+        <div class="modal-content">
+            <h2 id="servicoModalTitle">Adicionar Serviço</h2>
+            <form id="servicoForm">
+                <input type="hidden" id="servicoId">
+                <div class="form-group">
+                    <label for="servicoNome">Nome do Serviço</label>
+                    <input type="text" id="servicoNome" class="form-control" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="cancelServicoBtn" class="btn btn-danger">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para atendente -->
+    <div id="atendenteModal" class="modal">
+        <div class="modal-content">
+            <h2 id="atendenteModalTitle">Adicionar Atendente</h2>
+            <form id="atendenteForm">
+                <input type="hidden" id="atendenteId">
+                <div class="form-group">
+                    <label for="atendenteNome">Nome do Atendente</label>
+                    <input type="text" id="atendenteNome" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="atendenteServico">Serviço</label>
+                    <select id="atendenteServico" class="form-control" required>
+                        <option value="">Selecione um serviço</option>
+                        <!-- Os serviços serão carregados aqui -->
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="cancelAtendenteBtn" class="btn btn-danger">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <footer>
         <div class="contato-rodape">
-            <p>Suporte: suportehorario@gmail.com | (62) 98159-6601</p>
+            <p>Precisa de ajuda? Entre em contato conosco:</p>
+            <p>E-mail: <a href="mailto:suportehorario@gmail.com">suportehorario@gmail.com</a> | Telefone: (62) 98159-6601</p>
+            <p>Horário de atendimento: Segunda a Domingo, 24 horas</p>
         </div>
     </footer>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/pt-br.js'></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
    <script>
     const firebaseConfig = {
@@ -646,6 +402,7 @@
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const storage = firebase.storage();
     
     let currentUser = null;
     let servicosAtendentes = [];
@@ -673,126 +430,35 @@
     async function loadServicosAtendentes() {
         try {
             const container = document.getElementById('servicosAtendentesContainer');
-            container.innerHTML = '<div class="empty-message">Carregando serviços e atendentes...</div>';
+            container.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div><p class="mt-2">Carregando...</p></div>';
             
-            // Busca o documento do usuário com prefixo "PP -"
-            const userDocRef = db.collection('usuarios').doc(`PP - ${currentUser.uid}`);
-            const userDoc = await userDocRef.get();
+            // Carrega os dados atuais do Firestore
+            const userDoc = await db.collection('usuarios').doc(currentUser.uid).get();
             
             if (!userDoc.exists) {
                 throw new Error('Dados do usuário não encontrados');
             }
             
             const userData = userDoc.data();
-            servicosAtendentes = [];
             
-            // Processa os serviços e atendentes
+            // Verifica se existe o campo servicoAtendente
             if (userData.servicoAtendente) {
-                // Formato mais recente: array de objetos {servico, atendentes}
-                if (Array.isArray(userData.servicoAtendente)) {
-                    servicosAtendentes = userData.servicoAtendente;
-                } 
-                // Formato antigo: string formatada
-                else if (typeof userData.servicoAtendente === 'string') {
-                    servicosAtendentes = processarStringServicosAtendentes(userData.servicoAtendente);
-                }
-            } else if (userData.atendentes) {
-                // Formato mais antigo: atendentes como string
-                servicosAtendentes = processarStringAtendentes(userData.atendentes);
-            } else if (userData.servico) {
-                // Formato mais antigo: apenas serviços
-                servicosAtendentes = processarStringServicos(userData.servico);
+                servicosAtendentes = userData.servicoAtendente;
+            } else {
+                servicosAtendentes = [];
             }
             
-            await exibirServicosAtendentes();
-            updateServicosSelect();
+            // Exibe a lista de serviços e atendentes (somente leitura)
+            displayServicosAtendentesReadOnly();
             
         } catch (error) {
             console.error('Erro ao carregar serviços e atendentes:', error);
             document.getElementById('servicosAtendentesContainer').innerHTML = 
-                '<div class="empty-message">Erro ao carregar serviços e atendentes</div>';
+                '<div class="alert alert-danger">Erro ao carregar serviços e atendentes</div>';
         }
     }
     
-    function processarStringServicosAtendentes(dados) {
-        const resultado = [];
-        const linhas = dados.split('\n').filter(linha => linha.trim() !== '');
-        
-        linhas.forEach(linha => {
-            const partes = linha.split('-').map(p => p.trim());
-            if (partes.length === 2) {
-                const servico = partes[0];
-                const atendentes = partes[1].split(',').map(a => a.trim());
-                
-                resultado.push({
-                    servico: servico,
-                    atendentes: atendentes
-                });
-            }
-        });
-        
-        return resultado;
-    }
-    
-    function processarStringAtendentes(dados) {
-        const resultado = [];
-        const atendentesMap = {};
-        
-        // Expressão regular para extrair nomes entre parênteses e serviços entre colchetes
-        const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
-        let match;
-        
-        while ((match = regex.exec(dados)) !== null) {
-            const nomeAtendente = match[1].trim();
-            const servicosStr = match[2];
-            
-            // Extrai todos os serviços entre colchetes
-            const servicos = servicosStr.match(/\[([^\]]+)\]/g).map(s => 
-                s.replace(/[\[\]]/g, '').trim()
-            );
-            
-            // Para cada serviço, adicionamos um registro
-            servicos.forEach(servico => {
-                if (!atendentesMap[servico]) {
-                    atendentesMap[servico] = [];
-                }
-                
-                if (!atendentesMap[servico].includes(nomeAtendente)) {
-                    atendentesMap[servico].push(nomeAtendente);
-                }
-            });
-        }
-        
-        // Converte o mapa para o formato de array
-        for (const servico in atendentesMap) {
-            resultado.push({
-                servico: servico,
-                atendentes: atendentesMap[servico]
-            });
-        }
-        
-        return resultado;
-    }
-    
-    function processarStringServicos(dados) {
-        const resultado = [];
-        
-        // Processa como string separada por vírgula ou quebra de linha
-        const servicos = typeof dados === 'string' ? 
-            dados.split(/[\n,]/).map(s => s.trim()).filter(s => s.length > 0) :
-            (Array.isArray(dados) ? dados : []);
-        
-        servicos.forEach(servico => {
-            resultado.push({
-                servico: servico,
-                atendentes: []
-            });
-        });
-        
-        return resultado;
-    }
-    
-    async function exibirServicosAtendentes() {
+    function displayServicosAtendentesReadOnly() {
         const container = document.getElementById('servicosAtendentesContainer');
         container.innerHTML = '';
         
@@ -801,147 +467,152 @@
             return;
         }
         
-        // Agrupa os serviços e atendentes para exibição
-        const servicosAgrupados = {};
+        // Cria o formulário de solicitação de modificação
+        const formSection = document.createElement('div');
+        formSection.className = 'section';
+        formSection.innerHTML = `
+            <div class="section-title">Solicitar Modificação de Atendentes</div>
+            <div class="form-group">
+                <label>Para modificar, adicionar e remover atendentes, informe nos campos necessários:</label>
+            </div>
+            <div class="form-group">
+                <label for="solicitacaoAtendentes">Atendente(s)</label>
+                <input type="text" id="solicitacaoAtendentes" class="form-control" placeholder="Nome dos atendentes (separados por vírgula)">
+            </div>
+            <div class="form-group">
+                <label for="solicitacaoServicos">Serviço(s)</label>
+                <input type="text" id="solicitacaoServicos" class="form-control" placeholder="Nome dos serviços (separados por vírgula)">
+            </div>
+            <div class="form-group">
+                <label for="solicitacaoDocumento">Documento de Identidade (Obrigatório)</label>
+                <input type="file" id="solicitacaoDocumento" class="form-control" accept="image/*,.pdf" required>
+                <small>Envie uma imagem ou PDF da identidade do(s) atendente(s)</small>
+            </div>
+            <div class="alert alert-info">
+                Iremos analisar sua solicitação e em até 1 hora será modificado.
+            </div>
+            <button id="enviarSolicitacaoBtn" class="btn btn-primary">Enviar Solicitação</button>
+        `;
+        container.appendChild(formSection);
         
-        servicosAtendentes.forEach(item => {
-            if (!servicosAgrupados[item.servico]) {
-                servicosAgrupados[item.servico] = {
-                    servico: item.servico,
-                    atendentes: []
-                };
-            }
-            
-            if (item.atendentes && Array.isArray(item.atendentes)) {
-                item.atendentes.forEach(atendente => {
-                    if (!servicosAgrupados[item.servico].atendentes.includes(atendente)) {
-                        servicosAgrupados[item.servico].atendentes.push(atendente);
-                    }
-                });
-            }
-        });
+        // Cria a seção de visualização somente leitura
+        const viewSection = document.createElement('div');
+        viewSection.className = 'section';
+        viewSection.innerHTML = `
+            <div class="section-title">Lista Atual de Serviços e Atendentes (Somente Leitura)</div>
+            <div id="readOnlyList"></div>
+        `;
+        container.appendChild(viewSection);
         
-        // Exibe na tela
-        for (const servico in servicosAgrupados) {
-            const serviceDiv = document.createElement('div');
-            serviceDiv.className = 'service-with-attendants';
+        // Preenche a lista somente leitura
+        const readOnlyList = document.getElementById('readOnlyList');
+        
+        if (servicosAtendentes.length === 0) {
+            readOnlyList.innerHTML = '<div class="empty-message">Nenhum serviço ou atendente cadastrado</div>';
+        } else {
+            // Agrupa serviços e atendentes
+            const servicosAgrupados = {};
             
-            const serviceHeader = document.createElement('div');
-            serviceHeader.className = 'service-header';
-            serviceHeader.innerHTML = `
-                <span>${servico}</span>
-                <div class="list-item-actions">
-                    <button class="btn btn-primary edit-servico" data-servico="${servico}">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
-                    <button class="btn btn-danger delete-servico" data-servico="${servico}">
-                        <i class="fas fa-trash"></i> Excluir
-                    </button>
-                </div>
-            `;
+            servicosAtendentes.forEach(item => {
+                if (!servicosAgrupados[item.servico]) {
+                    servicosAgrupados[item.servico] = {
+                        servico: item.servico,
+                        atendentes: []
+                    };
+                }
+                
+                if (item.atendentes && Array.isArray(item.atendentes)) {
+                    item.atendentes.forEach(atendente => {
+                        if (!servicosAgrupados[item.servico].atendentes.includes(atendente)) {
+                            servicosAgrupados[item.servico].atendentes.push(atendente);
+                        }
+                    });
+                }
+            });
             
-            const attendantsList = document.createElement('div');
-            attendantsList.className = 'attendants-list';
-            
-            if (servicosAgrupados[servico].atendentes.length === 0) {
-                attendantsList.innerHTML = '<div class="empty-message">Nenhum atendente para este serviço</div>';
-            } else {
-                servicosAgrupados[servico].atendentes.forEach(atendente => {
-                    const attendantItem = document.createElement('div');
-                    attendantItem.className = 'attendant-item';
-                    attendantItem.innerHTML = `
-                        <span>${atendente}</span>
-                        <div class="list-item-actions">
-                            <button class="btn btn-primary edit-atendente" data-servico="${servico}" data-atendente="${atendente}">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                            <button class="btn btn-danger delete-atendente" data-servico="${servico}" data-atendente="${atendente}">
-                                <i class="fas fa-trash"></i> Excluir
-                            </button>
-                        </div>
-                    `;
-                    attendantsList.appendChild(attendantItem);
-                });
+            // Exibe na lista somente leitura
+            for (const servico in servicosAgrupados) {
+                const serviceDiv = document.createElement('div');
+                serviceDiv.className = 'service-with-attendants';
+                
+                const serviceHeader = document.createElement('div');
+                serviceHeader.className = 'service-header';
+                serviceHeader.innerHTML = `<span>${servico}</span>`;
+                
+                const attendantsList = document.createElement('div');
+                attendantsList.className = 'attendants-list';
+                
+                if (servicosAgrupados[servico].atendentes.length === 0) {
+                    attendantsList.innerHTML = '<div class="empty-message">Nenhum atendente para este serviço</div>';
+                } else {
+                    servicosAgrupados[servico].atendentes.forEach(atendente => {
+                        const attendantItem = document.createElement('div');
+                        attendantItem.className = 'attendant-item';
+                        attendantItem.innerHTML = `<span>${atendente}</span>`;
+                        attendantsList.appendChild(attendantItem);
+                    });
+                }
+                
+                serviceDiv.appendChild(serviceHeader);
+                serviceDiv.appendChild(attendantsList);
+                readOnlyList.appendChild(serviceDiv);
             }
-            
-            serviceDiv.appendChild(serviceHeader);
-            serviceDiv.appendChild(attendantsList);
-            container.appendChild(serviceDiv);
         }
         
-        // Adiciona eventos aos botões
-        document.querySelectorAll('.edit-servico').forEach(btn => {
-            btn.addEventListener('click', () => editServico(btn.dataset.servico));
-        });
-        
-        document.querySelectorAll('.delete-servico').forEach(btn => {
-            btn.addEventListener('click', () => deleteServico(btn.dataset.servico));
-        });
-        
-        document.querySelectorAll('.edit-atendente').forEach(btn => {
-            btn.addEventListener('click', () => editAtendente(btn.dataset.servico, btn.dataset.atendente));
-        });
-        
-        document.querySelectorAll('.delete-atendente').forEach(btn => {
-            btn.addEventListener('click', () => deleteAtendente(btn.dataset.servico, btn.dataset.atendente));
+        // Adiciona evento ao botão de enviar solicitação
+        document.getElementById('enviarSolicitacaoBtn').addEventListener('click', async () => {
+            await enviarSolicitacaoModificacao();
         });
     }
     
-    function updateServicosSelect() {
-        const select = document.getElementById('atendenteServico');
-        select.innerHTML = '<option value="">Selecione um serviço</option>';
+    async function enviarSolicitacaoModificacao() {
+        const atendentes = document.getElementById('solicitacaoAtendentes').value.trim();
+        const servicos = document.getElementById('solicitacaoServicos').value.trim();
+        const documentoInput = document.getElementById('solicitacaoDocumento');
+        const documentoFile = documentoInput.files[0];
         
-        // Obter serviços únicos
-        const servicosUnicos = [...new Set(servicosAtendentes.map(item => item.servico))];
+        if (!atendentes || !servicos || !documentoFile) {
+            alert('Por favor, preencha todos os campos e envie o documento de identidade');
+            return;
+        }
         
-        servicosUnicos.forEach(servico => {
-            const option = document.createElement('option');
-            option.value = servico;
-            option.textContent = servico;
-            select.appendChild(option);
-        });
+        try {
+            document.getElementById('loaderOverlay').style.display = 'flex';
+            
+            // Upload do documento
+            const storageRef = storage.ref();
+            const documentoRef = storageRef.child(`documentos/${currentUser.uid}/${Date.now()}_${documentoFile.name}`);
+            await documentoRef.put(documentoFile);
+            const documentoUrl = await documentoRef.getDownloadURL();
+            
+            // Cria a solicitação no Firestore
+            await db.collection('solicitacoesAtendentes').add({
+                userId: currentUser.uid,
+                atendentes: atendentes.split(',').map(a => a.trim()),
+                servicos: servicos.split(',').map(s => s.trim()),
+                documentoUrl: documentoUrl,
+                status: 'pendente',
+                dataSolicitacao: firebase.firestore.FieldValue.serverTimestamp(),
+                dataAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            alert('Solicitação enviada com sucesso! Nossa equipe irá analisar e em até 1 hora as modificações serão aplicadas.');
+            
+            // Limpa o formulário
+            document.getElementById('solicitacaoAtendentes').value = '';
+            document.getElementById('solicitacaoServicos').value = '';
+            documentoInput.value = '';
+            
+            document.getElementById('loaderOverlay').style.display = 'none';
+            
+        } catch (error) {
+            console.error('Erro ao enviar solicitação:', error);
+            alert('Erro ao enviar solicitação. Por favor, tente novamente.');
+            document.getElementById('loaderOverlay').style.display = 'none';
+        }
     }
     
     function setupEventListeners() {
-        // Botão adicionar serviço
-        document.getElementById('addServicoBtn').addEventListener('click', () => {
-            document.getElementById('servicoModalTitle').textContent = 'Adicionar Serviço';
-            document.getElementById('servicoId').value = '';
-            document.getElementById('servicoNome').value = '';
-            document.getElementById('servicoModal').style.display = 'flex';
-        });
-        
-        // Botão adicionar atendente
-        document.getElementById('addAtendenteBtn').addEventListener('click', () => {
-            document.getElementById('atendenteModalTitle').textContent = 'Adicionar Atendente';
-            document.getElementById('atendenteId').value = '';
-            document.getElementById('atendenteNome').value = '';
-            document.getElementById('atendenteServico').value = '';
-            document.getElementById('atendenteModal').style.display = 'flex';
-        });
-        
-        // Cancelar serviço
-        document.getElementById('cancelServicoBtn').addEventListener('click', () => {
-            document.getElementById('servicoModal').style.display = 'none';
-        });
-        
-        // Cancelar atendente
-        document.getElementById('cancelAtendenteBtn').addEventListener('click', () => {
-            document.getElementById('atendenteModal').style.display = 'none';
-        });
-        
-        // Formulário serviço
-        document.getElementById('servicoForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await saveServico();
-        });
-        
-        // Formulário atendente
-        document.getElementById('atendenteForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await saveAtendente();
-        });
-        
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', (e) => {
             e.preventDefault();
@@ -949,180 +620,6 @@
                 window.location.href = 'https://horario.site/login.html';
             });
         });
-    }
-    
-    function editServico(servicoNome) {
-        document.getElementById('servicoModalTitle').textContent = 'Editar Serviço';
-        document.getElementById('servicoId').value = servicoNome;
-        document.getElementById('servicoNome').value = servicoNome;
-        document.getElementById('servicoModal').style.display = 'flex';
-    }
-    
-    async function saveServico() {
-        const servicoNome = document.getElementById('servicoNome').value.trim();
-        const oldServicoNome = document.getElementById('servicoId').value;
-        
-        if (!servicoNome) {
-            alert('Por favor, informe o nome do serviço');
-            return;
-        }
-        
-        try {
-            // Verifica se já existe um serviço com esse nome (exceto quando estiver editando)
-            if (!oldServicoNome && servicosAtendentes.some(s => s.servico === servicoNome)) {
-                alert('Já existe um serviço com esse nome');
-                return;
-            }
-            
-            // Se estiver editando, atualiza o nome do serviço
-            if (oldServicoNome && oldServicoNome !== servicoNome) {
-                servicosAtendentes.forEach(item => {
-                    if (item.servico === oldServicoNome) {
-                        item.servico = servicoNome;
-                    }
-                });
-            } 
-            // Se for um novo serviço, adiciona
-            else if (!oldServicoNome) {
-                servicosAtendentes.push({
-                    servico: servicoNome,
-                    atendentes: []
-                });
-            }
-            
-            // Atualiza no Firestore
-            await db.collection('usuarios').doc(`PP - ${currentUser.uid}`).update({
-                servicoAtendente: servicosAtendentes
-            });
-            
-            // Atualiza a exibição
-            await exibirServicosAtendentes();
-            updateServicosSelect();
-            document.getElementById('servicoModal').style.display = 'none';
-            
-        } catch (error) {
-            console.error('Erro ao salvar serviço:', error);
-            alert('Erro ao salvar serviço');
-        }
-    }
-    
-    async function deleteServico(servicoNome) {
-        if (!confirm(`Tem certeza que deseja excluir o serviço "${servicoNome}" e todos os seus atendentes?`)) {
-            return;
-        }
-        
-        try {
-            // Remove da memória
-            servicosAtendentes = servicosAtendentes.filter(item => item.servico !== servicoNome);
-            
-            // Atualiza no Firestore
-            await db.collection('usuarios').doc(`PP - ${currentUser.uid}`).update({
-                servicoAtendente: servicosAtendentes
-            });
-            
-            // Atualiza a exibição
-            await exibirServicosAtendentes();
-            updateServicosSelect();
-            
-        } catch (error) {
-            console.error('Erro ao excluir serviço:', error);
-            alert('Erro ao excluir serviço');
-        }
-    }
-    
-    function editAtendente(servicoNome, atendenteNome) {
-        document.getElementById('atendenteModalTitle').textContent = 'Editar Atendente';
-        document.getElementById('atendenteId').value = atendenteNome;
-        document.getElementById('atendenteNome').value = atendenteNome;
-        document.getElementById('atendenteServico').value = servicoNome;
-        document.getElementById('atendenteModal').style.display = 'flex';
-    }
-    
-    async function saveAtendente() {
-        const atendenteNome = document.getElementById('atendenteNome').value.trim();
-        const servicoNome = document.getElementById('atendenteServico').value;
-        const oldAtendenteNome = document.getElementById('atendenteId').value;
-        
-        if (!atendenteNome || !servicoNome) {
-            alert('Por favor, preencha todos os campos');
-            return;
-        }
-        
-        try {
-            // Se estiver editando, atualiza o atendente
-            if (oldAtendenteNome) {
-                servicosAtendentes.forEach(item => {
-                    if (item.servico === servicoNome) {
-                        const index = item.atendentes.indexOf(oldAtendenteNome);
-                        if (index !== -1) {
-                            item.atendentes[index] = atendenteNome;
-                        }
-                    }
-                });
-            } 
-            // Se for um novo atendente, adiciona
-            else {
-                let serviceExists = false;
-                
-                // Verifica se já existe o serviço para adicionar o atendente
-                servicosAtendentes.forEach(item => {
-                    if (item.servico === servicoNome) {
-                        if (!item.atendentes.includes(atendenteNome)) {
-                            item.atendentes.push(atendenteNome);
-                        }
-                        serviceExists = true;
-                    }
-                });
-                
-                // Se não existir o serviço, cria um novo
-                if (!serviceExists) {
-                    servicosAtendentes.push({
-                        servico: servicoNome,
-                        atendentes: [atendenteNome]
-                    });
-                }
-            }
-            
-            // Atualiza no Firestore
-            await db.collection('usuarios').doc(`PP - ${currentUser.uid}`).update({
-                servicoAtendente: servicosAtendentes
-            });
-            
-            // Atualiza a exibição
-            await exibirServicosAtendentes();
-            document.getElementById('atendenteModal').style.display = 'none';
-            
-        } catch (error) {
-            console.error('Erro ao salvar atendente:', error);
-            alert('Erro ao salvar atendente');
-        }
-    }
-    
-    async function deleteAtendente(servicoNome, atendenteNome) {
-        if (!confirm(`Tem certeza que deseja excluir o atendente "${atendenteNome}" do serviço "${servicoNome}"?`)) {
-            return;
-        }
-        
-        try {
-            // Remove da memória
-            servicosAtendentes.forEach(item => {
-                if (item.servico === servicoNome) {
-                    item.atendentes = item.atendentes.filter(a => a !== atendenteNome);
-                }
-            });
-            
-            // Atualiza no Firestore
-            await db.collection('usuarios').doc(`PP - ${currentUser.uid}`).update({
-                servicoAtendente: servicosAtendentes
-            });
-            
-            // Atualiza a exibição
-            await exibirServicosAtendentes();
-            
-        } catch (error) {
-            console.error('Erro ao excluir atendente:', error);
-            alert('Erro ao excluir atendente');
-        }
     }
 </script>
 </body>
