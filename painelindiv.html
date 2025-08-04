@@ -12,6 +12,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: Arial, sans-serif;
             font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
 
@@ -129,6 +130,7 @@
         .form-group select,
         .form-group textarea {
             width: 100%;
+            padding: 8px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -136,6 +138,7 @@
         }
 
         .btn {
+            padding: 8px 16px;
             padding: 10px 16px;
             background-color: #4CAF50;
             color: white;
@@ -146,12 +149,12 @@
             font-weight: 500;
             transition: all 0.3s ease;
         }
-
+        
         .btn:hover {
             opacity: 0.9;
             transform: translateY(-1px);
         }
-
+        
         .btn:active {
             transform: translateY(0);
         }
@@ -169,8 +172,9 @@
             border: 1px solid #2196F3;
             color: #2196F3;
         }
-
+        
         .message {
+            padding: 10px;
             padding: 12px;
             margin: 10px 0;
             border-radius: 4px;
@@ -178,12 +182,16 @@
         }
 
         .success {
+            background-color: #dff0d8;
+            color: #3c763d;
             background-color: #e8f5e9;
             color: #2e7d32;
             border-left: 4px solid #2e7d32;
         }
 
         .error {
+            background-color: #f2dede;
+            color: #a94442;
             background-color: #ffebee;
             color: #c62828;
             border-left: 4px solid #c62828;
@@ -250,6 +258,7 @@
         .dias-semana {
             display: flex;
             flex-wrap: wrap;
+            gap: 5px;
             gap: 10px;
             margin-bottom: 10px;
         }
@@ -257,11 +266,12 @@
         .dia-checkbox {
             display: flex;
             align-items: center;
+            margin-right: 10px;
             background: #f5f5f5;
             padding: 8px 12px;
             border-radius: 20px;
         }
-
+        
         .dia-checkbox input {
             margin-right: 5px;
         }
@@ -292,7 +302,7 @@
             margin-bottom: 20px;
             color: #333;
         }
-
+        
         .nome-inicial .form-group {
             display: flex;
             gap: 10px;
@@ -303,6 +313,7 @@
             padding: 10px;
         }
 
+        /* Agendamentos do dia */
         /* Agendamentos do dia - NOVO DESIGN */
         .agendamentos-container {
             width: 100%;
@@ -318,66 +329,74 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 15px;
             padding: 15px 20px;
             background: #f8f9fa;
             border-bottom: 1px solid #eee;
         }
 
+        .agendamento-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         .agendamentos-header h2 {
             font-size: 18px;
             color: #333;
             margin: 0;
         }
 
+        .agendamento-info {
         .agendamentos-list {
             padding: 0;
-            width: 100%;
         }
-
+        
         .agendamento-item {
             padding: 15px 20px;
             border-bottom: 1px solid #eee;
             transition: all 0.3s ease;
             display: flex;
             justify-content: space-between;
+            margin-bottom: 10px;
             align-items: center;
-            width: 100%;
         }
 
+        .agendamento-actions {
+            text-align: right;
         .agendamento-item:hover {
             background-color: #f8f9fa;
         }
 
+        .concluido {
+            opacity: 0.7;
         .agendamento-item.concluido {
             background-color: #f9f9f9;
         }
 
         .agendamento-info {
             flex: 1;
-            display: flex;
-            align-items: center;
-            width: 100%;
         }
-
+        
         .agendamento-horario {
             font-weight: 600;
             color: #333;
             font-size: 15px;
             min-width: 70px;
         }
-
+        
         .agendamento-servico {
             font-weight: 600;
             color: #2196F3;
             margin: 0 15px;
             flex: 1;
         }
-
+        
         .agendamento-cliente {
             color: #555;
             flex: 2;
         }
-
+        
         .agendamento-status {
             padding: 5px 10px;
             border-radius: 12px;
@@ -386,28 +405,28 @@
             text-transform: uppercase;
             margin-right: 10px;
         }
-
+        
         .status-pendente {
             background-color: #fff3e0;
             color: #e65100;
         }
-
+        
         .status-concluido {
             background-color: #e8f5e9;
             color: #2e7d32;
         }
-
+        
         .agendamento-actions {
             display: flex;
             gap: 8px;
         }
-
+        
         .agendamento-empty {
             padding: 30px;
             text-align: center;
             color: #777;
         }
-
+        
         /* Estilo para dias com agendamentos */
         .has-agendamento {
             background-color: #e8f5e9 !important;
@@ -443,23 +462,6 @@
             border-radius: 50%;
         }
 
-        /* Botão voltar */
-        .voltar-btn {
-            background: none;
-            border: none;
-            color: #2196F3;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 5px 0;
-            margin-right: 15px;
-            display: flex;
-            align-items: center;
-        }
-
-        .voltar-btn i {
-            margin-right: 5px;
-        }
-
         /* Responsividade */
         @media (max-width: 768px) {
             .agendamento-item {
@@ -467,25 +469,25 @@
                 align-items: flex-start;
                 gap: 10px;
             }
-
+            
             .agendamento-info {
                 width: 100%;
                 display: flex;
                 flex-wrap: wrap;
                 gap: 10px;
             }
-
+            
             .agendamento-actions {
                 width: 100%;
                 justify-content: flex-end;
             }
-
+            
             .agendamentos-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 10px;
             }
-
+            
             .agendamentos-header h2 {
                 font-size: 16px;
             }
@@ -911,6 +913,7 @@
             }
         }
 
+        // Função para carregar agendamentos de um dia
         // Função para carregar agendamentos de um dia - ATUALIZADA COM NOVO DESIGN
         async function loadAgendamentosForDay(dateKey, dateStr) {
             try {
@@ -924,8 +927,8 @@
                 let agendamentosHTML = `
                     <div class="agendamentos-container">
                         <div class="agendamentos-header">
+                            <button id="voltar-mes" class="btn">← Voltar para o Mês</button>
                             <button id="voltar-mes" class="btn btn-outline">← Voltar para o Mês</button>
-                            <button class="voltar-btn" id="voltar-mes"><i class="fas fa-arrow-left"></i> Voltar</button>
                             <h2>Agendamentos - ${dateStr}</h2>
                         </div>
                         <div class="agendamentos-list">
@@ -952,6 +955,9 @@
                             agendamentosHTML += `
                                 <div class="agendamento-item">
                                     <div class="agendamento-info">
+                                        <span style="font-weight: bold;">${agendamento.horario}</span>
+                                        <span style="font-weight: bold;">${agendamento.servico || 'Serviço'}</span>
+                                        <span>${agendamento.clienteNome || 'Cliente'}</span>
                                         <div class="agendamento-horario">${agendamento.horario}</div>
                                         <div class="agendamento-servico">${agendamento.servico || 'Serviço'}</div>
                                         <div class="agendamento-cliente">${agendamento.clienteNome || 'Cliente'}</div>
@@ -971,6 +977,9 @@
                             agendamentosHTML += `
                                 <div class="agendamento-item concluido">
                                     <div class="agendamento-info">
+                                        <span style="font-weight: bold;">${agendamento.horario}</span>
+                                        <span style="font-weight: bold;">${agendamento.servico || 'Serviço'}</span>
+                                        <span>${agendamento.clienteNome || 'Cliente'}</span>
                                         <div class="agendamento-horario">${agendamento.horario}</div>
                                         <div class="agendamento-servico">${agendamento.servico || 'Serviço'}</div>
                                         <div class="agendamento-cliente">${agendamento.clienteNome || 'Cliente'}</div>
@@ -985,22 +994,23 @@
                     }
                 } else {
                     agendamentosHTML += `
+                        <div class="agendamento-item">
                         <div class="agendamento-empty">
                             Nenhum agendamento encontrado para este dia.
                         </div>
                     `;
                 }
 
+                agendamentosHTML += `</div>`;
                 agendamentosHTML += `
                         </div>
                     </div>
                 `;
-
+                
                 $('#calendar').html(agendamentosHTML);
 
                 // Adiciona eventos aos botões
                 $('.btn:not(#voltar-mes)').click(async function() {
-                $('.btn:not(.voltar-btn)').click(async function() {
                     const agendamentoId = $(this).data('id');
                     const isConcluir = $(this).text() === 'Concluir';
 
@@ -1027,9 +1037,10 @@
                 console.error("Erro ao carregar agendamentos:", error);
                 $('#calendar').html(`
                     <div class="agendamentos-container">
+                        <button id="voltar-mes" class="btn">← Voltar para o Mês</button>
+                        <div class="agendamento-item">
                         <div class="agendamentos-header">
                             <button id="voltar-mes" class="btn btn-outline">← Voltar para o Mês</button>
-                            <button class="voltar-btn" id="voltar-mes"><i class="fas fa-arrow-left"></i> Voltar</button>
                             <h2>Agendamentos - ${dateStr}</h2>
                         </div>
                         <div class="agendamento-empty">
