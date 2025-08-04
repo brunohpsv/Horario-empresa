@@ -205,6 +205,12 @@
             width: 100%;
             max-width: 100%;
             padding: 0 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .day-agendamentos-container.loaded {
+            opacity: 1;
         }
         
         .day-title {
@@ -366,6 +372,15 @@
             border-radius: 50%;
             width: 50px;
             height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-sm {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
             animation: spin 1s linear infinite;
         }
 
@@ -593,6 +608,15 @@
         // Função para carregar agendamentos de um dia específico
         async function loadAgendamentosForDay(userId, dateKey, dateStr) {
             try {
+                // Mostrar loader antes de carregar os agendamentos
+                $('#calendar').html(`
+                    <div class="day-agendamentos-container">
+                        <div style="display: flex; justify-content: center; align-items: center; height: 200px;">
+                            <div class="loader-sm"></div>
+                        </div>
+                    </div>
+                `);
+                
                 const agendamentosRef = db.collection('usuarios').doc(userId)
                     .collection('agendamentos').where('data', '==', dateKey);
                 
@@ -687,7 +711,13 @@
                     </div>
                 `;
                 
+                // Inserir o HTML e depois mostrar com transição
                 $('#calendar').html(agendamentosHTML);
+                
+                // Adicionar a classe 'loaded' após um pequeno delay para garantir que o DOM foi atualizado
+                setTimeout(() => {
+                    $('.day-agendamentos-container').addClass('loaded');
+                }, 50);
                 
                 // Adiciona evento para os botões de concluir
                 $('.btn-concluir').click(async function() {
@@ -768,7 +798,7 @@
             } catch (error) {
                 console.error("Erro ao carregar agendamentos:", error);
                 $('#calendar').html(`
-                    <div class="day-agendamentos-container">
+                    <div class="day-agendamentos-container loaded">
                         <button id="voltar-mes">
                             ← Voltar para o Mês
                         </button>
