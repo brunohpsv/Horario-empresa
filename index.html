@@ -322,6 +322,14 @@
             }
         }
 
+        .servicos-lista {
+            color: #d32f2f; /* Vermelho escuro */
+            font-family: Arial, sans-serif;
+            font-size: var(--small-font-size);
+            margin-top: 0.3em;
+            line-height: 1.3;
+        }
+
         /* Melhorias específicas para telas muito pequenas */
         @media (max-width: 768px) {
             :root {
@@ -424,14 +432,6 @@
             .empresa-item {
                 padding: var(--padding-base) var(--padding-large);
             }
-		
-	    .servicos-lista {
-    color: #d32f2f; /* Vermelho escuro */
-    font-family: Arial, sans-serif;
-    font-size: var(--small-font-size);
-    margin-top: 0.3em;
-    line-height: 1.3;
-}
         }
     </style>
 </head>
@@ -906,15 +906,12 @@
             return cidadeMatch && estadoMatch && nomeMatch;
         });
         
-        const servicosFiltrados = [];
+        const servicosFiltrados = new Set();
         empresasFiltradas.forEach(empresa => {
             const servicos = extrairServicos(empresa);
             servicos.forEach(servico => {
                 if (servico && typeof servico === 'string') {
-                    servicosFiltrados.push({
-                        nome: servico,
-                        empresa: empresa.nomeFantasia || "Sem nome"
-                    });
+                    servicosFiltrados.add(servico);
                 }
             });
         });
@@ -923,28 +920,15 @@
         const servicoSelecionado = selectServico.value.toLowerCase();
         selectServico.innerHTML = '<option value="">Todos os serviços</option>';
         
-        const servicosAgrupados = {};
-        servicosFiltrados.forEach(servico => {
-            const chave = servico.nome.toLowerCase();
-            if (!servicosAgrupados[chave]) {
-                servicosAgrupados[chave] = {
-                    nome: servico.nome,
-                    empresas: [servico.empresa]
-                };
-            } else if (!servicosAgrupados[chave].empresas.includes(servico.empresa)) {
-                servicosAgrupados[chave].empresas.push(servico.empresa);
-            }
-        });
-        
-        Object.values(servicosAgrupados)
-            .sort((a, b) => a.nome.localeCompare(b.nome))
+        Array.from(servicosFiltrados)
+            .sort((a, b) => a.localeCompare(b))
             .forEach(servico => {
                 const option = document.createElement('option');
-                option.value = servico.nome.toLowerCase();
-                option.textContent = `${servico.nome} - ${servico.empresas.join(', ')}`;
+                option.value = servico.toLowerCase();
+                option.textContent = servico;
                 selectServico.appendChild(option);
                 
-                if (servico.nome.toLowerCase() === servicoSelecionado) {
+                if (servico.toLowerCase() === servicoSelecionado) {
                     option.selected = true;
                 }
             });
@@ -971,7 +955,7 @@
             todasEmpresas = [];
             cidadesDisponiveis = new Set();
             estadosDisponiveis = new Set();
-            servicosDisponiveis = [];
+            servicosDisponiveis = new Set();
             
             querySnapshot.forEach((doc) => {
                 const empresaData = doc.data();
@@ -984,10 +968,7 @@
                 const servicos = extrairServicos(empresaData);
                 servicos.forEach(servico => {
                     if (servico && typeof servico === 'string') {
-                        servicosDisponiveis.push({
-                            nome: servico,
-                            empresa: empresaData.nomeFantasia || "Sem nome"
-                        });
+                        servicosDisponiveis.add(servico);
                     }
                 });
             });
@@ -995,25 +976,12 @@
             const selectServico = document.getElementById('servico');
             selectServico.innerHTML = '<option value="">Todos os serviços</option>';
             
-            const servicosAgrupados = {};
-            servicosDisponiveis.forEach(servico => {
-                const chave = servico.nome.toLowerCase();
-                if (!servicosAgrupados[chave]) {
-                    servicosAgrupados[chave] = {
-                        nome: servico.nome,
-                        empresas: [servico.empresa]
-                    };
-                } else if (!servicosAgrupados[chave].empresas.includes(servico.empresa)) {
-                    servicosAgrupados[chave].empresas.push(servico.empresa);
-                }
-            });
-            
-            Object.values(servicosAgrupados)
-                .sort((a, b) => a.nome.localeCompare(b.nome))
+            Array.from(servicosDisponiveis)
+                .sort((a, b) => a.localeCompare(b))
                 .forEach(servico => {
                     const option = document.createElement('option');
-                    option.value = servico.nome.toLowerCase();
-                    option.textContent = `${servico.nome} - ${servico.empresas.join(', ')}`;
+                    option.value = servico.toLowerCase();
+                    option.textContent = servico;
                     selectServico.appendChild(option);
                 });
             
