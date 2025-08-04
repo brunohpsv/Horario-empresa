@@ -507,16 +507,15 @@
         </div>
     </header>
 
-    <div class="container">
-        <!-- Seção de nome inicial (mostra apenas se não tiver nome selecionado) -->
-        <div id="nomeInicialSection" class="nome-inicial" style="display: none;">
-            <h2>Identifique-se</h2>
-            <div id="message" class="message" style="display: none;"></div>
-            <div class="form-group">
-                <input type="text" id="nomeInicial" placeholder="Digite seu nome completo">
-                <button id="adicionarNomeBtn" class="btn">Adicionar Nome</button>
-            </div>
-        </div>
+    <!-- Seção de nome inicial (mostra apenas se não tiver nome selecionado) -->
+<div id="nomeInicialSection" class="nome-inicial" style="display: none;">
+    <h2>Identifique-se</h2>
+    <div id="message" class="message" style="display: none;"></div>
+    <div class="form-group">
+        <input type="text" id="nomeInicial" placeholder="Digite seu nome completo">
+        <button id="adicionarNomeBtn" class="btn">Adicionar Nome</button>
+    </div>
+</div>
 
         <!-- Conteúdo principal (mostra apenas após selecionar nome) -->
         <div id="mainContent" style="display: none;">
@@ -674,65 +673,56 @@
             });
 
             auth.onAuthStateChanged(async (user) => {
-                if (!user) {
-                    window.location.href = 'https://horario.site/login.html';
-                } else {
-                    try {
-                        document.getElementById('loaderOverlay').style.display = 'flex';
+    if (!user) {
+        window.location.href = 'https://horario.site/login.html';
+    } else {
+        try {
+            document.getElementById('loaderOverlay').style.display = 'flex';
 
-                        // Verifica se já tem um nome selecionado no localStorage
-                        if (selectedNomeCompleto) {
-                            // Busca o usuário pelo nome completo
-                            await loadUserData(selectedNomeCompleto);
-                            showMainContent();
-                        } else {
-                            // Mostra a seção para inserir o nome
-                            document.getElementById('nomeInicialSection').style.display = 'block';
-                        }
+            // Busca o usuário pelo email autenticado
+            const userQuery = await db.collection('usuarios')
+                .where('email', '==', user.email)
+                .get();
 
-                        document.getElementById('loaderOverlay').style.display = 'none';
+            if (userQuery.empty) {
+                throw new Error('Nenhum usuário encontrado com este email');
+            }
 
-                    } catch (error) {
-                        console.error('Erro ao carregar dados:', error);
-                        document.getElementById('loaderOverlay').style.display = 'none';
-                        showMessage('error', 'Erro ao carregar dados do usuário. Por favor, faça login novamente.');
-                        setTimeout(() => {
-                            auth.signOut();
-                            window.location.href = 'https://horario.site/login.html';
-                        }, 3000);
-                    }
-                }
-            });
+            // Pega o primeiro documento que corresponde
+            const userDoc = userQuery.docs[0];
+            currentUserData = userDoc.data();
+            currentUserData.id = userDoc.id;
+
+            // Salva o nome completo no localStorage para referência futura
+            localStorage.setItem('selectedNomeCompleto', currentUserData.nomeCompleto);
+            
+            // Mostra o conteúdo principal
+            showMainContent();
+
+            document.getElementById('loaderOverlay').style.display = 'none';
+
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error);
+            document.getElementById('loaderOverlay').style.display = 'none';
+            alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
+            setTimeout(() => {
+                auth.signOut();
+                window.location.href = 'https://horario.site/login.html';
+            }, 3000);
+        }
+    }
+});
 
             // Evento para adicionar nome
-            document.getElementById('adicionarNomeBtn').addEventListener('click', async function() {
-                const nomeCompleto = document.getElementById('nomeInicial').value.trim();
-                if (!nomeCompleto) {
-                    showMessage('error', 'Por favor, digite seu nome completo');
-                    return;
-                }
+            // Evento para adicionar nome
+document.getElementById('adicionarNomeBtn').addEventListener('click', async function() {
+    // ... código removido ...
+});
 
-                try {
-                    document.getElementById('loaderOverlay').style.display = 'flex';
-
-                    // Busca os dados do usuário
-                    await loadUserData(nomeCompleto);
-
-                    // Salva no localStorage
-                    localStorage.setItem('selectedNomeCompleto', nomeCompleto);
-                    selectedNomeCompleto = nomeCompleto;
-
-                    // Mostra o conteúdo principal
-                    showMainContent();
-
-                    document.getElementById('loaderOverlay').style.display = 'none';
-
-                } catch (error) {
-                    console.error('Erro ao carregar dados:', error);
-                    document.getElementById('loaderOverlay').style.display = 'none';
-                    showMessage('error', 'Erro ao carregar dados. Verifique se o nome está correto.');
-                }
-            });
+// Evento para carregar dados quando o nome completo mudar
+document.getElementById('nomeCompleto').addEventListener('change', async function() {
+    // ... código removido ...
+});
 
             // Adiciona evento para adicionar serviço
             document.getElementById('addServicoBtn').addEventListener('click', addServico);
@@ -826,17 +816,13 @@
 
         // Função para mostrar o conteúdo principal
         function showMainContent() {
-            document.getElementById('nomeInicialSection').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
+    // Remove esta linha:
+    // document.getElementById('nomeInicialSection').style.display = 'none';
+    
+    document.getElementById('mainContent').style.display = 'block';
 
-            // Mostra a seção de configurações apenas se não estiver na visualização de dia
-            if (!isDayView) {
-                document.getElementById('configSection').style.display = 'block';
-            }
-
-            // Inicializa o calendário
-            initializeCalendar();
-        }
+    // Restante do código permanece o mesmo...
+}
 
         // Função para inicializar o calendário
         function initializeCalendar() {
