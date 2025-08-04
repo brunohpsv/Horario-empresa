@@ -560,37 +560,54 @@
         const servicosAgrupados = {};
         
         servicosAtendentes.forEach(item => {
-            if (!item || typeof item !== 'object') return;
-            
-            // Remove o prefixo "PP - " se existir
-            let servico = item.servico || 'Serviço não especificado';
-            if (servico.startsWith('PP - ')) {
-                servico = servico.substring(5);
-            }
-            
-            if (!servicosAgrupados[servico]) {
-                servicosAgrupados[servico] = {
-                    servico: servico,
-                    atendentes: []
-                };
-            }
-            
-            if (item.atendentes && Array.isArray(item.atendentes)) {
-                item.atendentes.forEach(atendente => {
-                    if (atendente) {
-                        // Remove o prefixo "PP - " se existir no nome do atendente
-                        let nomeAtendente = atendente;
-                        if (nomeAtendente.startsWith('PP - ')) {
-                            nomeAtendente = nomeAtendente.substring(5);
+            try {
+                if (!item || typeof item !== 'object') return;
+                
+                // Verifica se o item tem a estrutura esperada
+                if (!item.servico || !item.atendentes) {
+                    console.warn('Estrutura de dados inválida:', item);
+                    return;
+                }
+                
+                // Remove o prefixo "PP - " se existir
+                let servico = item.servico;
+                if (typeof servico === 'string' && servico.startsWith('PP - ')) {
+                    servico = servico.substring(5);
+                }
+                
+                if (!servicosAgrupados[servico]) {
+                    servicosAgrupados[servico] = {
+                        servico: servico,
+                        atendentes: []
+                    };
+                }
+                
+                // Verifica se atendentes é um array
+                if (Array.isArray(item.atendentes)) {
+                    item.atendentes.forEach(atendente => {
+                        if (atendente && typeof atendente === 'string') {
+                            // Remove o prefixo "PP - " se existir no nome do atendente
+                            let nomeAtendente = atendente;
+                            if (nomeAtendente.startsWith('PP - ')) {
+                                nomeAtendente = nomeAtendente.substring(5);
+                            }
+                            
+                            if (!servicosAgrupados[servico].atendentes.includes(nomeAtendente)) {
+                                servicosAgrupados[servico].atendentes.push(nomeAtendente);
+                            }
                         }
-                        
-                        if (!servicosAgrupados[servico].atendentes.includes(nomeAtendente)) {
-                            servicosAgrupados[servico].atendentes.push(nomeAtendente);
-                        }
-                    }
-                });
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao processar item:', item, error);
             }
         });
+        
+        // Verifica se há serviços para exibir
+        if (Object.keys(servicosAgrupados).length === 0) {
+            container.innerHTML = '<div class="empty-message">Nenhum serviço ou atendente válido encontrado</div>';
+            return;
+        }
         
         // Exibe na lista
         for (const servico in servicosAgrupados) {
@@ -608,8 +625,6 @@
                 attendantsList.innerHTML = '<div class="empty-message">Nenhum atendente para este serviço</div>';
             } else {
                 servicosAgrupados[servico].atendentes.forEach(atendente => {
-                    if (!atendente) return;
-                    
                     const attendantItem = document.createElement('div');
                     attendantItem.className = 'attendant-item';
                     attendantItem.innerHTML = `<span>${atendente}</span>`;
