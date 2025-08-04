@@ -390,200 +390,127 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
-            authDomain: "banco-de-dados-d253e.firebaseapp.com",
-            projectId: "banco-de-dados-d253e",
-            storageBucket: "banco-de-dados-d253e.appspot.com",
-            messagingSenderId: "1005413315224",
-            appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyAfk7tS6Z39uYyHnbKlwY1O1zeOx74LlQg",
+        authDomain: "banco-de-dados-d253e.firebaseapp.com",
+        projectId: "banco-de-dados-d253e",
+        storageBucket: "banco-de-dados-d253e.appspot.com",
+        messagingSenderId: "1005413315224",
+        appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
+    };
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        
-        let currentUser = null;
-        let servicosAtendentes = [];
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            auth.onAuthStateChanged(async (user) => {
-                if (!user) {
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+    
+    let currentUser = null;
+    let servicosAtendentes = [];
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'https://horario.site/login.html';
+            } else {
+                currentUser = user;
+                try {
+                    await loadServicosAtendentes();
+                    setupEventListeners();
+                    document.getElementById('loaderOverlay').style.display = 'none';
+                } catch (error) {
+                    console.error('Erro ao carregar dados:', error);
+                    alert('Erro ao carregar dados. Por favor, faça login novamente.');
+                    auth.signOut();
                     window.location.href = 'https://horario.site/login.html';
-                } else {
-                    currentUser = user;
-                    try {
-                        await loadServicosAtendentes();
-                        setupEventListeners();
-                        document.getElementById('loaderOverlay').style.display = 'none';
-                    } catch (error) {
-                        console.error('Erro ao carregar dados:', error);
-                        alert('Erro ao carregar dados. Por favor, faça login novamente.');
-                        auth.signOut();
-                        window.location.href = 'https://horario.site/login.html';
-                    }
                 }
-            });
+            }
         });
+    });
 
-       async function loadServicosAtendentes() {
-    try {
-        const container = document.getElementById('servicosAtendentesContainer');
-        container.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div><p class="mt-2">Carregando...</p></div>';
-        
-        // Primeiro busca o documento do usuário com prefixo "PP -"
-        const userDocRef = db.collection('usuarios').doc(`PP - ${currentUser.uid}`);
-        const userDoc = await userDocRef.get();
-        
-        if (!userDoc.exists) {
-            // Se não encontrar com prefixo, tenta sem prefixo (para compatibilidade)
-            const fallbackDoc = await db.collection('usuarios').doc(currentUser.uid).get();
-            if (!fallbackDoc.exists) {
+    async function loadServicosAtendentes() {
+        try {
+            const container = document.getElementById('servicosAtendentesContainer');
+            container.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div><p class="mt-2">Carregando...</p></div>';
+            
+            // Carrega os dados atuais do Firestore
+            const userDoc = await db.collection('usuarios').doc(currentUser.uid).get();
+            
+            if (!userDoc.exists) {
                 throw new Error('Dados do usuário não encontrados');
             }
-            return processUserData(fallbackDoc.data());
+            
+            const userData = userDoc.data();
+            
+            // Verifica se existe o campo servicoAtendente
+            if (userData.servicoAtendente) {
+                servicosAtendentes = userData.servicoAtendente;
+            } else {
+                servicosAtendentes = [];
+            }
+            
+            // Exibe a lista de serviços e atendentes (somente leitura)
+            displayServicosAtendentesReadOnly();
+            
+        } catch (error) {
+            console.error('Erro ao carregar serviços e atendentes:', error);
+            document.getElementById('servicosAtendentesContainer').innerHTML = 
+                '<div class="alert alert-danger">Erro ao carregar serviços e atendentes</div>';
         }
-        
-        return processUserData(userDoc.data());
-        
-    } catch (error) {
-        console.error('Erro ao carregar serviços e atendentes:', error);
-        document.getElementById('servicosAtendentesContainer').innerHTML = 
-            '<div class="alert alert-danger">Erro ao carregar serviços e atendentes</div>';
-    }
-}
-
-function processUserData(userData) {
-    servicosAtendentes = [];
-    
-    // Verifica se existe o campo 'servicoAtendente' no documento
-    if (userData.servicoAtendente) {
-        // Processa os dados do campo servicoAtendente
-        if (Array.isArray(userData.servicoAtendente)) {
-            // Se for array de objetos
-            servicosAtendentes = userData.servicoAtendente.map(item => ({
-                servico: item.servico || '',
-                atendentes: Array.isArray(item.atendentes) ? item.atendentes : []
-            }));
-        } else if (typeof userData.servicoAtendente === 'string') {
-            // Se for string formatada
-            processarServicosAtendentes(userData.servicoAtendente);
-        }
-    } 
-    // Verifica campos antigos para compatibilidade
-    else if (userData.atendentes) {
-        processarAtendentes(userData.atendentes);
-    } else if (userData.servico) {
-        processarServicos(userData.servico);
     }
     
-    // Atualiza a exibição
-    exibirServicosAtendentes();
-    updateServicosSelect();
-}
+    function displayServicosAtendentesReadOnly() {
+        const container = document.getElementById('servicosAtendentesContainer');
+        container.innerHTML = '';
         
-        function processarServicosAtendentes(dados) {
-            servicosAtendentes = [];
-            
-            if (typeof dados === 'string') {
-                // Processa como texto formatado
-                const linhas = dados.split('\n').filter(linha => linha.trim() !== '');
-                
-                linhas.forEach(linha => {
-                    const partes = linha.split('-').map(p => p.trim());
-                    if (partes.length === 2) {
-                        const servico = partes[0];
-                        const atendentes = partes[1].split(',').map(a => a.trim());
-                        
-                        servicosAtendentes.push({
-                            servico: servico,
-                            atendentes: atendentes
-                        });
-                    }
-                });
-            } else if (Array.isArray(dados)) {
-                // Processa como array de objetos
-                dados.forEach(item => {
-                    if (item.servico && item.atendentes) {
-                        servicosAtendentes.push({
-                            servico: item.servico,
-                            atendentes: item.atendentes
-                        });
-                    }
-                });
-            }
+        if (servicosAtendentes.length === 0) {
+            container.innerHTML = '<div class="empty-message">Nenhum serviço ou atendente cadastrado</div>';
+            return;
         }
         
-        function processarAtendentes(dados) {
-            servicosAtendentes = [];
-            
-            if (typeof dados === 'string') {
-                // Expressão regular para extrair nomes entre parênteses e serviços entre colchetes
-                const regex = /\(([^)]+)\)\s*-\s*(\[[^\]]+\](?:\s*\[[^\]]+\])*)/g;
-                let match;
-                
-                while ((match = regex.exec(dados)) !== null) {
-                    const nomeAtendente = match[1].trim();
-                    const servicosStr = match[2];
-                    
-                    // Extrai todos os serviços entre colchetes
-                    const servicos = servicosStr.match(/\[([^\]]+)\]/g).map(s => 
-                        s.replace(/[\[\]]/g, '').trim()
-                    );
-                    
-                    // Para cada serviço, adicionamos um registro
-                    servicos.forEach(servico => {
-                        const existingService = servicosAtendentes.find(s => s.servico === servico);
-                        
-                        if (existingService) {
-                            existingService.atendentes.push(nomeAtendente);
-                        } else {
-                            servicosAtendentes.push({
-                                servico: servico,
-                                atendentes: [nomeAtendente]
-                            });
-                        }
-                    });
-                }
-            }
-        }
+        // Cria o formulário de solicitação de modificação
+        const formSection = document.createElement('div');
+        formSection.className = 'section';
+        formSection.innerHTML = `
+            <div class="section-title">Solicitar Modificação de Atendentes</div>
+            <div class="form-group">
+                <label>Para modificar, adicionar e remover atendentes, informe nos campos necessários:</label>
+            </div>
+            <div class="form-group">
+                <label for="solicitacaoAtendentes">Atendente(s)</label>
+                <input type="text" id="solicitacaoAtendentes" class="form-control" placeholder="Nome dos atendentes (separados por vírgula)">
+            </div>
+            <div class="form-group">
+                <label for="solicitacaoServicos">Serviço(s)</label>
+                <input type="text" id="solicitacaoServicos" class="form-control" placeholder="Nome dos serviços (separados por vírgula)">
+            </div>
+            <div class="form-group">
+                <label for="solicitacaoDocumento">Documento de Identidade (Obrigatório)</label>
+                <input type="file" id="solicitacaoDocumento" class="form-control" accept="image/*,.pdf" required>
+                <small>Envie uma imagem ou PDF da identidade do(s) atendente(s)</small>
+            </div>
+            <div class="alert alert-info">
+                Iremos analisar sua solicitação e em até 1 hora será modificado.
+            </div>
+            <button id="enviarSolicitacaoBtn" class="btn btn-primary">Enviar Solicitação</button>
+        `;
+        container.appendChild(formSection);
         
-        function processarServicos(dados) {
-            servicosAtendentes = [];
-            
-            if (typeof dados === 'string') {
-                // Processa como string separada por vírgula ou quebra de linha
-                const servicos = dados.split(/[\n,]/)
-                    .map(s => s.trim())
-                    .filter(s => s.length > 0);
-                
-                servicos.forEach(servico => {
-                    servicosAtendentes.push({
-                        servico: servico,
-                        atendentes: []
-                    });
-                });
-            } else if (Array.isArray(dados)) {
-                // Processa como array
-                dados.forEach(servico => {
-                    servicosAtendentes.push({
-                        servico: servico,
-                        atendentes: []
-                    });
-                });
-            }
-        }
+        // Cria a seção de visualização somente leitura
+        const viewSection = document.createElement('div');
+        viewSection.className = 'section';
+        viewSection.innerHTML = `
+            <div class="section-title">Lista Atual de Serviços e Atendentes (Somente Leitura)</div>
+            <div id="readOnlyList"></div>
+        `;
+        container.appendChild(viewSection);
         
-        async function exibirServicosAtendentes() {
-            const container = document.getElementById('servicosAtendentesContainer');
-            container.innerHTML = '';
-            
-            if (servicosAtendentes.length === 0) {
-                container.innerHTML = '<div class="empty-message">Nenhum serviço ou atendente cadastrado</div>';
-                return;
-            }
-            
-            // Agrupa os serviços (caso haja duplicatas)
+        // Preenche a lista somente leitura
+        const readOnlyList = document.getElementById('readOnlyList');
+        
+        if (servicosAtendentes.length === 0) {
+            readOnlyList.innerHTML = '<div class="empty-message">Nenhum serviço ou atendente cadastrado</div>';
+        } else {
+            // Agrupa serviços e atendentes
             const servicosAgrupados = {};
             
             servicosAtendentes.forEach(item => {
@@ -603,24 +530,14 @@ function processUserData(userData) {
                 }
             });
             
-            // Exibe na tela
+            // Exibe na lista somente leitura
             for (const servico in servicosAgrupados) {
                 const serviceDiv = document.createElement('div');
                 serviceDiv.className = 'service-with-attendants';
                 
                 const serviceHeader = document.createElement('div');
                 serviceHeader.className = 'service-header';
-                serviceHeader.innerHTML = `
-                    <span>${servico}</span>
-                    <div class="list-item-actions">
-                        <button class="btn btn-primary edit-servico" data-servico="${servico}">
-                            <i class="fas fa-edit"></i> Editar
-                        </button>
-                        <button class="btn btn-danger delete-servico" data-servico="${servico}">
-                            <i class="fas fa-trash"></i> Excluir
-                        </button>
-                    </div>
-                `;
+                serviceHeader.innerHTML = `<span>${servico}</span>`;
                 
                 const attendantsList = document.createElement('div');
                 attendantsList.className = 'attendants-list';
@@ -631,367 +548,79 @@ function processUserData(userData) {
                     servicosAgrupados[servico].atendentes.forEach(atendente => {
                         const attendantItem = document.createElement('div');
                         attendantItem.className = 'attendant-item';
-                        attendantItem.innerHTML = `
-                            <span>${atendente}</span>
-                            <div class="list-item-actions">
-                                <button class="btn btn-primary edit-atendente" data-servico="${servico}" data-atendente="${atendente}">
-                                    <i class="fas fa-edit"></i> Editar
-                                </button>
-                                <button class="btn btn-danger delete-atendente" data-servico="${servico}" data-atendente="${atendente}">
-                                    <i class="fas fa-trash"></i> Excluir
-                                </button>
-                            </div>
-                        `;
+                        attendantItem.innerHTML = `<span>${atendente}</span>`;
                         attendantsList.appendChild(attendantItem);
                     });
                 }
                 
                 serviceDiv.appendChild(serviceHeader);
                 serviceDiv.appendChild(attendantsList);
-                container.appendChild(serviceDiv);
-            }
-            
-            // Adiciona eventos aos botões
-            document.querySelectorAll('.edit-servico').forEach(btn => {
-                btn.addEventListener('click', () => editServico(btn.dataset.servico));
-            });
-            
-            document.querySelectorAll('.delete-servico').forEach(btn => {
-                btn.addEventListener('click', () => deleteServico(btn.dataset.servico));
-            });
-            
-            document.querySelectorAll('.edit-atendente').forEach(btn => {
-                btn.addEventListener('click', () => editAtendente(btn.dataset.servico, btn.dataset.atendente));
-            });
-            
-            document.querySelectorAll('.delete-atendente').forEach(btn => {
-                btn.addEventListener('click', () => deleteAtendente(btn.dataset.servico, btn.dataset.atendente));
-            });
-        }
-        
-        function updateServicosSelect() {
-            const select = document.getElementById('atendenteServico');
-            select.innerHTML = '<option value="">Selecione um serviço</option>';
-            
-            // Obter serviços únicos
-            const servicosUnicos = [...new Set(servicosAtendentes.map(item => item.servico))];
-            
-            servicosUnicos.forEach(servico => {
-                const option = document.createElement('option');
-                option.value = servico;
-                option.textContent = servico;
-                select.appendChild(option);
-            });
-        }
-        
-        function setupEventListeners() {
-            // Botão adicionar serviço
-            document.getElementById('addServicoBtn').addEventListener('click', () => {
-                document.getElementById('servicoModalTitle').textContent = 'Adicionar Serviço';
-                document.getElementById('servicoId').value = '';
-                document.getElementById('servicoNome').value = '';
-                document.getElementById('servicoModal').style.display = 'flex';
-            });
-            
-            // Botão adicionar atendente
-            document.getElementById('addAtendenteBtn').addEventListener('click', () => {
-                document.getElementById('atendenteModalTitle').textContent = 'Adicionar Atendente';
-                document.getElementById('atendenteId').value = '';
-                document.getElementById('atendenteNome').value = '';
-                document.getElementById('atendenteServico').value = '';
-                document.getElementById('atendenteModal').style.display = 'flex';
-            });
-            
-            // Cancelar serviço
-            document.getElementById('cancelServicoBtn').addEventListener('click', () => {
-                document.getElementById('servicoModal').style.display = 'none';
-            });
-            
-            // Cancelar atendente
-            document.getElementById('cancelAtendenteBtn').addEventListener('click', () => {
-                document.getElementById('atendenteModal').style.display = 'none';
-            });
-            
-            // Formulário serviço
-            document.getElementById('servicoForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await saveServico();
-            });
-            
-            // Formulário atendente
-            document.getElementById('atendenteForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await saveAtendente();
-            });
-            
-            // Logout
-            document.getElementById('logoutBtn').addEventListener('click', (e) => {
-                e.preventDefault();
-                auth.signOut().then(() => {
-                    window.location.href = 'https://horario.site/login.html';
-                });
-            });
-        }
-        
-        function editServico(servicoNome) {
-            document.getElementById('servicoModalTitle').textContent = 'Editar Serviço';
-            document.getElementById('servicoId').value = servicoNome;
-            document.getElementById('servicoNome').value = servicoNome;
-            document.getElementById('servicoModal').style.display = 'flex';
-        }
-        
-        async function saveServico() {
-            const servicoNome = document.getElementById('servicoNome').value.trim();
-            const oldServicoNome = document.getElementById('servicoId').value;
-            
-            if (!servicoNome) {
-                alert('Por favor, informe o nome do serviço');
-                return;
-            }
-            
-            try {
-                // Verifica se já existe um serviço com esse nome (exceto quando estiver editando)
-                if (!oldServicoNome && servicosAtendentes.some(s => s.servico === servicoNome)) {
-                    alert('Já existe um serviço com esse nome');
-                    return;
-                }
-                
-                // Se estiver editando, atualiza todos os registros com o nome antigo
-                if (oldServicoNome && oldServicoNome !== servicoNome) {
-                    // Atualiza na memória
-                    servicosAtendentes.forEach(item => {
-                        if (item.servico === oldServicoNome) {
-                            item.servico = servicoNome;
-                        }
-                    });
-                    
-                    // Atualiza no Firestore (se estiver usando a subcoleção)
-                    const batch = db.batch();
-                    const querySnapshot = await db.collection('usuarios').doc(currentUser.uid)
-                        .collection('servicoAtendente').where('servico', '==', oldServicoNome).get();
-                    
-                    querySnapshot.forEach(doc => {
-                        const docRef = db.collection('usuarios').doc(currentUser.uid)
-                            .collection('servicoAtendente').doc(doc.id);
-                        batch.update(docRef, { servico: servicoNome });
-                    });
-                    
-                    await batch.commit();
-                } 
-                // Se for um novo serviço, adiciona
-                else if (!oldServicoNome) {
-                    // Adiciona na memória
-                    servicosAtendentes.push({
-                        servico: servicoNome,
-                        atendentes: []
-                    });
-                    
-                    // Adiciona no Firestore (se estiver usando a subcoleção)
-                    await db.collection('usuarios').doc(currentUser.uid)
-                        .collection('servicoAtendente').add({
-                            servico: servicoNome,
-                            atendentes: [],
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                }
-                
-                // Atualiza a exibição
-                await exibirServicosAtendentes();
-                updateServicosSelect();
-                document.getElementById('servicoModal').style.display = 'none';
-                
-            } catch (error) {
-                console.error('Erro ao salvar serviço:', error);
-                alert('Erro ao salvar serviço');
+                readOnlyList.appendChild(serviceDiv);
             }
         }
         
-        async function deleteServico(servicoNome) {
-            if (!confirm(`Tem certeza que deseja excluir o serviço "${servicoNome}" e todos os seus atendentes?`)) {
-                return;
-            }
-            
-            try {
-                // Remove da memória
-                servicosAtendentes = servicosAtendentes.filter(item => item.servico !== servicoNome);
-                
-                // Remove do Firestore (se estiver usando a subcoleção)
-                const batch = db.batch();
-                const querySnapshot = await db.collection('usuarios').doc(currentUser.uid)
-                    .collection('servicoAtendente').where('servico', '==', servicoNome).get();
-                
-                querySnapshot.forEach(doc => {
-                    const docRef = db.collection('usuarios').doc(currentUser.uid)
-                        .collection('servicoAtendente').doc(doc.id);
-                    batch.delete(docRef);
-                });
-                
-                await batch.commit();
-                
-                // Atualiza a exibição
-                await exibirServicosAtendentes();
-                updateServicosSelect();
-                
-            } catch (error) {
-                console.error('Erro ao excluir serviço:', error);
-                alert('Erro ao excluir serviço');
-            }
+        // Adiciona evento ao botão de enviar solicitação
+        document.getElementById('enviarSolicitacaoBtn').addEventListener('click', async () => {
+            await enviarSolicitacaoModificacao();
+        });
+    }
+    
+    async function enviarSolicitacaoModificacao() {
+        const atendentes = document.getElementById('solicitacaoAtendentes').value.trim();
+        const servicos = document.getElementById('solicitacaoServicos').value.trim();
+        const documentoInput = document.getElementById('solicitacaoDocumento');
+        const documentoFile = documentoInput.files[0];
+        
+        if (!atendentes || !servicos || !documentoFile) {
+            alert('Por favor, preencha todos os campos e envie o documento de identidade');
+            return;
         }
         
-        function editAtendente(servicoNome, atendenteNome) {
-            document.getElementById('atendenteModalTitle').textContent = 'Editar Atendente';
-            document.getElementById('atendenteId').value = atendenteNome;
-            document.getElementById('atendenteNome').value = atendenteNome;
-            document.getElementById('atendenteServico').value = servicoNome;
-            document.getElementById('atendenteModal').style.display = 'flex';
-        }
-        
-        async function saveAtendente() {
-            const atendenteNome = document.getElementById('atendenteNome').value.trim();
-            const servicoNome = document.getElementById('atendenteServico').value;
-            const oldAtendenteNome = document.getElementById('atendenteId').value;
+        try {
+            document.getElementById('loaderOverlay').style.display = 'flex';
             
-            if (!atendenteNome || !servicoNome) {
-                alert('Por favor, preencha todos os campos');
-                return;
-            }
+            // Upload do documento
+            const storageRef = storage.ref();
+            const documentoRef = storageRef.child(`documentos/${currentUser.uid}/${Date.now()}_${documentoFile.name}`);
+            await documentoRef.put(documentoFile);
+            const documentoUrl = await documentoRef.getDownloadURL();
             
-            try {
-                // Se estiver editando, atualiza o atendente
-                if (oldAtendenteNome) {
-                    // Atualiza na memória
-                    servicosAtendentes.forEach(item => {
-                        if (item.servico === servicoNome) {
-                            const index = item.atendentes.indexOf(oldAtendenteNome);
-                            if (index !== -1) {
-                                item.atendentes[index] = atendenteNome;
-                            }
-                        }
-                    });
-                    
-                    // Atualiza no Firestore (se estiver usando a subcoleção)
-                    const batch = db.batch();
-                    const querySnapshot = await db.collection('usuarios').doc(currentUser.uid)
-                        .collection('servicoAtendente').where('servico', '==', servicoNome).get();
-                    
-                    querySnapshot.forEach(doc => {
-                        const docData = doc.data();
-                        if (docData.atendentes.includes(oldAtendenteNome)) {
-                            const updatedAtendentes = docData.atendentes.map(a => 
-                                a === oldAtendenteNome ? atendenteNome : a
-                            );
-                            
-                            const docRef = db.collection('usuarios').doc(currentUser.uid)
-                                .collection('servicoAtendente').doc(doc.id);
-                            batch.update(docRef, { atendentes: updatedAtendentes });
-                        }
-                    });
-                    
-                    await batch.commit();
-                } 
-                // Se for um novo atendente, adiciona
-                else {
-                    // Verifica se já existe um serviço para adicionar o atendente
-                    let serviceExists = false;
-                    
-                    // Atualiza na memória
-                    servicosAtendentes.forEach(item => {
-                        if (item.servico === servicoNome) {
-                            if (!item.atendentes.includes(atendenteNome)) {
-                                item.atendentes.push(atendenteNome);
-                            }
-                            serviceExists = true;
-                        }
-                    });
-                    
-                    // Se não existir o serviço, cria um novo
-                    if (!serviceExists) {
-                        servicosAtendentes.push({
-                            servico: servicoNome,
-                            atendentes: [atendenteNome]
-                        });
-                    }
-                    
-                    // Atualiza no Firestore (se estiver usando a subcoleção)
-                    const querySnapshot = await db.collection('usuarios').doc(currentUser.uid)
-                        .collection('servicoAtendente').where('servico', '==', servicoNome).get();
-                    
-                    if (querySnapshot.empty) {
-                        // Cria um novo documento para o serviço
-                        await db.collection('usuarios').doc(currentUser.uid)
-                            .collection('servicoAtendente').add({
-                                servico: servicoNome,
-                                atendentes: [atendenteNome],
-                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                    } else {
-                        // Atualiza o documento existente
-                        const doc = querySnapshot.docs[0];
-                        const docData = doc.data();
-                        
-                        if (!docData.atendentes.includes(atendenteNome)) {
-                            await db.collection('usuarios').doc(currentUser.uid)
-                                .collection('servicoAtendente').doc(doc.id).update({
-                                    atendentes: [...docData.atendentes, atendenteNome]
-                                });
-                        }
-                    }
-                }
-                
-                // Atualiza a exibição
-                await exibirServicosAtendentes();
-                document.getElementById('atendenteModal').style.display = 'none';
-                
-            } catch (error) {
-                console.error('Erro ao salvar atendente:', error);
-                alert('Erro ao salvar atendente');
-            }
-        }
-        
-        async function deleteAtendente(servicoNome, atendenteNome) {
-            if (!confirm(`Tem certeza que deseja excluir o atendente "${atendenteNome}" do serviço "${servicoNome}"?`)) {
-                return;
-            }
+            // Cria a solicitação no Firestore
+            await db.collection('solicitacoesAtendentes').add({
+                userId: currentUser.uid,
+                atendentes: atendentes.split(',').map(a => a.trim()),
+                servicos: servicos.split(',').map(s => s.trim()),
+                documentoUrl: documentoUrl,
+                status: 'pendente',
+                dataSolicitacao: firebase.firestore.FieldValue.serverTimestamp(),
+                dataAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
+            });
             
-            try {
-                // Remove da memória
-                servicosAtendentes.forEach(item => {
-                    if (item.servico === servicoNome) {
-                        item.atendentes = item.atendentes.filter(a => a !== atendenteNome);
-                    }
-                });
-                
-                // Remove do Firestore (se estiver usando a subcoleção)
-                const batch = db.batch();
-                const querySnapshot = await db.collection('usuarios').doc(currentUser.uid)
-                    .collection('servicoAtendente').where('servico', '==', servicoNome).get();
-                
-                querySnapshot.forEach(doc => {
-                    const docData = doc.data();
-                    if (docData.atendentes.includes(atendenteNome)) {
-                        const updatedAtendentes = docData.atendentes.filter(a => a !== atendenteNome);
-                        
-                        const docRef = db.collection('usuarios').doc(currentUser.uid)
-                            .collection('servicoAtendente').doc(doc.id);
-                        
-                        if (updatedAtendentes.length === 0) {
-                            batch.delete(docRef);
-                        } else {
-                            batch.update(docRef, { atendentes: updatedAtendentes });
-                        }
-                    }
-                });
-                
-                await batch.commit();
-                
-                // Atualiza a exibição
-                await exibirServicosAtendentes();
-                
-            } catch (error) {
-                console.error('Erro ao excluir atendente:', error);
-                alert('Erro ao excluir atendente');
-            }
+            alert('Solicitação enviada com sucesso! Nossa equipe irá analisar e em até 1 hora as modificações serão aplicadas.');
+            
+            // Limpa o formulário
+            document.getElementById('solicitacaoAtendentes').value = '';
+            document.getElementById('solicitacaoServicos').value = '';
+            documentoInput.value = '';
+            
+            document.getElementById('loaderOverlay').style.display = 'none';
+            
+        } catch (error) {
+            console.error('Erro ao enviar solicitação:', error);
+            alert('Erro ao enviar solicitação. Por favor, tente novamente.');
+            document.getElementById('loaderOverlay').style.display = 'none';
         }
-    </script>
+    }
+    
+    function setupEventListeners() {
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            auth.signOut().then(() => {
+                window.location.href = 'https://horario.site/login.html';
+            });
+        });
+    }
+</script>
 </body>
 </html>
