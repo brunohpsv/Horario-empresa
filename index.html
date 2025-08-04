@@ -569,10 +569,11 @@
     }
 
     // Função para agrupar empresas com o mesmo nome (removendo PP-, P1-, etc)
-    function agruparEmpresas(empresas) {
+    async function agruparEmpresas(empresas) {
         const empresasAgrupadas = [];
         const empresasMap = new Map();
         
+        // Primeiro, processamos todas as empresas encontradas localmente
         empresas.forEach(empresa => {
             // Remove prefixos como PP-, P1-, P2-, etc
             const nomeBase = (empresa.nomeFantasia || '')
@@ -605,8 +606,39 @@
             }
         });
         
-        // Cria a lista consolidada de empresas
-        empresasMap.forEach((grupo, nomeBase) => {
+        // Agora, para cada grupo, verificamos se há mais documentos no Firestore com o mesmo nomeFantasia
+        for (const [nomeBase, grupo] of empresasMap) {
+            try {
+                // Busca no Firestore por documentos com o mesmo nomeFantasia (incluindo variantes com prefixos)
+                const querySnapshot = await db.collection("usuarios")
+                    .where("nomeFantasia", ">=", nomeBase)
+                    .where("nomeFantasia", "<=", nomeBase + "\uf8ff")
+                    .get();
+                
+                querySnapshot.forEach(doc => {
+                    const empresaData = doc.data();
+                    empresaData.id = doc.id;
+                    
+                    // Verifica se já não está no grupo (para evitar duplicatas)
+                    const jaExiste = grupo.principal.id === empresaData.id || 
+                                    grupo.filhas.some(f => f.id === empresaData.id);
+                    
+                    if (!jaExiste) {
+                        // Adiciona serviços deste documento ao grupo
+                        const servicosAdicionais = extrairServicos(empresaData);
+                        grupo.servicos.push(...servicosAdicionais);
+                        
+                        // Adiciona como filha se for um documento com prefixo
+                        if (/^(PP|P\d+)\s*-/i.test(empresaData.nomeFantasia || '')) {
+                            grupo.filhas.push(empresaData);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error(`Erro ao buscar documentos adicionais para ${nomeBase}:`, error);
+            }
+            
+            // Cria a empresa consolidada com todos os serviços encontrados
             const empresaConsolidada = { 
                 ...grupo.principal,
                 id: grupo.principal.id,
@@ -618,7 +650,7 @@
             }
             
             empresasAgrupadas.push(empresaConsolidada);
-        });
+        }
         
         return empresasAgrupadas;
     }
@@ -637,7 +669,7 @@
     }
 
     // Função para criar elemento de empresa
-    function createEmpresaElement(empresa) {
+    async function createEmpresaElement(empresa) {
         const empresaElement = document.createElement('article');
         empresaElement.className = 'empresa-item';
         empresaElement.dataset.id = empresa.id || Math.random().toString(36).substring(2, 9);
@@ -663,9 +695,33 @@
             ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
             : '';
         
+        // Busca todos os serviços relacionados a este nomeFantasia no Firestore
+        let servicosUnicos = empresa.servicosUnicos || [];
+        
+        if (!servicosUnicos.length) {
+            try {
+                // Busca no Firestore por documentos com o mesmo nomeFantasia (incluindo variantes com prefixos)
+                const nomeBase = nomeExibicao;
+                const querySnapshot = await db.collection("usuarios")
+                    .where("nomeFantasia", ">=", nomeBase)
+                    .where("nomeFantasia", "<=", nomeBase + "\uf8ff")
+                    .get();
+                
+                const servicosAdicionais = [];
+                querySnapshot.forEach(doc => {
+                    const empresaData = doc.data();
+                    servicosAdicionais.push(...extrairServicos(empresaData));
+                });
+                
+                servicosUnicos = [...new Set([...servicosUnicos, ...servicosAdicionais])];
+            } catch (error) {
+                console.error(`Erro ao buscar serviços adicionais para ${nomeExibicao}:`, error);
+            }
+        }
+        
         // Cria lista de serviços únicos em vermelho
-        const servicosHTML = empresa.servicosUnicos && empresa.servicosUnicos.length > 0 
-            ? `<div class="servicos-lista">Serviços: ${empresa.servicosUnicos.join(', ')}</div>`
+        const servicosHTML = servicosUnicos.length > 0 
+            ? `<div class="servicos-lista">Serviços: ${servicosUnicos.join(', ')}</div>`
             : '';
         
         empresaElement.innerHTML = `
@@ -692,7 +748,7 @@
     }
 
     // Função para exibir empresas
-    function exibirEmpresas(empresas) {
+    async function exibirEmpresas(empresas) {
         const listaEmpresas = document.getElementById('empresas-lista');
         
         if (empresas.length === 0) {
@@ -704,7 +760,7 @@
             return;
         }
         
-        const empresasAgrupadas = agruparEmpresas(empresas);
+        const empresasAgrupadas = await agruparEmpresas(empresas);
         
         listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid" role="list"></div>';
         const gridEmpresas = document.getElementById('empresas-grid');
@@ -717,12 +773,12 @@
             });
         }
         
-        empresasAgrupadas.forEach(empresa => {
-            const empresaElement = createEmpresaElement(empresa);
+        for (const empresa of empresasAgrupadas) {
+            const empresaElement = await createEmpresaElement(empresa);
             empresaElement.dataset.id = empresa.id || JSON.stringify(empresa);
             empresaElement.setAttribute('role', 'listitem');
             gridEmpresas.appendChild(empresaElement);
-        });
+        }
         
         isFirstLoad = false;
     }
@@ -760,7 +816,7 @@
         filtrarEmpresas();
     }
 
-    function filtrarEmpresas() {
+    async function filtrarEmpresas() {
         const cidade = document.getElementById('cidade').value.toLowerCase();
         const estado = document.getElementById('estado').value;
         const servico = document.getElementById('servico').value.toLowerCase();
@@ -805,7 +861,7 @@
             empresasComDistancia = [...empresasFiltradas];
         }
         
-        exibirEmpresas(empresasFiltradas);
+        await exibirEmpresas(empresasFiltradas);
     }
 
     // Função para obter a localização do usuário
@@ -997,7 +1053,7 @@
                 });
             
             atualizarCidades();
-            filtrarEmpresas();
+            await filtrarEmpresas();
             
         } catch (error) {
             console.error('Erro ao carregar empresas:', error);
