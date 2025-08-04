@@ -664,59 +664,7 @@
             }
         });
 
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = 'https://horario.site/login.html';
-            } else {
-                try {
-                    document.getElementById('loaderOverlay').style.display = 'flex';
-                    
-                    // Busca o usuário pelo UID do Firebase Auth
-                    const userDoc = await db.collection('usuarios').doc(user.uid).get();
-                    
-                    if (!userDoc.exists) {
-                        // Se não existir, cria um documento básico para o usuário
-                        const newUserData = {
-                            email: user.email,
-                            nomeCompleto: user.displayName || '',
-                            nomeFantasia: '',
-                            identificacao: '',
-                            servicoAtendente: [{
-                                servico: '',
-                                atendentes: ['']
-                            }],
-                            horarios: {
-                                diasFuncionamento: [],
-                                horarioAbertura: '',
-                                horarioFechamento: '',
-                                almocoInicio: '',
-                                almocoFim: '',
-                                duracaoAtendimento: 30,
-                                intervaloAtendimento: 15
-                            },
-                            dataCriacao: new Date().toISOString()
-                        };
-                        
-                        await db.collection('usuarios').doc(user.uid).set(newUserData);
-                        currentUserData = newUserData;
-                        currentUserData.id = user.uid;
-                    } else {
-                        currentUserData = userDoc.data();
-                        currentUserData.id = userDoc.id;
-                    }
-                    
-                    showMainContent();
-                    document.getElementById('loaderOverlay').style.display = 'none';
-
-                } catch (error) {
-                    console.error('Erro ao carregar dados:', error);
-                    document.getElementById('loaderOverlay').style.display = 'none';
-                    alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
-                    auth.signOut();
-                    window.location.href = 'https://horario.site/login.html';
-                }
-            }
-        });
+        h.onAuthStateChanged
         
         // Adiciona evento para adicionar serviço
         document.getElementById('addServicoBtn').addEventListener('click', addServico);
@@ -728,56 +676,80 @@
         });
     });
 
-    // Função para mostrar o conteúdo principal
-    function showMainContent() {
-        document.getElementById('mainContent').style.display = 'block';
-        document.getElementById('configSection').style.display = 'block';
+    // Modifique a função showMainContent para garantir que os dados estão carregados
+function showMainContent() {
+    document.getElementById('mainContent').style.display = 'block';
+    document.getElementById('configSection').style.display = 'block';
+    
+    // Preenche os campos do formulário com os dados do usuário
+    if (currentUserData) {
+        console.log('Dados do usuário:', currentUserData); // Adicione para debug
         
-        // Preenche os campos do formulário com os dados do usuário
-        if (currentUserData) {
-            document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
-            document.getElementById('nomeFantasia').value = currentUserData.nomeFantasia || '';
-            document.getElementById('identificacao').value = currentUserData.identificacao || '';
+        document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
+        document.getElementById('nomeFantasia').value = currentUserData.nomeFantasia || '';
+        document.getElementById('identificacao').value = currentUserData.identificacao || '';
 
-            // Preenche serviços e atendentes
-            const servicosContainer = document.getElementById('servicosContainer');
-            servicosContainer.innerHTML = '<label>Serviços e Atendentes:</label>';
+        // Preenche serviços e atendentes
+        const servicosContainer = document.getElementById('servicosContainer');
+        servicosContainer.innerHTML = '<label>Serviços e Atendentes:</label>';
 
-            if (currentUserData.servicoAtendente && currentUserData.servicoAtendente.length > 0) {
-                currentUserData.servicoAtendente.forEach(servico => {
-                    addServico({
-                        servico: servico.servico || '',
-                        atendentes: servico.atendentes || ['']
-                    });
+        // Verifica se servicoAtendente existe e é um array
+        if (Array.isArray(currentUserData.servicoAtendente) {
+            currentUserData.servicoAtendente.forEach(servico => {
+                addServico({
+                    servico: servico.servico || '',
+                    atendentes: Array.isArray(servico.atendentes) ? servico.atendentes : ['']
                 });
-            } else {
-                addServico();
+            });
+        } else {
+            // Se não existir, cria um padrão
+            addServico();
+        }
+
+        // Preenche horários - verifica se o objeto horarios existe
+        if (currentUserData.horarios) {
+            const horarios = currentUserData.horarios;
+
+            // Dias de funcionamento - verifica se é array
+            if (Array.isArray(horarios.diasFuncionamento)) {
+                horarios.diasFuncionamento.forEach(dia => {
+                    const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
             }
 
-            // Preenche horários
-            if (currentUserData.horarios) {
-                const horarios = currentUserData.horarios;
-
-                // Dias de funcionamento
-                if (horarios.diasFuncionamento) {
-                    horarios.diasFuncionamento.forEach(dia => {
-                        const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
-                        if (checkbox) checkbox.checked = true;
-                    });
-                }
-
-                // Horários
-                document.getElementById('horarioAbertura').value = horarios.horarioAbertura || '';
-                document.getElementById('horarioFechamento').value = horarios.horarioFechamento || '';
-                document.getElementById('almocoInicio').value = horarios.almocoInicio || '';
-                document.getElementById('almocoFim').value = horarios.almocoFim || '';
-                document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento || '30';
-                document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento || '15';
+            // Horários - verifica se existem antes de atribuir
+            if (horarios.horarioAbertura) {
+                document.getElementById('horarioAbertura').value = horarios.horarioAbertura;
+            }
+            
+            if (horarios.horarioFechamento) {
+                document.getElementById('horarioFechamento').value = horarios.horarioFechamento;
+            }
+            
+            if (horarios.almocoInicio) {
+                document.getElementById('almocoInicio').value = horarios.almocoInicio;
+            }
+            
+            if (horarios.almocoFim) {
+                document.getElementById('almocoFim').value = horarios.almocoFim;
+            }
+            
+            if (horarios.duracaoAtendimento) {
+                document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento;
+            }
+            
+            if (horarios.intervaloAtendimento) {
+                document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento;
             }
         }
-        
-        initializeCalendar();
     }
+    
+    // Só inicializa o calendário depois de garantir que todos os dados estão carregados
+    setTimeout(() => {
+        initializeCalendar();
+    }, 100);
+}
 
     // Função para salvar configurações
     async function saveConfig() {
