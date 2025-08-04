@@ -44,31 +44,18 @@
         }
         
         nav ul li a {
-            color: white;
-            text-decoration: none;
-            font-size: 16px;
-            transition: color 0.3s;
-            padding: 8px 16px;
-        }
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.3s;
+    padding: 8px 0; /* Reduzi o padding horizontal para ficar mais clean */
+}
+
+nav ul li a:hover {
+    color: #cccccc;
+}
         
-        nav ul li a:hover {
-            color: #cccccc;
-        }
-        
-        .nav-btn {
-            background-color: #4CAF50;
-            border-radius: 4px;
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            transition: background-color 0.3s;
-        }
-        
-        .nav-btn:hover {
-            background-color: #45a049;
-        }
-        
+       
         .back-btn::before {
             content: "←";
             margin-right: 5px;
