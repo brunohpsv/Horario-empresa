@@ -495,6 +495,7 @@
     
     let currentUser = null;
     let servicosAtendentes = [];
+    let empresaDocId = ''; // Armazenará o ID do documento da empresa
     
     document.addEventListener('DOMContentLoaded', function() {
         auth.onAuthStateChanged(async (user) => {
@@ -503,6 +504,8 @@
             } else {
                 currentUser = user;
                 try {
+                    // Primeiro, precisamos encontrar o documento da empresa (PP - CNPJ)
+                    await findEmpresaDoc();
                     await loadServicosAtendentes();
                     setupEventListeners();
                     document.getElementById('loaderOverlay').style.display = 'none';
@@ -516,23 +519,50 @@
         });
     });
 
+    // Função para encontrar o documento da empresa (PP - CNPJ)
+    async function findEmpresaDoc() {
+        try {
+            // Busca todos os documentos que começam com "PP - " na coleção de usuários
+            const querySnapshot = await db.collection('usuarios')
+                .where(firebase.firestore.FieldPath.documentId(), '>=', 'PP - ')
+                .where(firebase.firestore.FieldPath.documentId(), '<=', 'PP - \uf8ff')
+                .get();
+            
+            if (querySnapshot.empty) {
+                throw new Error('Nenhum documento de empresa encontrado');
+            }
+            
+            // Assume que o usuário atual está associado a apenas uma empresa
+            // (Se houver mais de uma, você precisará de lógica adicional para determinar qual é a correta)
+            empresaDocId = querySnapshot.docs[0].id;
+            
+        } catch (error) {
+            console.error('Erro ao encontrar documento da empresa:', error);
+            throw error;
+        }
+    }
+    
     async function loadServicosAtendentes() {
         try {
             const container = document.getElementById('servicosAtendentesContainer');
             container.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div><p class="mt-2">Carregando...</p></div>';
             
-            // Carrega os dados atuais do Firestore
-            const userDoc = await db.collection('usuarios').doc(currentUser.uid).get();
-            
-            if (!userDoc.exists) {
-                throw new Error('Dados do usuário não encontrados');
+            if (!empresaDocId) {
+                throw new Error('ID do documento da empresa não encontrado');
             }
             
-            const userData = userDoc.data();
+            // Carrega os dados do documento da empresa
+            const empresaDoc = await db.collection('usuarios').doc(empresaDocId).get();
+            
+            if (!empresaDoc.exists) {
+                throw new Error('Dados da empresa não encontrados');
+            }
+            
+            const empresaData = empresaDoc.data();
             
             // Verifica se existe o campo servicoAtendente
-            if (userData.servicoAtendente && Array.isArray(userData.servicoAtendente)) {
-                servicosAtendentes = userData.servicoAtendente;
+            if (empresaData.servicoAtendente && Array.isArray(empresaData.servicoAtendente)) {
+                servicosAtendentes = empresaData.servicoAtendente;
             } else {
                 servicosAtendentes = [];
             }
@@ -543,7 +573,7 @@
         } catch (error) {
             console.error('Erro ao carregar serviços e atendentes:', error);
             document.getElementById('servicosAtendentesContainer').innerHTML = 
-                '<div class="alert alert-danger">Erro ao carregar serviços e atendentes</div>';
+                '<div class="alert alert-danger">Erro ao carregar serviços e atendentes: ' + error.message + '</div>';
         }
     }
     
@@ -708,6 +738,7 @@
             // Cria a solicitação no Firestore
             const solicitacaoRef = await db.collection('solicitacoesAtendentes').add({
                 userId: currentUser.uid,
+                empresaId: empresaDocId, // Adiciona o ID do documento da empresa
                 atendente: atendente,
                 servico: servico,
                 acao: acao,
@@ -724,6 +755,7 @@
                 Nova solicitação de ${acao} de atendente/serviço:
                 
                 Usuário: ${currentUser.email}
+                Empresa: ${empresaDocId}
                 ID do documento: ${solicitacaoRef.id}
                 
                 Detalhes:
