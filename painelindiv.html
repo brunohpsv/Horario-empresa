@@ -329,6 +329,9 @@
             padding: 15px;
             background: #f8f9fa;
             border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .agendamentos-header h2 {
@@ -344,6 +347,7 @@
 
         .agendamento-item {
             display: flex;
+            justify-content: space-between;
             align-items: center;
             padding: 15px;
             border-bottom: 1px solid #e0e0e0;
@@ -355,15 +359,21 @@
             background-color: #f8f9fa;
         }
 
+        .agendamento-info {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            align-items: center;
+        }
+
         .agendamento-horario {
-            width: 80px;
+            width: 60px;
             font-weight: 600;
             color: #333;
         }
 
-        .agendamento-info {
+        .agendamento-detalhes {
             flex: 1;
-            padding: 0 15px;
         }
 
         .agendamento-servico {
@@ -377,19 +387,49 @@
             font-size: 14px;
         }
 
-        .agendamento-actions {
+        .agendamento-status {
             display: flex;
             gap: 10px;
+            align-items: center;
+        }
+
+        .status-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-status {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
         .btn-concluir {
             background-color: #4CAF50;
             color: white;
+            border: 1px solid #4CAF50;
+        }
+
+        .btn-concluir:hover {
+            background-color: #43a047;
         }
 
         .btn-fracassado {
-            background-color: #f44336;
-            color: white;
+            background-color: #f5f5f5;
+            color: #f44336;
+            border: 1px solid #e0e0e0;
+        }
+
+        .btn-fracassado:hover {
+            background-color: #eeeeee;
         }
 
         .agendamento-empty {
@@ -441,13 +481,20 @@
                 gap: 10px;
             }
             
-            .agendamento-horario {
-                margin-bottom: 5px;
+            .agendamento-info {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
             }
             
-            .agendamento-actions {
+            .agendamento-status {
                 width: 100%;
-                justify-content: flex-end;
+                justify-content: space-between;
+            }
+            
+            .status-buttons {
+                margin-left: auto;
             }
         }
     </style>
@@ -908,14 +955,19 @@
                             
                             agendamentosHTML += `
                                 <div class="agendamento-item ${isConcluido ? 'concluido' : ''}">
-                                    <div class="agendamento-horario">${agendamento.horario}</div>
                                     <div class="agendamento-info">
-                                        <div class="agendamento-servico">${agendamento.servico || 'Serviço'}</div>
-                                        <div class="agendamento-cliente">${agendamento.clienteNome || 'Cliente'} ${agendamento.clienteTelefone ? '| ' + agendamento.clienteTelefone : ''}</div>
+                                        <div class="agendamento-horario">${agendamento.horario}</div>
+                                        <div class="agendamento-detalhes">
+                                            <div class="agendamento-servico">${agendamento.servico || 'Serviço'}</div>
+                                            <div class="agendamento-cliente">${agendamento.clienteNome || 'Cliente'} ${agendamento.clienteTelefone ? '| ' + agendamento.clienteTelefone : ''}</div>
+                                        </div>
                                     </div>
-                                    <div class="agendamento-actions">
-                                        <button class="btn btn-concluir" data-id="${agendamento.id}">Concluído</button>
-                                        <button class="btn btn-fracassado" data-id="${agendamento.id}">Fracassado</button>
+                                    <div class="agendamento-status">
+                                        <div class="status-label">Concluído?</div>
+                                        <div class="status-buttons">
+                                            <button class="btn-status btn-concluir" data-id="${agendamento.id}">Sim</button>
+                                            <button class="btn-status btn-fracassado" data-id="${agendamento.id}">Não</button>
+                                        </div>
                                     </div>
                                 </div>
                             `;
