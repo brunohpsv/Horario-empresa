@@ -373,6 +373,11 @@
                 flex-direction: column;
             }
         }
+        
+        .pp-prefix {
+            color: #666;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
@@ -407,12 +412,12 @@
                 <div>
                     <div class="form-group">
                         <label for="atendenteInput">Atendente</label>
-                        <input type="text" id="atendenteInput" class="form-control" placeholder="Coloque o nome do atendente">
+                        <input type="text" id="atendenteInput" class="form-control" placeholder="Nome do atendente">
                     </div>
                     
                     <div class="form-group">
                         <label for="servicoInput">Serviço</label>
-                        <input type="text" id="servicoInput" class="form-control" placeholder="Coloque aqui o Serviço">
+                        <input type="text" id="servicoInput" class="form-control" placeholder="Nome do serviço">
                     </div>
                     
                     <div class="form-group modification-type">
@@ -427,11 +432,11 @@
                     <div id="modificarCampos" class="hidden">
                         <div class="form-group">
                             <label for="novoAtendente">Modificar atendente por:</label>
-                            <input type="text" id="novoAtendente" class="form-control" placeholder="Qual atendente quer modificar">
+                            <input type="text" id="novoAtendente" class="form-control" placeholder="Novo nome do atendente">
                         </div>
                         <div class="form-group">
                             <label for="novoServico">Modificar serviço por:</label>
-                            <input type="text" id="novoServico" class="form-control" placeholder="Qual serviço quer modificar">
+                            <input type="text" id="novoServico" class="form-control" placeholder="Novo nome do serviço">
                         </div>
                     </div>
                 </div>
@@ -557,7 +562,12 @@
         servicosAtendentes.forEach(item => {
             if (!item || typeof item !== 'object') return;
             
-            const servico = item.servico || 'Serviço não especificado';
+            // Remove o prefixo "PP - " se existir
+            let servico = item.servico || 'Serviço não especificado';
+            if (servico.startsWith('PP - ')) {
+                servico = servico.substring(5);
+            }
+            
             if (!servicosAgrupados[servico]) {
                 servicosAgrupados[servico] = {
                     servico: servico,
@@ -567,8 +577,16 @@
             
             if (item.atendentes && Array.isArray(item.atendentes)) {
                 item.atendentes.forEach(atendente => {
-                    if (atendente && !servicosAgrupados[servico].atendentes.includes(atendente)) {
-                        servicosAgrupados[servico].atendentes.push(atendente);
+                    if (atendente) {
+                        // Remove o prefixo "PP - " se existir no nome do atendente
+                        let nomeAtendente = atendente;
+                        if (nomeAtendente.startsWith('PP - ')) {
+                            nomeAtendente = nomeAtendente.substring(5);
+                        }
+                        
+                        if (!servicosAgrupados[servico].atendentes.includes(nomeAtendente)) {
+                            servicosAgrupados[servico].atendentes.push(nomeAtendente);
+                        }
                     }
                 });
             }
@@ -631,11 +649,11 @@
     }
     
     async function enviarSolicitacaoModificacao() {
-        const atendente = document.getElementById('atendenteInput').value.trim();
-        const servico = document.getElementById('servicoInput').value.trim();
+        let atendente = document.getElementById('atendenteInput').value.trim();
+        let servico = document.getElementById('servicoInput').value.trim();
         const acao = document.getElementById('acaoSelect').value;
-        const novoAtendente = document.getElementById('novoAtendente').value.trim();
-        const novoServico = document.getElementById('novoServico').value.trim();
+        let novoAtendente = document.getElementById('novoAtendente').value.trim();
+        let novoServico = document.getElementById('novoServico').value.trim();
         const documentoInput = document.getElementById('documentoIdentidade');
         const documentoFile = documentoInput.files[0];
         
@@ -647,6 +665,20 @@
         if (acao === 'modificar' && !novoAtendente && !novoServico) {
             alert('Para modificar, informe pelo menos um novo nome de atendente ou serviço');
             return;
+        }
+        
+        // Adiciona o prefixo "PP - " se não existir
+        if (atendente && !atendente.startsWith('PP - ')) {
+            atendente = 'PP - ' + atendente;
+        }
+        if (servico && !servico.startsWith('PP - ')) {
+            servico = 'PP - ' + servico;
+        }
+        if (novoAtendente && !novoAtendente.startsWith('PP - ')) {
+            novoAtendente = 'PP - ' + novoAtendente;
+        }
+        if (novoServico && !novoServico.startsWith('PP - ')) {
+            novoServico = 'PP - ' + novoServico;
         }
         
         try {
