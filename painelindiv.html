@@ -13,7 +13,6 @@
             padding: 0;
             box-sizing: border-box;
             font-family: Arial, sans-serif;
-            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
 
         body {
@@ -130,7 +129,6 @@
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 8px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -138,7 +136,6 @@
         }
 
         .btn {
-            padding: 8px 16px;
             padding: 10px 16px;
             background-color: #4CAF50;
             color: white;
@@ -174,7 +171,6 @@
         }
         
         .message {
-            padding: 10px;
             padding: 12px;
             margin: 10px 0;
             border-radius: 4px;
@@ -182,16 +178,12 @@
         }
 
         .success {
-            background-color: #dff0d8;
-            color: #3c763d;
             background-color: #e8f5e9;
             color: #2e7d32;
             border-left: 4px solid #2e7d32;
         }
 
         .error {
-            background-color: #f2dede;
-            color: #a94442;
             background-color: #ffebee;
             color: #c62828;
             border-left: 4px solid #c62828;
@@ -230,6 +222,15 @@
             animation: spin 1s linear infinite;
         }
 
+        .loader-sm {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -258,7 +259,6 @@
         .dias-semana {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
             gap: 10px;
             margin-bottom: 10px;
         }
@@ -266,7 +266,6 @@
         .dia-checkbox {
             display: flex;
             align-items: center;
-            margin-right: 10px;
             background: #f5f5f5;
             padding: 8px 12px;
             border-radius: 20px;
@@ -313,7 +312,7 @@
             padding: 10px;
         }
 
-        /* ESTILO ATUALIZADO PARA AGENDAMENTOS DO DIA (IGUAL AO PRIMEIRO CÓDIGO) */
+        /* ESTILO DA LISTA DE AGENDAMENTOS DO DIA - IGUAL AO PRIMEIRO CÓDIGO */
         .day-agendamentos-container {
             width: 100%;
             max-width: 100%;
@@ -937,7 +936,7 @@
             }
         }
 
-        // Função para carregar agendamentos de um dia (ATUALIZADA PARA FICAR IGUAL AO PRIMEIRO CÓDIGO)
+        // Função para carregar agendamentos de um dia - TOTALMENTE REFEITA PARA FICAR IGUAL AO PRIMEIRO CÓDIGO
         async function loadAgendamentosForDay(dateKey, dateStr) {
             try {
                 // Mostrar loader antes de carregar os agendamentos
