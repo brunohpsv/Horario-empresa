@@ -294,6 +294,52 @@
         .attendant-item:last-child {
             border-bottom: none;
         }
+        
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .spinner-border {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            vertical-align: text-bottom;
+            border: 0.25em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin .75s linear infinite;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .py-3 {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        
+        .mt-2 {
+            margin-top: 0.5rem;
+        }
+        
+        .text-primary {
+            color: #007bff;
+        }
     </style>
 </head>
 <body>
@@ -387,6 +433,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <script>
@@ -399,6 +446,7 @@
         appId: "1:1005413315224:web:c87d1dd951785ed4f656ed"
     };
 
+    // Inicializa o Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -442,7 +490,7 @@
             const userData = userDoc.data();
             
             // Verifica se existe o campo servicoAtendente
-            if (userData.servicoAtendente) {
+            if (userData.servicoAtendente && Array.isArray(userData.servicoAtendente)) {
                 servicosAtendentes = userData.servicoAtendente;
             } else {
                 servicosAtendentes = [];
@@ -514,17 +562,20 @@
             const servicosAgrupados = {};
             
             servicosAtendentes.forEach(item => {
-                if (!servicosAgrupados[item.servico]) {
-                    servicosAgrupados[item.servico] = {
-                        servico: item.servico,
+                if (!item || typeof item !== 'object') return;
+                
+                const servico = item.servico || 'Serviço não especificado';
+                if (!servicosAgrupados[servico]) {
+                    servicosAgrupados[servico] = {
+                        servico: servico,
                         atendentes: []
                     };
                 }
                 
                 if (item.atendentes && Array.isArray(item.atendentes)) {
                     item.atendentes.forEach(atendente => {
-                        if (!servicosAgrupados[item.servico].atendentes.includes(atendente)) {
-                            servicosAgrupados[item.servico].atendentes.push(atendente);
+                        if (atendente && !servicosAgrupados[servico].atendentes.includes(atendente)) {
+                            servicosAgrupados[servico].atendentes.push(atendente);
                         }
                     });
                 }
@@ -546,6 +597,8 @@
                     attendantsList.innerHTML = '<div class="empty-message">Nenhum atendente para este serviço</div>';
                 } else {
                     servicosAgrupados[servico].atendentes.forEach(atendente => {
+                        if (!atendente) return;
+                        
                         const attendantItem = document.createElement('div');
                         attendantItem.className = 'attendant-item';
                         attendantItem.innerHTML = `<span>${atendente}</span>`;
@@ -588,8 +641,8 @@
             // Cria a solicitação no Firestore
             await db.collection('solicitacoesAtendentes').add({
                 userId: currentUser.uid,
-                atendentes: atendentes.split(',').map(a => a.trim()),
-                servicos: servicos.split(',').map(s => s.trim()),
+                atendentes: atendentes.split(',').map(a => a.trim()).filter(a => a),
+                servicos: servicos.split(',').map(s => s.trim()).filter(s => s),
                 documentoUrl: documentoUrl,
                 status: 'pendente',
                 dataSolicitacao: firebase.firestore.FieldValue.serverTimestamp(),
@@ -619,6 +672,15 @@
             auth.signOut().then(() => {
                 window.location.href = 'https://horario.site/login.html';
             });
+        });
+        
+        // Botões de adicionar (desativados no modo somente leitura)
+        document.getElementById('addServicoBtn').addEventListener('click', () => {
+            alert('Para adicionar um serviço, utilize o formulário de solicitação acima.');
+        });
+        
+        document.getElementById('addAtendenteBtn').addEventListener('click', () => {
+            alert('Para adicionar um atendente, utilize o formulário de solicitação acima.');
         });
     }
 </script>
