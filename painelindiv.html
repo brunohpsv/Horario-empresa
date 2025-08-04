@@ -12,6 +12,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: Arial, sans-serif;
             font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
 
@@ -129,6 +130,7 @@
         .form-group select,
         .form-group textarea {
             width: 100%;
+            padding: 8px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -136,6 +138,7 @@
         }
 
         .btn {
+            padding: 8px 16px;
             padding: 10px 16px;
             background-color: #4CAF50;
             color: white;
@@ -146,11 +149,13 @@
             font-weight: 500;
             transition: all 0.3s ease;
         }
+        
 
         .btn:hover {
             opacity: 0.9;
             transform: translateY(-1px);
         }
+        
 
         .btn:active {
             transform: translateY(0);
@@ -169,8 +174,10 @@
             border: 1px solid #2196F3;
             color: #2196F3;
         }
+        
 
         .message {
+            padding: 10px;
             padding: 12px;
             margin: 10px 0;
             border-radius: 4px;
@@ -178,12 +185,16 @@
         }
 
         .success {
+            background-color: #dff0d8;
+            color: #3c763d;
             background-color: #e8f5e9;
             color: #2e7d32;
             border-left: 4px solid #2e7d32;
         }
 
         .error {
+            background-color: #f2dede;
+            color: #a94442;
             background-color: #ffebee;
             color: #c62828;
             border-left: 4px solid #c62828;
@@ -250,6 +261,7 @@
         .dias-semana {
             display: flex;
             flex-wrap: wrap;
+            gap: 5px;
             gap: 10px;
             margin-bottom: 10px;
         }
@@ -257,10 +269,12 @@
         .dia-checkbox {
             display: flex;
             align-items: center;
+            margin-right: 10px;
             background: #f5f5f5;
             padding: 8px 12px;
             border-radius: 20px;
         }
+        
 
         .dia-checkbox input {
             margin-right: 5px;
@@ -292,6 +306,7 @@
             margin-bottom: 20px;
             color: #333;
         }
+        
 
         .nome-inicial .form-group {
             display: flex;
@@ -303,6 +318,7 @@
             padding: 10px;
         }
 
+        /* Agendamentos do dia */
         /* Agendamentos do dia - NOVO DESIGN */
         .agendamentos-container {
             width: 100%;
@@ -318,21 +334,30 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 15px;
             padding: 15px 20px;
             background: #f8f9fa;
             border-bottom: 1px solid #eee;
         }
 
+        .agendamento-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         .agendamentos-header h2 {
             font-size: 18px;
             color: #333;
             margin: 0;
         }
 
+        .agendamento-info {
         .agendamentos-list {
             padding: 0;
             width: 100%;
         }
+        
 
         .agendamento-item {
             padding: 15px 20px;
@@ -340,14 +365,19 @@
             transition: all 0.3s ease;
             display: flex;
             justify-content: space-between;
+            margin-bottom: 10px;
             align-items: center;
             width: 100%;
         }
 
+        .agendamento-actions {
+            text-align: right;
         .agendamento-item:hover {
             background-color: #f8f9fa;
         }
 
+        .concluido {
+            opacity: 0.7;
         .agendamento-item.concluido {
             background-color: #f9f9f9;
         }
@@ -358,6 +388,7 @@
             align-items: center;
             width: 100%;
         }
+        
 
         .agendamento-horario {
             font-weight: 600;
@@ -365,6 +396,7 @@
             font-size: 15px;
             min-width: 70px;
         }
+        
 
         .agendamento-servico {
             font-weight: 600;
@@ -372,11 +404,13 @@
             margin: 0 15px;
             flex: 1;
         }
+        
 
         .agendamento-cliente {
             color: #555;
             flex: 2;
         }
+        
 
         .agendamento-status {
             padding: 5px 10px;
@@ -386,27 +420,32 @@
             text-transform: uppercase;
             margin-right: 10px;
         }
+        
 
         .status-pendente {
             background-color: #fff3e0;
             color: #e65100;
         }
+        
 
         .status-concluido {
             background-color: #e8f5e9;
             color: #2e7d32;
         }
+        
 
         .agendamento-actions {
             display: flex;
             gap: 8px;
         }
+        
 
         .agendamento-empty {
             padding: 30px;
             text-align: center;
             color: #777;
         }
+        
 
         /* Estilo para dias com agendamentos */
         .has-agendamento {
@@ -467,6 +506,7 @@
                 align-items: flex-start;
                 gap: 10px;
             }
+            
 
             .agendamento-info {
                 width: 100%;
@@ -474,17 +514,20 @@
                 flex-wrap: wrap;
                 gap: 10px;
             }
+            
 
             .agendamento-actions {
                 width: 100%;
                 justify-content: flex-end;
             }
+            
 
             .agendamentos-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 10px;
             }
+            
 
             .agendamentos-header h2 {
                 font-size: 16px;
@@ -506,16 +549,6 @@
             <a href="#" id="logoutBtn" class="logout-btn">Sair</a>
         </div>
     </header>
-
-    <!-- Seção de nome inicial (mostra apenas se não tiver nome selecionado) -->
-<div id="nomeInicialSection" class="nome-inicial" style="display: none;">
-    <h2>Identifique-se</h2>
-    <div id="message" class="message" style="display: none;"></div>
-    <div class="form-group">
-        <input type="text" id="nomeInicial" placeholder="Digite seu nome completo">
-        <button id="adicionarNomeBtn" class="btn">Adicionar Nome</button>
-    </div>
-</div>
 
         <!-- Conteúdo principal (mostra apenas após selecionar nome) -->
         <div id="mainContent" style="display: none;">
@@ -650,7 +683,6 @@
 
         // Variável para armazenar os dados do usuário
         let currentUserData = null;
-        let selectedNomeCompleto = localStorage.getItem('selectedNomeCompleto');
         let isDayView = false;
 
         // Verificação de autenticação
@@ -678,27 +710,20 @@
     } else {
         try {
             document.getElementById('loaderOverlay').style.display = 'flex';
-
-            // Busca o usuário pelo email autenticado
-            const userQuery = await db.collection('usuarios')
-                .where('email', '==', user.email)
-                .get();
-
-            if (userQuery.empty) {
-                throw new Error('Nenhum usuário encontrado com este email');
+            
+            // Busca o usuário pelo UID (ID do Firebase Auth)
+            const userDoc = await db.collection('usuarios').doc(user.uid).get();
+            
+            if (!userDoc.exists) {
+                throw new Error('Nenhum usuário encontrado');
             }
-
-            // Pega o primeiro documento que corresponde
-            const userDoc = userQuery.docs[0];
+            
             currentUserData = userDoc.data();
             currentUserData.id = userDoc.id;
-
-            // Salva o nome completo no localStorage para referência futura
-            localStorage.setItem('selectedNomeCompleto', currentUserData.nomeCompleto);
             
             // Mostra o conteúdo principal
             showMainContent();
-
+            
             document.getElementById('loaderOverlay').style.display = 'none';
 
         } catch (error) {
@@ -713,115 +738,69 @@
     }
 });
 
-            // Evento para adicionar nome
-            // Evento para adicionar nome
-document.getElementById('adicionarNomeBtn').addEventListener('click', async function() {
-    // ... código removido ...
-});
 
-// Evento para carregar dados quando o nome completo mudar
-document.getElementById('nomeCompleto').addEventListener('change', async function() {
-    // ... código removido ...
-});
+        async function loadUserData() {
+    try {
+        // Preenche os campos do formulário
+        document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
+        document.getElementById('nomeFantasia').value = currentUserData.nomeFantasia || '';
+        document.getElementById('identificacao').value = currentUserData.identificacao || '';
 
-            // Adiciona evento para adicionar serviço
-            document.getElementById('addServicoBtn').addEventListener('click', addServico);
+        // Preenche serviços e atendentes
+        const servicosContainer = document.getElementById('servicosContainer');
+        servicosContainer.innerHTML = '<label>Serviços e Atendentes:</label>';
 
-            // Evento para carregar dados quando o nome completo mudar
-            document.getElementById('nomeCompleto').addEventListener('change', async function() {
-                const nomeCompleto = this.value.trim();
-                if (nomeCompleto) {
-                    try {
-                        document.getElementById('loaderOverlay').style.display = 'flex';
-
-                        // Busca os dados do usuário
-                        await loadUserData(nomeCompleto);
-
-                        // Atualiza o localStorage
-                        localStorage.setItem('selectedNomeCompleto', nomeCompleto);
-                        selectedNomeCompleto = nomeCompleto;
-
-                        document.getElementById('loaderOverlay').style.display = 'none';
-
-                    } catch (error) {
-                        console.error('Erro ao carregar dados por nome:', error);
-                        document.getElementById('loaderOverlay').style.display = 'none';
-                        showConfigMessage('error', 'Nenhum usuário encontrado com este nome');
-                    }
-                }
-            });
-        });
-
-        // Função para carregar dados do usuário
-        async function loadUserData(nomeCompleto) {
-            // Remove "PI -" se existir no início do nome
-            const nomeBusca = nomeCompleto.replace(/^PI\s*-\s*/i, '').trim();
-
-            // Busca usuários onde o nome completo corresponde (ignorando "PI -")
-            const userQuery = await db.collection('usuarios')
-                .where('nomeCompleto', '>=', nomeBusca)
-                .where('nomeCompleto', '<=', nomeBusca + '\uf8ff')
-                .get();
-
-            if (userQuery.empty) {
-                throw new Error('Nenhum usuário encontrado com este nome');
-            }
-
-            // Pega o primeiro documento que corresponde
-            const userDoc = userQuery.docs[0];
-            currentUserData = userDoc.data();
-            currentUserData.id = userDoc.id;
-
-            // Preenche os campos do formulário
-            document.getElementById('nomeCompleto').value = currentUserData.nomeCompleto || '';
-            document.getElementById('nomeFantasia').value = currentUserData.nomeFantasia || '';
-            document.getElementById('identificacao').value = currentUserData.identificacao || '';
-
-            // Preenche serviços e atendentes
-            const servicosContainer = document.getElementById('servicosContainer');
-            servicosContainer.innerHTML = '<label>Serviços e Atendentes:</label>';
-
-            if (currentUserData.servicoAtendente && currentUserData.servicoAtendente.length > 0) {
-                currentUserData.servicoAtendente.forEach(servico => {
-                    addServico({
-                        servico: servico.servico || '',
-                        atendentes: servico.atendentes || ['']
-                    });
+        if (currentUserData.servicoAtendente && currentUserData.servicoAtendente.length > 0) {
+            currentUserData.servicoAtendente.forEach(servico => {
+                addServico({
+                    servico: servico.servico || '',
+                    atendentes: servico.atendentes || ['']
                 });
-            } else {
-                addServico();
-            }
-
-            // Preenche horários
-            if (currentUserData.horarios) {
-                const horarios = currentUserData.horarios;
-
-                // Dias de funcionamento
-                if (horarios.diasFuncionamento) {
-                    horarios.diasFuncionamento.forEach(dia => {
-                        const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
-                        if (checkbox) checkbox.checked = true;
-                    });
-                }
-
-                // Horários
-                document.getElementById('horarioAbertura').value = horarios.horarioAbertura || '';
-                document.getElementById('horarioFechamento').value = horarios.horarioFechamento || '';
-                document.getElementById('almocoInicio').value = horarios.almocoInicio || '';
-                document.getElementById('almocoFim').value = horarios.almocoFim || '';
-                document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento || '30';
-                document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento || '15';
-            }
+            });
+        } else {
+            addServico();
         }
+
+        // Preenche horários
+        if (currentUserData.horarios) {
+            const horarios = currentUserData.horarios;
+
+            // Dias de funcionamento
+            if (horarios.diasFuncionamento) {
+                horarios.diasFuncionamento.forEach(dia => {
+                    const checkbox = document.querySelector(`.dias-semana input[value="${dia}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+
+            // Horários
+            document.getElementById('horarioAbertura').value = horarios.horarioAbertura || '';
+            document.getElementById('horarioFechamento').value = horarios.horarioFechamento || '';
+            document.getElementById('almocoInicio').value = horarios.almocoInicio || '';
+            document.getElementById('almocoFim').value = horarios.almocoFim || '';
+            document.getElementById('duracaoAtendimento').value = horarios.duracaoAtendimento || '30';
+            document.getElementById('intervaloAtendimento').value = horarios.intervaloAtendimento || '15';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error);
+        throw error;
+    }
+}
 
         // Função para mostrar o conteúdo principal
         function showMainContent() {
-    // Remove esta linha:
-    // document.getElementById('nomeInicialSection').style.display = 'none';
-    
     document.getElementById('mainContent').style.display = 'block';
 
-    // Restante do código permanece o mesmo...
+    // Mostra a seção de configurações apenas se não estiver na visualização de dia
+    if (!isDayView) {
+        document.getElementById('configSection').style.display = 'block';
+    }
+
+    // Carrega os dados do usuário
+    loadUserData();
+    
+    // Inicializa o calendário
+    initializeCalendar();
 }
 
         // Função para inicializar o calendário
@@ -897,6 +876,7 @@ document.getElementById('nomeCompleto').addEventListener('change', async functio
             }
         }
 
+        // Função para carregar agendamentos de um dia
         // Função para carregar agendamentos de um dia - ATUALIZADA COM NOVO DESIGN
         async function loadAgendamentosForDay(dateKey, dateStr) {
             try {
@@ -910,6 +890,7 @@ document.getElementById('nomeCompleto').addEventListener('change', async functio
                 let agendamentosHTML = `
                     <div class="agendamentos-container">
                         <div class="agendamentos-header">
+                            <button id="voltar-mes" class="btn">← Voltar para o Mês</button>
                             <button id="voltar-mes" class="btn btn-outline">← Voltar para o Mês</button>
                             <button class="voltar-btn" id="voltar-mes"><i class="fas fa-arrow-left"></i> Voltar</button>
                             <h2>Agendamentos - ${dateStr}</h2>
@@ -938,6 +919,9 @@ document.getElementById('nomeCompleto').addEventListener('change', async functio
                             agendamentosHTML += `
                                 <div class="agendamento-item">
                                     <div class="agendamento-info">
+                                        <span style="font-weight: bold;">${agendamento.horario}</span>
+                                        <span style="font-weight: bold;">${agendamento.servico || 'Serviço'}</span>
+                                        <span>${agendamento.clienteNome || 'Cliente'}</span>
                                         <div class="agendamento-horario">${agendamento.horario}</div>
                                         <div class="agendamento-servico">${agendamento.servico || 'Serviço'}</div>
                                         <div class="agendamento-cliente">${agendamento.clienteNome || 'Cliente'}</div>
@@ -957,6 +941,9 @@ document.getElementById('nomeCompleto').addEventListener('change', async functio
                             agendamentosHTML += `
                                 <div class="agendamento-item concluido">
                                     <div class="agendamento-info">
+                                        <span style="font-weight: bold;">${agendamento.horario}</span>
+                                        <span style="font-weight: bold;">${agendamento.servico || 'Serviço'}</span>
+                                        <span>${agendamento.clienteNome || 'Cliente'}</span>
                                         <div class="agendamento-horario">${agendamento.horario}</div>
                                         <div class="agendamento-servico">${agendamento.servico || 'Serviço'}</div>
                                         <div class="agendamento-cliente">${agendamento.clienteNome || 'Cliente'}</div>
@@ -971,16 +958,19 @@ document.getElementById('nomeCompleto').addEventListener('change', async functio
                     }
                 } else {
                     agendamentosHTML += `
+                        <div class="agendamento-item">
                         <div class="agendamento-empty">
                             Nenhum agendamento encontrado para este dia.
                         </div>
                     `;
                 }
 
+                agendamentosHTML += `</div>`;
                 agendamentosHTML += `
                         </div>
                     </div>
                 `;
+                
 
                 $('#calendar').html(agendamentosHTML);
 
@@ -1013,6 +1003,8 @@ document.getElementById('nomeCompleto').addEventListener('change', async functio
                 console.error("Erro ao carregar agendamentos:", error);
                 $('#calendar').html(`
                     <div class="agendamentos-container">
+                        <button id="voltar-mes" class="btn">← Voltar para o Mês</button>
+                        <div class="agendamento-item">
                         <div class="agendamentos-header">
                             <button id="voltar-mes" class="btn btn-outline">← Voltar para o Mês</button>
                             <button class="voltar-btn" id="voltar-mes"><i class="fas fa-arrow-left"></i> Voltar</button>
@@ -1206,15 +1198,13 @@ document.getElementById('nomeCompleto').addEventListener('change', async functio
 
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            auth.signOut().then(() => {
-                // Limpa o localStorage ao fazer logout
-                localStorage.removeItem('selectedNomeCompleto');
-                window.location.href = 'https://horario.site/login.html';
-            }).catch(error => {
-                console.error('Erro ao fazer logout:', error);
-            });
-        });
+    e.preventDefault();
+    auth.signOut().then(() => {
+        window.location.href = 'https://horario.site/login.html';
+    }).catch(error => {
+        console.error('Erro ao fazer logout:', error);
+    });
+});
     </script>
 </body>
 </html>
