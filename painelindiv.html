@@ -509,17 +509,7 @@
         </div>
     </header>
 
-    <div class="container">
-        <!-- Seção de nome inicial (mostra apenas se não tiver nome selecionado) -->
-        <div id="nomeInicialSection" class="nome-inicial" style="display: none;">
-            <h2>Identifique-se</h2>
-            <div id="message" class="message" style="display: none;"></div>
-            <div class="form-group">
-                <input type="text" id="nomeInicial" placeholder="Digite seu nome completo">
-                <button id="adicionarNomeBtn" class="btn">Adicionar Nome</button>
-            </div>
-        </div>
-
+    
         <!-- Conteúdo principal (mostra apenas após selecionar nome) -->
         <div id="mainContent" style="display: none;">
             <div id="calendar"></div>
@@ -653,7 +643,6 @@
 
         // Variável para armazenar os dados do usuário
         let currentUserData = null;
-        let selectedNomeCompleto = localStorage.getItem('selectedNomeCompleto');
         let isDayView = false;
 
         // Verificação de autenticação
@@ -676,66 +665,36 @@
             });
 
             auth.onAuthStateChanged(async (user) => {
-                if (!user) {
-                    window.location.href = 'https://horario.site/login.html';
-                } else {
-                    try {
-                        document.getElementById('loaderOverlay').style.display = 'flex';
+    if (!user) {
+        window.location.href = 'https://horario.site/login.html';
+    } else {
+        try {
+            document.getElementById('loaderOverlay').style.display = 'flex';
+            
+            // Busca o usuário pelo UID do Firebase Auth
+            const userDoc = await db.collection('usuarios').doc(user.uid).get();
+            
+            if (!userDoc.exists) {
+                throw new Error('Nenhum usuário encontrado');
+            }
+            
+            currentUserData = userDoc.data();
+            currentUserData.id = userDoc.id;
+            
+            showMainContent();
+            document.getElementById('loaderOverlay').style.display = 'none';
 
-                        // Verifica se já tem um nome selecionado no localStorage
-                        if (selectedNomeCompleto) {
-                            // Busca o usuário pelo nome completo
-                            await loadUserData(selectedNomeCompleto);
-                            showMainContent();
-                        } else {
-                            // Mostra a seção para inserir o nome
-                            document.getElementById('nomeInicialSection').style.display = 'block';
-                        }
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error);
+            document.getElementById('loaderOverlay').style.display = 'none';
+            alert('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
+            auth.signOut();
+            window.location.href = 'https://horario.site/login.html';
+        }
+    }
+});
 
-                        document.getElementById('loaderOverlay').style.display = 'none';
-
-                    } catch (error) {
-                        console.error('Erro ao carregar dados:', error);
-                        document.getElementById('loaderOverlay').style.display = 'none';
-                        showMessage('error', 'Erro ao carregar dados do usuário. Por favor, faça login novamente.');
-                        setTimeout(() => {
-                            auth.signOut();
-                            window.location.href = 'https://horario.site/login.html';
-                        }, 3000);
-                    }
-                }
-            });
-
-            // Evento para adicionar nome
-            document.getElementById('adicionarNomeBtn').addEventListener('click', async function() {
-                const nomeCompleto = document.getElementById('nomeInicial').value.trim();
-                if (!nomeCompleto) {
-                    showMessage('error', 'Por favor, digite seu nome completo');
-                    return;
-                }
-
-                try {
-                    document.getElementById('loaderOverlay').style.display = 'flex';
-
-                    // Busca os dados do usuário
-                    await loadUserData(nomeCompleto);
-
-                    // Salva no localStorage
-                    localStorage.setItem('selectedNomeCompleto', nomeCompleto);
-                    selectedNomeCompleto = nomeCompleto;
-
-                    // Mostra o conteúdo principal
-                    showMainContent();
-
-                    document.getElementById('loaderOverlay').style.display = 'none';
-
-                } catch (error) {
-                    console.error('Erro ao carregar dados:', error);
-                    document.getElementById('loaderOverlay').style.display = 'none';
-                    showMessage('error', 'Erro ao carregar dados. Verifique se o nome está correto.');
-                }
-            });
-
+            
             // Adiciona evento para adicionar serviço
             document.getElementById('addServicoBtn').addEventListener('click', addServico);
 
@@ -748,10 +707,6 @@
 
                         // Busca os dados do usuário
                         await loadUserData(nomeCompleto);
-
-                        // Atualiza o localStorage
-                        localStorage.setItem('selectedNomeCompleto', nomeCompleto);
-                        selectedNomeCompleto = nomeCompleto;
 
                         document.getElementById('loaderOverlay').style.display = 'none';
 
@@ -826,19 +781,11 @@
             }
         }
 
-        // Função para mostrar o conteúdo principal
         function showMainContent() {
-            document.getElementById('nomeInicialSection').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-
-            // Mostra a seção de configurações apenas se não estiver na visualização de dia
-            if (!isDayView) {
-                document.getElementById('configSection').style.display = 'block';
-            }
-
-            // Inicializa o calendário
-            initializeCalendar();
-        }
+    document.getElementById('mainContent').style.display = 'block';
+    document.getElementById('configSection').style.display = 'block';
+    initializeCalendar();
+}
 
         // Função para inicializar o calendário
         function initializeCalendar() {
@@ -1234,7 +1181,6 @@
             e.preventDefault();
             auth.signOut().then(() => {
                 // Limpa o localStorage ao fazer logout
-                localStorage.removeItem('selectedNomeCompleto');
                 window.location.href = 'https://horario.site/login.html';
             }).catch(error => {
                 console.error('Erro ao fazer logout:', error);
