@@ -165,20 +165,12 @@
             background-color: #45a049;
         }
         
-        .success-message {
-            color: #4CAF50;
-            text-align: center;
-            margin-top: 20px;
-            font-weight: bold;
-            display: none;
-        }
-        
-        .error-message {
-            color: #f44336;
-            text-align: center;
-            margin-top: 20px;
-            font-weight: bold;
-            display: none;
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
         }
         
         /* Rodapé */
@@ -226,6 +218,11 @@
     <div class="container">
         <h1 class="page-title">Formulário de Suporte</h1>
         
+        <div class="instructions">
+            <p><strong>Como funciona:</strong> Preencha os campos abaixo e clique em "Enviar Mensagem". Seu cliente de email padrão será aberto com a mensagem pronta para envio.</p>
+            <p>Por favor, envie manualmente para <strong>horario@outlook.com.br</strong> caso não funcione automaticamente.</p>
+        </div>
+        
         <form id="suporteForm">
             <div class="form-group">
                 <label for="assunto">Assunto (CNPJ/CPF + Nome Completo):</label>
@@ -239,14 +236,6 @@
             
             <button type="submit" class="btn-submit">Enviar Mensagem</button>
         </form>
-        
-        <div class="success-message" id="successMessage">
-            Mensagem enviada com sucesso! Entraremos em contato em breve.
-        </div>
-        
-        <div class="error-message" id="errorMessage">
-            Ocorreu um erro ao enviar a mensagem. Por favor, tente novamente mais tarde.
-        </div>
     </div>
 
     <footer>
@@ -284,57 +273,23 @@
             const assunto = document.getElementById('assunto').value;
             const discurso = document.getElementById('discurso').value;
             
-            // Simulação de envio (substitua por código real para enviar email)
-            // Na implementação real, você pode usar um serviço como EmailJS, FormSubmit ou um backend
-            console.log('Mensagem a ser enviada:', { assunto, discurso });
+            // Codifica os parâmetros para URL
+            const assuntoEncoded = encodeURIComponent(assunto);
+            const discursoEncoded = encodeURIComponent(discurso);
             
-            // Simulando o envio com setTimeout
-            const btnSubmit = document.querySelector('.btn-submit');
-            btnSubmit.disabled = true;
-            btnSubmit.textContent = 'Enviando...';
+            // Cria o link mailto com todos os detalhes
+            const mailtoLink = `mailto:horario@outlook.com.br?subject=${assuntoEncoded}&body=${discursoEncoded}`;
             
-            setTimeout(() => {
-                // Aqui você substituiria pelo código real de envio
-                // Se o envio for bem-sucedido:
-                document.getElementById('successMessage').style.display = 'block';
-                document.getElementById('errorMessage').style.display = 'none';
-                document.getElementById('suporteForm').reset();
-                
-                // Se houver erro:
-                // document.getElementById('errorMessage').style.display = 'block';
-                // document.getElementById('successMessage').style.display = 'none';
-                
-                btnSubmit.disabled = false;
-                btnSubmit.textContent = 'Enviar Mensagem';
-                
-                // Redirecionar para o painel após 3 segundos
-                setTimeout(() => {
-                    window.location.href = 'painel.html';
-                }, 3000);
-                
-            }, 1500);
+            // Abre o cliente de email padrão do usuário
+            window.location.href = mailtoLink;
             
-            // Para implementação real de envio de email, você pode usar:
-            // 1. EmailJS (https://www.emailjs.com/)
-            // 2. FormSubmit (https://formsubmit.co/)
-            // 3. Um backend próprio com Node.js + Nodemailer
-            // 4. Outro serviço de envio de emails
-            
-            // Exemplo com FormSubmit (substitua o action do formulário):
-            // <form action="https://formsubmit.co/horario@outlook.com.br" method="POST">
-            // E adicione campos hidden se necessário
+            // Limpa o formulário após o envio
+            this.reset();
         });
 
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', function(e) {
             e.preventDefault();
-            // Se estiver usando Firebase Auth:
-            // auth.signOut().then(() => {
-            //     window.location.href = 'https://horario.site/login.html';
-            // }).catch(error => {
-            //     console.error('Erro ao fazer logout:', error);
-            // });
-            
             // Simulação de logout
             window.location.href = 'login.html';
         });
