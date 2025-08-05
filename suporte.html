@@ -135,6 +135,8 @@
         }
         
         input[type="text"],
+        input[type="email"],
+        input[type="tel"],
         textarea {
             width: 100%;
             padding: 10px;
@@ -230,6 +232,16 @@
             </div>
             
             <div class="form-group">
+                <label for="email">E-mail para contato:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="telefone">Telefone Celular para contato:</label>
+                <input type="tel" id="telefone" name="telefone" required>
+            </div>
+            
+            <div class="form-group">
                 <label for="discurso">Discurso (Agradecimento, Queixa, Denúncia, Questionamento ou Pedido de Suporte):</label>
                 <textarea id="discurso" name="discurso" required></textarea>
             </div>
@@ -271,14 +283,22 @@
             e.preventDefault();
             
             const assunto = document.getElementById('assunto').value;
+            const email = document.getElementById('email').value;
+            const telefone = document.getElementById('telefone').value;
             const discurso = document.getElementById('discurso').value;
             
             // Codifica os parâmetros para URL
             const assuntoEncoded = encodeURIComponent(assunto);
+            const emailEncoded = encodeURIComponent(email);
+            const telefoneEncoded = encodeURIComponent(telefone);
             const discursoEncoded = encodeURIComponent(discurso);
             
+            // Cria o corpo do email com todos os dados
+            const corpoEmail = `E-mail para contato: ${email}\nTelefone para contato: ${telefone}\n\nMensagem:\n${discurso}`;
+            const corpoEncoded = encodeURIComponent(corpoEmail);
+            
             // Cria o link mailto com todos os detalhes
-            const mailtoLink = `mailto:horario@outlook.com.br?subject=${assuntoEncoded}&body=${discursoEncoded}`;
+            const mailtoLink = `mailto:horario@outlook.com.br?subject=${assuntoEncoded}&body=${corpoEncoded}`;
             
             // Abre o cliente de email padrão do usuário
             window.location.href = mailtoLink;
