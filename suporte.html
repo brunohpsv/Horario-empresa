@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle | SUPORTE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        /* Menu de três pontos */
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            background-color: #333;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 100;
+            min-width: 200px;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .dropdown-menu ul {
+            list-style: none;
+        }
+        
+        .dropdown-menu li {
+            padding: 10px 20px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .dropdown-menu li:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-menu a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            transition: color 0.3s;
+        }
+        
+        .dropdown-menu a:hover {
+            color: #4CAF50;
+        }
+        
+        .dropdown-menu .logout-btn {
+            color: #f44336;
+        }
+        
+        .dropdown-menu .logout-btn:hover {
+            color: #d32f2f;
+        }
+
+        /* Reset e estilos gerais */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        .menu-container {
+            position: relative;
+        }
+        
+        /* Container principal */
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .btn-submit {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: block;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-submit:hover {
+            background-color: #45a049;
+        }
+        
+        .success-message {
+            color: #4CAF50;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .error-message {
+            color: #f44336;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        /* Rodapé */
+        footer {
+            background-color: #000000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+        
+        .contato-rodape {
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .contato-rodape a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">PAINEL DE CONTROLE</div>
+        <div class="menu-container">
+            <button class="menu-btn" id="menuBtn">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <ul>
+                    <li><a href="painel.html" class="tab-link">CALENDÁRIO</a></li>
+                    <li><a href="escolher-painel.html" class="tab-link">ESCOLHER PAINEL</a></li>
+                    <li><a href="/servicos.html" class="nav-btn servicatend-btn">SERVIÇOS/ATEND.</a></li>
+                    <li><a href="cadastrodeprestador.html" class="nav-btn painelindiv-btn">CADASTRO DE PRESTADORES</a></li>
+                    <li><a href="painelconfig.html" class="tab-link">CONFIGURAÇÕES</a></li>
+                    <li><a href="#" id="logoutBtn" class="logout-btn">SAIR</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">Formulário de Suporte</h1>
+        
+        <form id="suporteForm">
+            <div class="form-group">
+                <label for="assunto">Assunto (CNPJ/CPF + Nome Completo):</label>
+                <input type="text" id="assunto" name="assunto" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="discurso">Discurso (Agradecimento, Queixa, Denúncia, Questionamento ou Pedido de Suporte):</label>
+                <textarea id="discurso" name="discurso" required></textarea>
+            </div>
+            
+            <button type="submit" class="btn-submit">Enviar Mensagem</button>
+        </form>
+        
+        <div class="success-message" id="successMessage">
+            Mensagem enviada com sucesso! Entraremos em contato em breve.
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            Ocorreu um erro ao enviar a mensagem. Por favor, tente novamente mais tarde.
+        </div>
+    </div>
+
+    <footer>
+        <div class="contato-rodape">
+            <p>Precisa de ajuda? Entre em contato conosco:</p>
+            <p>E-mail: <a href="mailto:suportehorario@gmail.com">suportehorario@gmail.com</a> | Telefone: (62) 98159-6601</p>
+            <p>Horário de atendimento: Segunda a Domingo, 24 horas</p>
+        </div>
+    </footer>
+
+    <script>
+        // Menu de três pontos
+        const menuBtn = document.getElementById('menuBtn');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        
+        menuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+        });
+        
+        // Fechar menu quando clicar fora
+        document.addEventListener('click', function() {
+            dropdownMenu.classList.remove('show');
+        });
+        
+        // Evitar que o menu feche quando clicar dentro dele
+        dropdownMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Formulário de suporte
+        document.getElementById('suporteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const assunto = document.getElementById('assunto').value;
+            const discurso = document.getElementById('discurso').value;
+            
+            // Simulação de envio (substitua por código real para enviar email)
+            // Na implementação real, você pode usar um serviço como EmailJS, FormSubmit ou um backend
+            console.log('Mensagem a ser enviada:', { assunto, discurso });
+            
+            // Simulando o envio com setTimeout
+            const btnSubmit = document.querySelector('.btn-submit');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Enviando...';
+            
+            setTimeout(() => {
+                // Aqui você substituiria pelo código real de envio
+                // Se o envio for bem-sucedido:
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('suporteForm').reset();
+                
+                // Se houver erro:
+                // document.getElementById('errorMessage').style.display = 'block';
+                // document.getElementById('successMessage').style.display = 'none';
+                
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Enviar Mensagem';
+                
+                // Redirecionar para o painel após 3 segundos
+                setTimeout(() => {
+                    window.location.href = 'painel.html';
+                }, 3000);
+                
+            }, 1500);
+            
+            // Para implementação real de envio de email, você pode usar:
+            // 1. EmailJS (https://www.emailjs.com/)
+            // 2. FormSubmit (https://formsubmit.co/)
+            // 3. Um backend próprio com Node.js + Nodemailer
+            // 4. Outro serviço de envio de emails
+            
+            // Exemplo com FormSubmit (substitua o action do formulário):
+            // <form action="https://formsubmit.co/horario@outlook.com.br" method="POST">
+            // E adicione campos hidden se necessário
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            // Se estiver usando Firebase Auth:
+            // auth.signOut().then(() => {
+            //     window.location.href = 'https://horario.site/login.html';
+            // }).catch(error => {
+            //     console.error('Erro ao fazer logout:', error);
+            // });
+            
+            // Simulação de logout
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>
