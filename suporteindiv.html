@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle | SUPORTE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        /* Menu de três pontos */
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            background-color: #333;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 100;
+            min-width: 200px;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .dropdown-menu ul {
+            list-style: none;
+        }
+        
+        .dropdown-menu li {
+            padding: 10px 20px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .dropdown-menu li:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-menu a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            transition: color 0.3s;
+        }
+        
+        .dropdown-menu a:hover {
+            color: #4CAF50;
+        }
+        
+        .dropdown-menu .logout-btn {
+            color: #f44336;
+        }
+        
+        .dropdown-menu .logout-btn:hover {
+            color: #d32f2f;
+        }
+
+        /* Reset e estilos gerais */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        header {
+            background-color: #000000;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        .menu-container {
+            position: relative;
+        }
+        
+        /* Container principal */
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .btn-submit {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: block;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-submit:hover {
+            background-color: #45a049;
+        }
+        
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        /* Rodapé */
+        footer {
+            background-color: #000000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+        
+        .contato-rodape {
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .contato-rodape a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">PAINEL DE CONTROLE</div>
+        <div class="menu-container">
+            <button class="menu-btn" id="menuBtn">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <ul>
+                    <li><a href="painelindiv.html" class="tab-link">CALENDÁRIO</a></li>
+                    <li><a href="#" id="logoutBtn" class="logout-btn">SAIR</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">Formulário de Suporte</h1>
+        
+        <div class="instructions">
+            <p><strong>Como funciona:</strong> Preencha os campos abaixo e clique em "Enviar Mensagem". Seu cliente de email padrão será aberto com a mensagem pronta para envio.</p>
+            <p>Por favor, envie manualmente para <strong>horario@outlook.com.br</strong> caso não funcione automaticamente.</p>
+        </div>
+        
+        <form id="suporteForm">
+            <div class="form-group">
+                <label for="assunto">Assunto (CNPJ/CPF + Nome Completo):</label>
+                <input type="text" id="assunto" name="assunto" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">E-mail para contato:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="telefone">Telefone Celular para contato:</label>
+                <input type="tel" id="telefone" name="telefone" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="discurso">Discurso (Agradecimento, Queixa, Denúncia, Questionamento ou Pedido de Suporte):</label>
+                <textarea id="discurso" name="discurso" required></textarea>
+            </div>
+            
+            <button type="submit" class="btn-submit">Enviar Mensagem</button>
+        </form>
+    </div>
+
+    <footer>
+        <div class="contato-rodape">
+            <p>Precisa de ajuda? Entre em contato conosco:</p>
+            <p>E-mail: <a href="mailto:suportehorario@gmail.com">suportehorario@gmail.com</a> | Telefone: (62) 98159-6601</p>
+            <p>Horário de atendimento: Segunda a Domingo, 24 horas</p>
+        </div>
+    </footer>
+
+    <script>
+        // Menu de três pontos
+        const menuBtn = document.getElementById('menuBtn');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        
+        menuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+        });
+        
+        // Fechar menu quando clicar fora
+        document.addEventListener('click', function() {
+            dropdownMenu.classList.remove('show');
+        });
+        
+        // Evitar que o menu feche quando clicar dentro dele
+        dropdownMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Formulário de suporte
+        document.getElementById('suporteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const assunto = document.getElementById('assunto').value;
+            const email = document.getElementById('email').value;
+            const telefone = document.getElementById('telefone').value;
+            const discurso = document.getElementById('discurso').value;
+            
+            // Codifica os parâmetros para URL
+            const assuntoEncoded = encodeURIComponent(assunto);
+            const emailEncoded = encodeURIComponent(email);
+            const telefoneEncoded = encodeURIComponent(telefone);
+            const discursoEncoded = encodeURIComponent(discurso);
+            
+            // Cria o corpo do email com todos os dados
+            const corpoEmail = `E-mail para contato: ${email}\nTelefone para contato: ${telefone}\n\nMensagem:\n${discurso}`;
+            const corpoEncoded = encodeURIComponent(corpoEmail);
+            
+            // Cria o link mailto com todos os detalhes
+            const mailtoLink = `mailto:horario@outlook.com.br?subject=${assuntoEncoded}&body=${corpoEncoded}`;
+            
+            // Abre o cliente de email padrão do usuário
+            window.location.href = mailtoLink;
+            
+            // Limpa o formulário após o envio
+            this.reset();
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            // Simulação de logout
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>
