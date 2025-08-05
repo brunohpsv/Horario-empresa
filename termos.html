@@ -12,12 +12,12 @@
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
-        
+
         body {
             background-color: #f5f5f5;
             color: #333;
         }
-        
+
         header {
             background-color: #000000;
             color: white;
@@ -26,40 +26,65 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .logo {
             font-size: 24px;
             font-weight: bold;
             letter-spacing: 1px;
         }
-        
+
         nav ul {
             display: flex;
             list-style: none;
             align-items: center;
         }
-        
+
         nav ul li {
             margin-left: 30px;
         }
-        
+
         nav ul li a {
             color: white;
             text-decoration: none;
             font-size: 16px;
             transition: color 0.3s;
-            padding: 8px 0;
+            padding: 8px 16px;
         }
-
+        
         nav ul li a:hover {
             color: #cccccc;
         }
         
+        .nav-btn {
+            background-color: #4CAF50;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background-color: #45a049;
+        }
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.3s;
+    padding: 8px 0; /* Reduzi o padding horizontal para ficar mais clean */
+}
+
+nav ul li a:hover {
+    color: #cccccc;
+}
+
+       
         .back-btn::before {
             content: "←";
             margin-right: 5px;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 30px auto;
@@ -68,21 +93,21 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        
+
         h1 {
             margin-bottom: 20px;
             color: #333;
         }
-        
+
         .termos-content {
             padding: 20px;
             line-height: 1.6;
         }
-        
+
         .termos-content p {
             margin-bottom: 15px;
         }
-        
+
         .admin-section {
             margin-top: 50px;
             padding: 20px;
@@ -90,21 +115,21 @@
             border-radius: 8px;
             border-left: 4px solid #4CAF50;
         }
-        
+
         .admin-form {
             display: none;
         }
-        
+
         .form-group {
             margin-bottom: 15px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
-        
+
         input[type="password"],
         textarea {
             width: 100%;
@@ -113,11 +138,11 @@
             border-radius: 4px;
             font-size: 16px;
         }
-        
+
         textarea {
             min-height: 300px;
         }
-        
+
         .btn {
             background-color: #4CAF50;
             color: white;
@@ -127,11 +152,11 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        
+
         .btn:hover {
             background-color: #45a049;
         }
-        
+
         .senha-input-container {
             position: relative;
         }
@@ -170,15 +195,15 @@
 
     <div class="container">
         <h1>Termos de Uso</h1>
-        
+
         <div class="termos-content" id="termosText">
             <!-- O conteúdo dos termos será carregado aqui -->
             <p>Carregando termos de uso...</p>
         </div>
-        
+
         <div class="admin-section">
             <button id="btnEditarTermos" class="btn">Editar Termos (Acesso Admin)</button>
-            
+
             <div class="admin-form" id="adminForm">
                 <div class="form-group">
                     <label for="adminSenha">Senha de Administrador</label>
@@ -187,12 +212,12 @@
                         <button class="btn-toggle-senha" type="button">👁️</button>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="termosEdit">Editar Termos de Uso</label>
                     <textarea id="termosEdit"></textarea>
                 </div>
-                
+
                 <button id="btnSalvarTermos" class="btn">Salvar Alterações</button>
                 <span id="mensagemStatus" style="margin-left: 15px;"></span>
             </div>
@@ -227,13 +252,13 @@
                     <h2>6. Contato</h2>
                     <p>Dúvidas sobre estes Termos podem ser enviadas para contato@horario.site</p>
                 `;
-                
+
                 document.getElementById('termosText').innerHTML = termosPadrao;
                 document.getElementById('termosEdit').value = termosPadrao;
                 localStorage.setItem('termosDeUso', termosPadrao);
             }
         }
-        
+
         // Toggle para mostrar/ocultar senha
         document.querySelector('.btn-toggle-senha').addEventListener('click', function() {
             const senhaInput = document.getElementById('adminSenha');
@@ -245,45 +270,26 @@
                 this.textContent = '👁️';
             }
         });
-        
+
         // Mostrar formulário de edição quando clicar no botão
         document.getElementById('btnEditarTermos').addEventListener('click', function() {
             document.getElementById('adminForm').style.display = 'block';
             this.style.display = 'none';
         });
-        
-        // Função para decodificar a senha ofuscada
-        function obterSenha() {
-            const partes = [
-                String.fromCharCode(49, 53, 52), 
-                'h', 
-                String.fromCharCode(52, 53, 56), 
-                'ra', 
-                String.fromCharCode(52, 55, 54), 
-                'r', 
-                String.fromCharCode(55, 57, 54), 
-                'i', 
-                String.fromCharCode(53, 55), 
-                'o', 
-                String.fromCharCode(56, 53, 55), 
-                '#@$'
-            ];
-            return partes.join('');
-        }
-        
+
         // Verificar senha e salvar termos
         document.getElementById('btnSalvarTermos').addEventListener('click', function() {
             const senha = document.getElementById('adminSenha').value;
-            const senhaCorreta = obterSenha();
+            const senhaCorreta = '15475h458ra4765r7965i57o8576#@$';
             const termosEditados = document.getElementById('termosEdit').value;
             const mensagemStatus = document.getElementById('mensagemStatus');
-            
+
             if (senha === senhaCorreta) {
                 localStorage.setItem('termosDeUso', termosEditados);
                 document.getElementById('termosText').innerHTML = termosEditados;
                 mensagemStatus.textContent = 'Termos atualizados com sucesso!';
                 mensagemStatus.style.color = 'green';
-                
+
                 // Esconder o formulário após 2 segundos
                 setTimeout(() => {
                     document.getElementById('adminForm').style.display = 'none';
@@ -296,7 +302,7 @@
                 mensagemStatus.style.color = 'red';
             }
         });
-        
+
         // Carregar os termos quando a página carregar
         window.addEventListener('DOMContentLoaded', carregarTermos);
     </script>
