@@ -167,19 +167,21 @@
         
         /* Rodapé */
         footer {
-            background-color: #000000;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            margin-top: 30px;
-            width: 100%;
-        }
-        
-        .contato-rodape {
-            max-width: 1200px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
+        background-color: #000000;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        margin-top: 30px;
+        width: 100%;
+        box-sizing: border-box; /* Adicionado para incluir padding na largura total */
+    }
+    
+    .contato-rodape {
+        max-width: 1200px;
+        margin: 0 auto;
+        line-height: 1.6;
+        width: 100%; /* Adicionado para garantir largura total */
+    }
         
         .contato-rodape a {
             color: #4CAF50;
