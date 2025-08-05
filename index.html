@@ -515,58 +515,55 @@
     let timeout = null;
 
     // Função para extrair serviços de todas as fontes possíveis
-    function extrairServicos(empresa) {
-        const servicos = [];
+function extrairServicos(empresa) {
+    const servicos = [];
+    
+    // Função auxiliar para processar um serviço (dividir por barra se necessário)
+    const processarServico = (servico) => {
+        if (typeof servico !== 'string') return [String(servico).trim()];
         
-        // 1. Verifica servicoAtendente (para PP- e P1-P30)
-        if (empresa.servicoAtendente && Array.isArray(empresa.servicoAtendente)) {
-            empresa.servicoAtendente.forEach(item => {
-                if (item.servico) {
-                    servicos.push(item.servico.trim());
-                }
+        return servico.split('/')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+    };
+    
+    // 1. Verifica servicoAtendente (para PP- e P1-P30)
+    if (empresa.servicoAtendente && Array.isArray(empresa.servicoAtendente)) {
+        empresa.servicoAtendente.forEach(item => {
+            if (item.servico) {
+                servicos.push(...processarServico(item.servico));
+            }
+        });
+    }
+    
+    // 2. Verifica campo servico (string ou array)
+    if (empresa.servico) {
+        if (typeof empresa.servico === 'string') {
+            empresa.servico.split(',').forEach(servico => {
+                servicos.push(...processarServico(servico));
+            });
+        } else if (Array.isArray(empresa.servico)) {
+            empresa.servico.forEach(servico => {
+                servicos.push(...processarServico(servico));
             });
         }
-        
-        // 2. Verifica campo servico (string ou array)
-        if (empresa.servico) {
-            if (typeof empresa.servico === 'string') {
-                empresa.servico.split(',').forEach(servico => {
-                    const servicoFormatado = servico.trim();
-                    if (servicoFormatado) {
-                        servicos.push(servicoFormatado);
-                    }
-                });
-            } else if (Array.isArray(empresa.servico)) {
-                empresa.servico.forEach(servico => {
-                    const servicoFormatado = String(servico).trim();
-                    if (servicoFormatado) {
-                        servicos.push(servicoFormatado);
-                    }
-                });
-            }
-        }
-        
-        // 3. Verifica campo servicos (string ou array)
-        if (empresa.servicos) {
-            if (typeof empresa.servicos === 'string') {
-                empresa.servicos.split(',').forEach(servico => {
-                    const servicoFormatado = servico.trim();
-                    if (servicoFormatado) {
-                        servicos.push(servicoFormatado);
-                    }
-                });
-            } else if (Array.isArray(empresa.servicos)) {
-                empresa.servicos.forEach(servico => {
-                    const servicoFormatado = String(servico).trim();
-                    if (servicoFormatado) {
-                        servicos.push(servicoFormatado);
-                    }
-                });
-            }
-        }
-        
-        return servicos;
     }
+    
+    // 3. Verifica campo servicos (string ou array)
+    if (empresa.servicos) {
+        if (typeof empresa.servicos === 'string') {
+            empresa.servicos.split(',').forEach(servico => {
+                servicos.push(...processarServico(servico));
+            });
+        } else if (Array.isArray(empresa.servicos)) {
+            empresa.servicos.forEach(servico => {
+                servicos.push(...processarServico(servico));
+            });
+        }
+    }
+    
+    return servicos;
+}
 
     // Função para agrupar empresas com o mesmo nome (removendo PP-, P1-, etc)
     async function agruparEmpresas(empresas) {
