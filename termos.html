@@ -44,18 +44,17 @@
         }
         
         nav ul li a {
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    transition: color 0.3s;
-    padding: 8px 0; /* Reduzi o padding horizontal para ficar mais clean */
-}
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+            padding: 8px 0;
+        }
 
-nav ul li a:hover {
-    color: #cccccc;
-}
+        nav ul li a:hover {
+            color: #cccccc;
+        }
         
-       
         .back-btn::before {
             content: "←";
             margin-right: 5px;
@@ -253,10 +252,29 @@ nav ul li a:hover {
             this.style.display = 'none';
         });
         
+        // Função para decodificar a senha ofuscada
+        function obterSenha() {
+            const partes = [
+                String.fromCharCode(49, 53, 52), 
+                'h', 
+                String.fromCharCode(52, 53, 56), 
+                'ra', 
+                String.fromCharCode(52, 55, 54), 
+                'r', 
+                String.fromCharCode(55, 57, 54), 
+                'i', 
+                String.fromCharCode(53, 55), 
+                'o', 
+                String.fromCharCode(56, 53, 55), 
+                '#@$'
+            ];
+            return partes.join('');
+        }
+        
         // Verificar senha e salvar termos
         document.getElementById('btnSalvarTermos').addEventListener('click', function() {
             const senha = document.getElementById('adminSenha').value;
-            const senhaCorreta = '15475h458ra4765r7965i57o8576#@$';
+            const senhaCorreta = obterSenha();
             const termosEditados = document.getElementById('termosEdit').value;
             const mensagemStatus = document.getElementById('mensagemStatus');
             
