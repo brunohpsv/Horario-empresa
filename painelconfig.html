@@ -16,11 +16,12 @@
         }
         
         body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        background-color: #f5f5f5;
-    }
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+    margin: 0; /* Adicione esta linha para remover margens padrão */
+}}
         
         /* Header */
         header {
@@ -167,19 +168,14 @@
         
         /* Rodapé */
         footer {
-        background-color: #000000;
-        color: white;
-        padding: 20px 0;
-        text-align: center;
-        margin-top: 30px;
-        width: 100vw;
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-        margin-top: auto; /* Empurra o footer para baixo */
-    }
+    background-color: #000000;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    width: 100%; /* Alterado de 100vw para 100% */
+    margin-top: auto; /* Mantém o footer no final */
+    border-top: 1px solid #000000;
+}
     
     .contato-rodape {
         max-width: 1200px;
