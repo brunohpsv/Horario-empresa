@@ -205,14 +205,11 @@
         
         .hero-placeholder {
             width: 100%;
-            height: 300px;
+            padding: 30px;
             background-color: rgba(255,255,255,0.1);
             border-radius: 8px;
             margin: 40px auto 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.9);
             font-size: 18px;
         }
         
@@ -274,14 +271,11 @@
         
         .industry-placeholder {
             width: 100%;
-            height: 200px;
+            padding: 30px;
             background-color: #f5f5f5;
             border-radius: 8px;
             margin: 30px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
+            color: #555;
         }
         
         /* Pricing Section */
@@ -297,7 +291,6 @@
             border-radius: 8px;
             padding: 40px;
             width: 100%;
-            max-width: 400px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             transition: all 0.3s;
             position: relative;
@@ -310,7 +303,7 @@
         
         .pricing-card.popular {
             border: 2px solid #4CAF50;
-            transform: scale(1.05);
+            transform: scale(1.02);
         }
         
         .pricing-card.popular:before {
@@ -347,10 +340,13 @@
             list-style: none;
             padding: 0;
             margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
         }
         
         .pricing-features li {
-            margin-bottom: 15px;
+            margin-bottom: 0;
             padding-left: 25px;
             position: relative;
         }
@@ -432,13 +428,12 @@
         
         /* Responsividade */
         @media (max-width: 992px) {
-            .pricing-cards {
-                flex-direction: column;
-                align-items: center;
+            .pricing-features {
+                grid-template-columns: 1fr;
             }
             
             .pricing-card {
-                max-width: 500px;
+                max-width: 600px;
             }
             
             .pricing-card.popular {
@@ -573,7 +568,9 @@
             </div>
             
             <div class="hero-placeholder animate delay-3">
-                <img src="https://via.placeholder.com/1200x400?text=Interface+Intuitiva+do+HORÁRIO" alt="Interface do HORÁRIO" style="border-radius: 8px;">
+                <h3>Sistema de Agendamento Inteligente</h3>
+                <p>Interface intuitiva que permite gerenciar sua agenda profissional com facilidade, reduzindo faltas e otimizando seu tempo.</p>
+                <p>Visualize sua agenda em tempo real, receba confirmações automáticas e mantenha seu fluxo de trabalho organizado.</p>
             </div>
         </div>
     </section>
@@ -647,7 +644,17 @@
                 <p>O HORÁRIO foi desenvolvido para simplificar a gestão de agendamentos em diversos tipos de negócios e para profissionais autônomos.</p>
                 
                 <div class="industry-placeholder">
-                    <img src="https://via.placeholder.com/800x300?text=Segmentos+Atendidos" alt="Segmentos atendidos pelo HORÁRIO" style="border-radius: 8px;">
+                    <h4>Segmentos Atendidos</h4>
+                    <ul style="columns: 2; list-style-type: none; text-align: left;">
+                        <li><i class="fas fa-check" style="color: #4CAF50;"></i> Clínicas médicas e odontológicas</li>
+                        <li><i class="fas fa-check" style="color: #4CAF50;"></i> Salões de beleza e estética</li>
+                        <li><i class="fas fa-check" style="color: #4CAF50;"></i> Estúdios de tatuagem</li>
+                        <li><i class="fas fa-check" style="color: #4CAF50;"></i> Consultórios terapêuticos</li>
+                        <li><i class="fas fa-check" style="color: #4CAF50;"></i> Serviços técnicos e manutenção</li>
+                        <li><i class="fas fa-check" style="color: #4CAF50;"></i> Professores e treinadores</li>
+                        <li><i class="fas fa-check" style="color: #4CAF50;"></i> Pequenas empresas de serviços</li>
+                        <li><i class="fas fa-check" style="color: #4CAF50;"></i> Profissionais liberais</li>
+                    </ul>
                 </div>
                 
                 <p><strong>Ideal para:</strong> Profissionais de saúde (médicos, dentistas, psicólogos), beleza (cabeleireiros, esteticistas, tatuadores), serviços técnicos (encanadores, eletricistas), consultores, professores particulares e pequenas empresas que precisam gerenciar agendas de atendimento.</p>
@@ -666,21 +673,28 @@
             <p class="text-center mb-50">Tudo que você precisa por um preço justo e acessível</p>
             
             <div class="pricing-cards">
-                <div class="pricing-card popular">
-                    <h3>Plano Completo</h3>
-                    <p>Todos os recursos por um preço único</p>
-                    <div class="pricing-price">R$30<span>/mês</span></div>
-                    <ul class="pricing-features">
-                        <li>Até 30 profissionais</li>
-                        <li>Agendamento ilimitado</li>
-                        <li>Notificações por e-mail</li>
-                        <li>Relatórios de agendamentos</li>
-                        <li>Multiplataforma</li>
-                        <li>Suporte por e-mail</li>
-                        <li>Segurança de dados</li>
-                    </ul>
-                    <a href="https://horario.site/cadastro.html" class="btn">Comece Agora</a>
-                    <p class="mt-20" style="font-size:14px;color:#666;">Teste gratuito de 7 dias úteis. Sem cobrança inicial.</p>
+                <div class="pricing-card popular" style="max-width: 800px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <h3>Plano Completo</h3>
+                            <p>Todos os recursos por um preço único</p>
+                            <div class="pricing-price">R$30<span>/mês</span></div>
+                            <a href="https://horario.site/cadastro.html" class="btn">Comece Agora</a>
+                            <p class="mt-20" style="font-size:14px;color:#666;">Teste gratuito de 7 dias úteis. Sem cobrança inicial.</p>
+                        </div>
+                        <div style="flex: 1;">
+                            <ul class="pricing-features">
+                                <li>Até 30 profissionais</li>
+                                <li>Agendamento ilimitado</li>
+                                <li>Notificações por e-mail</li>
+                                <li>Relatórios de agendamentos</li>
+                                <li>Multiplataforma</li>
+                                <li>Suporte por e-mail</li>
+                                <li>Segurança de dados</li>
+                                <li>Sincronização em nuvem</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
