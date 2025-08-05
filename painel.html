@@ -228,16 +228,16 @@
         }
         
         .agendamento-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #ffffff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            transition: all 0.3s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
+    display: flex;
+    flex-direction: column; /* Mudamos para coluna */
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    gap: 15px; /* Espaço entre as seções */
+}
         
         .agendamento-item.concluido {
             background-color: #f0f0f0;
@@ -250,11 +250,8 @@
         }
         
         .agendamento-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+    width: 100%;
+}
         
         .agendamento-horario {
             font-weight: bold;
@@ -284,21 +281,35 @@
         }
         
         .agendamento-actions {
-            display: flex;
-            gap: 10px;
-        }
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end; /* Alinha os botões à direita */
+    flex-wrap: wrap; /* Permite que os botões quebrem linha se necessário */
+}
         
         .btn-action {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.3s;
-        }
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .agendamento-actions {
+        justify-content: center; /* Centraliza em telas pequenas */
+    }
+    
+    .btn-action {
+        flex: 1; /* Faz os botões ocuparem espaço igual */
+        justify-content: center;
+    }
+}
         
         .btn-concluir {
             background-color: #4CAF50;
@@ -651,52 +662,55 @@
                             new Date(agendamento.concluidoEm.seconds * 1000).toLocaleString('pt-BR') : 
                             '';
                             
-                        agendamentosHTML += `
-                            <div class="agendamento-item ${isConcluido ? 'concluido' : ''} ${isFracassado ? 'fracassado' : ''}">
-                                <div class="agendamento-info">
-                                    <div class="agendamento-horario">${agendamento.horario}</div>
-                                    <div class="agendamento-detalhes">
-                                        <div class="agendamento-detalhe">
-                                            <strong>Serviço</strong>
-                                            <span>${agendamento.servico || 'Não especificado'}</span>
-                                        </div>
-                                        <div class="agendamento-detalhe">
-                                            <strong>Cliente</strong>
-                                            <span>${agendamento.clienteNome || 'Não informado'}</span>
-                                        </div>
-                                        <div class="agendamento-detalhe">
-                                            <strong>Telefone</strong>
-                                            <span>${agendamento.clienteTelefone || 'Não informado'}</span>
-                                        </div>
-                                        ${agendamento.observacoes ? `
-                                        <div class="agendamento-detalhe">
-                                            <strong>Observações</strong>
-                                            <span>${agendamento.observacoes}</span>
-                                        </div>
-                                        ` : ''}
-                                    </div>
-                                    ${concluidoEm ? `
-                                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                                        ${isConcluido ? 'Concluído em: ' : 'Fracassado em: '}${concluidoEm}
-                                    </div>
-                                    ` : ''}
-                                </div>
-                                <div class="agendamento-actions">
-                                    ${!isConcluido && !isFracassado ? `
-                                    <button class="btn-action btn-concluir" data-id="${agendamento.id}">
-                                        <i class="fas fa-check"></i> Concluído
-                                    </button>
-                                    <button class="btn-action btn-fracassado" data-id="${agendamento.id}">
-                                        <i class="fas fa-times"></i> Fracassado
-                                    </button>
-                                    ` : `
-                                    <button class="btn-action btn-desconcluir" data-id="${agendamento.id}">
-                                        <i class="fas fa-undo"></i> Desfazer
-                                    </button>
-                                    `}
-                                </div>
-                            </div>
-                        `;
+                        // Dentro da função loadAgendamentosForDay, substitua a parte do agendamento HTML por:
+agendamentosHTML += `
+    <div class="agendamento-item ${isConcluido ? 'concluido' : ''} ${isFracassado ? 'fracassado' : ''}">
+        <div class="agendamento-info">
+            <div class="agendamento-horario">${agendamento.horario}</div>
+            <div class="agendamento-detalhes">
+                <div class="agendamento-detalhe">
+                    <strong>Serviço</strong>
+                    <span>${agendamento.servico || 'Não especificado'}</span>
+                </div>
+                <div class="agendamento-detalhe">
+                    <strong>Cliente</strong>
+                    <span>${agendamento.clienteNome || 'Não informado'}</span>
+                </div>
+                <div class="agendamento-detalhe">
+                    <strong>Telefone</strong>
+                    <span>${agendamento.clienteTelefone || 'Não informado'}</span>
+                </div>
+                ${agendamento.observacoes ? `
+                <div class="agendamento-detalhe">
+                    <strong>Observações</strong>
+                    <span>${agendamento.observacoes}</span>
+                </div>
+                ` : ''}
+            </div>
+            ${concluidoEm ? `
+            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                ${isConcluido ? 'Concluído em: ' : 'Fracassado em: '}${concluidoEm}
+            </div>
+            ` : ''}
+        </div>
+        <div class="agendamento-actions-container">
+            <div class="agendamento-actions">
+                ${!isConcluido && !isFracassado ? `
+                <button class="btn-action btn-concluir" data-id="${agendamento.id}">
+                    <i class="fas fa-check"></i> Concluído
+                </button>
+                <button class="btn-action btn-fracassado" data-id="${agendamento.id}">
+                    <i class="fas fa-times"></i> Fracassado
+                </button>
+                ` : `
+                <button class="btn-action btn-desconcluir" data-id="${agendamento.id}">
+                    <i class="fas fa-undo"></i> Desfazer
+                </button>
+                `}
+            </div>
+        </div>
+    </div>
+`;
                     });
                 } else {
                     agendamentosHTML += `
