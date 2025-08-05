@@ -516,35 +516,54 @@
 
     // Função para extrair serviços de todas as fontes possíveis
     function extrairServicos(empresa) {
-        const servicos = [];
+    const servicos = [];
+    
+    // Função auxiliar para processar e adicionar serviços
+    const processarServicos = (servicoStr) => {
+        if (!servicoStr) return;
         
-        // 1. Verifica servicoAtendente (para PP- e P1-P30)
-        if (empresa.servicoAtendente && Array.isArray(empresa.servicoAtendente)) {
-            empresa.servicoAtendente.forEach(item => {
-                if (item.servico) {
-                    servicos.push(item.servico.trim());
-                }
+        // Divide por vírgula e por barra, depois remove espaços em branco
+        servicoStr.toString().split(/[,\/]/).forEach(part => {
+            const servico = part.trim();
+            if (servico) {
+                servicos.push(servico);
+            }
+        });
+    };
+    
+    // 1. Verifica servicoAtendente (para PP- e P1-P30)
+    if (empresa.servicoAtendente && Array.isArray(empresa.servicoAtendente)) {
+        empresa.servicoAtendente.forEach(item => {
+            if (item.servico) {
+                processarServicos(item.servico);
+            }
+        });
+    }
+    
+    // 2. Verifica campo servico (string ou array)
+    if (empresa.servico) {
+        if (typeof empresa.servico === 'string') {
+            processarServicos(empresa.servico);
+        } else if (Array.isArray(empresa.servico)) {
+            empresa.servico.forEach(servico => {
+                processarServicos(servico);
             });
         }
-        
-        // 2. Verifica campo servico (string ou array)
-        if (empresa.servico) {
-            if (typeof empresa.servico === 'string') {
-                empresa.servico.split(',').forEach(servico => {
-                    const servicoFormatado = servico.trim();
-                    if (servicoFormatado) {
-                        servicos.push(servicoFormatado);
-                    }
-                });
-            } else if (Array.isArray(empresa.servico)) {
-                empresa.servico.forEach(servico => {
-                    const servicoFormatado = String(servico).trim();
-                    if (servicoFormatado) {
-                        servicos.push(servicoFormatado);
-                    }
-                });
-            }
+    }
+    
+    // 3. Verifica campo servicos (string ou array)
+    if (empresa.servicos) {
+        if (typeof empresa.servicos === 'string') {
+            processarServicos(empresa.servicos);
+        } else if (Array.isArray(empresa.servicos)) {
+            empresa.servicos.forEach(servico => {
+                processarServicos(servico);
+            });
         }
+    }
+    
+    return servicos;
+}
         
         // 3. Verifica campo servicos (string ou array)
         if (empresa.servicos) {
@@ -946,49 +965,49 @@
     }
 
     function atualizarServicos() {
-        const cidade = document.getElementById('cidade').value.toLowerCase();
-        const estado = document.getElementById('estado').value;
-        const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
+    const cidade = document.getElementById('cidade').value.toLowerCase();
+    const estado = document.getElementById('estado').value;
+    const nomeEmpresa = document.getElementById('nome-empresa').value.toLowerCase();
+    
+    let empresasFiltradas = todasEmpresas.filter(empresa => {
+        const nome = (empresa.nomeFantasia || '').toLowerCase();
+        const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
+        const estadoEmpresa = (empresa.estado || '');
         
-        let empresasFiltradas = todasEmpresas.filter(empresa => {
-            const nome = (empresa.nomeFantasia || '').toLowerCase();
-            const cidadeEmpresa = (empresa.cidade || '').toLowerCase();
-            const estadoEmpresa = (empresa.estado || '');
-            
-            const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
-            const estadoMatch = !estado || estadoEmpresa === estado;
-            const nomeMatch = !nomeEmpresa || nome.includes(nomeEmpresa);
-            
-            return cidadeMatch && estadoMatch && nomeMatch;
+        const cidadeMatch = !cidade || cidadeEmpresa.includes(cidade);
+        const estadoMatch = !estado || estadoEmpresa === estado;
+        const nomeMatch = !nomeEmpresa || nome.includes(nomeEmpresa);
+        
+        return cidadeMatch && estadoMatch && nomeMatch;
+    });
+    
+    const servicosFiltrados = new Set();
+    empresasFiltradas.forEach(empresa => {
+        const servicos = extrairServicos(empresa);
+        servicos.forEach(servico => {
+            if (servico && typeof servico === 'string') {
+                servicosFiltrados.add(servico);
+            }
         });
-        
-        const servicosFiltrados = new Set();
-        empresasFiltradas.forEach(empresa => {
-            const servicos = extrairServicos(empresa);
-            servicos.forEach(servico => {
-                if (servico && typeof servico === 'string') {
-                    servicosFiltrados.add(servico);
-                }
-            });
+    });
+    
+    const selectServico = document.getElementById('servico');
+    const servicoSelecionado = selectServico.value.toLowerCase();
+    selectServico.innerHTML = '<option value="">Todos os serviços</option>';
+    
+    Array.from(servicosFiltrados)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach(servico => {
+            const option = document.createElement('option');
+            option.value = servico.toLowerCase();
+            option.textContent = servico;
+            selectServico.appendChild(option);
+            
+            if (servico.toLowerCase() === servicoSelecionado) {
+                option.selected = true;
+            }
         });
-        
-        const selectServico = document.getElementById('servico');
-        const servicoSelecionado = selectServico.value.toLowerCase();
-        selectServico.innerHTML = '<option value="">Todos os serviços</option>';
-        
-        Array.from(servicosFiltrados)
-            .sort((a, b) => a.localeCompare(b))
-            .forEach(servico => {
-                const option = document.createElement('option');
-                option.value = servico.toLowerCase();
-                option.textContent = servico;
-                selectServico.appendChild(option);
-                
-                if (servico.toLowerCase() === servicoSelecionado) {
-                    option.selected = true;
-                }
-            });
-    }
+}
 
     // Função para carregar empresas do Firestore
     async function carregarEmpresas() {
