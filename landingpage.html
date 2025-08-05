@@ -60,13 +60,14 @@
         }
         
         .section {
-            padding: 80px 0;
+            padding: 60px 0;
         }
         
         .section-title {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             position: relative;
+            font-size: 32px;
         }
         
         .section-title:after {
@@ -82,11 +83,15 @@
             text-align: center;
         }
         
+        .bg-light {
+            background-color: #f9f9f9;
+        }
+        
         /* Cabeçalho */
         header {
             background-color: #000000;
             color: white;
-            padding: 20px 0;
+            padding: 15px 0;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -97,9 +102,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
         }
         
         .logo {
@@ -216,9 +218,8 @@
         
         /* Features Section */
         .features {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-top: 40px;
         }
@@ -227,7 +228,6 @@
             background: white;
             border-radius: 8px;
             padding: 30px;
-            width: calc(33.333% - 20px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             transition: all 0.3s;
         }
@@ -264,6 +264,12 @@
             text-align: center;
             max-width: 800px;
             margin: 0 auto;
+            transition: all 0.3s;
+        }
+        
+        .industry-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
         
         .industry-placeholder {
@@ -297,13 +303,18 @@
             position: relative;
         }
         
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
         .pricing-card.popular {
             border: 2px solid #4CAF50;
             transform: scale(1.05);
         }
         
         .pricing-card.popular:before {
-            content: 'Mais Popular';
+            content: 'Plano Único';
             position: absolute;
             top: -10px;
             right: 20px;
@@ -354,8 +365,8 @@
         
         /* Testimonials Section */
         .testimonials {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-top: 40px;
         }
@@ -364,8 +375,13 @@
             background: white;
             border-radius: 8px;
             padding: 30px;
-            width: calc(50% - 15px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
         
         .testimonial-text {
@@ -404,37 +420,33 @@
         .cta h2 {
             color: white;
             margin-bottom: 20px;
+            font-size: 32px;
         }
         
         .cta p {
             max-width: 600px;
             margin: 0 auto 30px;
             opacity: 0.9;
+            font-size: 18px;
         }
         
         /* Footer */
         footer {
             background-color: #000000;
             color: white;
-            padding: 80px 0 30px;
+            padding: 60px 0 20px;
         }
         
         .footer-content {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 40px;
             margin-bottom: 40px;
         }
         
-        .footer-column {
-            flex: 1;
-            min-width: 200px;
-        }
-        
         .footer-column h3 {
             color: #4CAF50;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             font-size: 18px;
         }
         
@@ -448,10 +460,17 @@
         
         .footer-column ul li a {
             color: #bbb;
+            transition: color 0.3s;
         }
         
         .footer-column ul li a:hover {
             color: white;
+        }
+        
+        .footer-column p {
+            color: #bbb;
+            font-size: 14px;
+            line-height: 1.6;
         }
         
         .social-links {
@@ -461,13 +480,13 @@
         }
         
         .social-links a {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             width: 40px;
             height: 40px;
             background-color: rgba(255,255,255,0.1);
             border-radius: 50%;
-            text-align: center;
-            line-height: 40px;
             color: white;
             transition: all 0.3s;
         }
@@ -487,10 +506,6 @@
         
         /* Responsividade */
         @media (max-width: 992px) {
-            .feature-card {
-                width: calc(50% - 15px);
-            }
-            
             .pricing-cards {
                 flex-direction: column;
                 align-items: center;
@@ -526,39 +541,37 @@
             }
             
             .section {
-                padding: 60px 0;
-            }
-            
-            .feature-card,
-            .testimonial-card {
-                width: 100%;
-            }
-            
-            .footer-column {
-                min-width: 100%;
-                text-align: center;
-            }
-            
-            .social-links {
-                justify-content: center;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .hero {
-                padding: 80px 0;
-            }
-            
-            .hero h1 {
-                font-size: 28px;
+                padding: 50px 0;
             }
             
             .section-title {
                 font-size: 28px;
             }
             
+            .hero {
+                padding: 80px 0;
+            }
+            
             .btn {
                 padding: 10px 20px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero h1 {
+                font-size: 28px;
+            }
+            
+            .section-title {
+                font-size: 26px;
+            }
+            
+            .pricing-card {
+                padding: 30px 20px;
+            }
+            
+            .industry-content {
+                padding: 30px 20px;
             }
         }
         
@@ -569,6 +582,7 @@
         }
         
         .animate {
+            opacity: 0;
             animation: fadeIn 0.8s ease forwards;
         }
         
@@ -582,110 +596,6 @@
         
         .delay-3 {
             animation-delay: 0.6s;
-        }
-        
-        /* Efeitos de hover */
-        .hover-effect {
-            transition: all 0.3s ease;
-        }
-        
-        .hover-effect:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        
-        /* Formulários */
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        
-        .form-control:focus {
-            border-color: #4CAF50;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
-        }
-        
-        textarea.form-control {
-            min-height: 120px;
-            resize: vertical;
-        }
-        
-        /* Alertas */
-        .alert {
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-        
-        .alert-success {
-            background-color: #dff0d8;
-            color: #3c763d;
-            border: 1px solid #d6e9c6;
-        }
-        
-        .alert-danger {
-            background-color: #f2dede;
-            color: #a94442;
-            border: 1px solid #ebccd1;
-        }
-        
-        /* Tabelas */
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        
-        .table th, .table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .table th {
-            background-color: #f5f5f5;
-            font-weight: bold;
-        }
-        
-        .table-striped tbody tr:nth-child(odd) {
-            background-color: #f9f9f9;
-        }
-        
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-        }
-        
-        .card-header {
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        /* Grid */
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            margin: 0 -15px;
-        }
-        
-        .col {
-            padding: 0 15px;
-            flex: 1;
-            min-width: 0;
         }
         
         /* Helpers */
@@ -703,26 +613,14 @@
         .mb-40 { margin-bottom: 40px !important; }
         .mb-50 { margin-bottom: 50px !important; }
         
-        .pt-0 { padding-top: 0 !important; }
-        .pt-10 { padding-top: 10px !important; }
-        .pt-20 { padding-top: 20px !important; }
-        .pt-30 { padding-top: 30px !important; }
-        .pt-40 { padding-top: 40px !important; }
-        .pt-50 { padding-top: 50px !important; }
-        
-        .pb-0 { padding-bottom: 0 !important; }
-        .pb-10 { padding-bottom: 10px !important; }
-        .pb-20 { padding-bottom: 20px !important; }
-        .pb-30 { padding-bottom: 30px !important; }
-        .pb-40 { padding-bottom: 40px !important; }
-        .pb-50 { padding-bottom: 50px !important; }
+        .mr-10 { margin-right: 10px !important; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
     <!-- Cabeçalho -->
     <header>
-        <div class="header-container">
+        <div class="container header-container">
             <div class="logo">
                 <span class="logo-icon">H</span>
                 HORÁRIO
@@ -742,9 +640,10 @@
     <section class="hero">
         <div class="container">
             <h1 class="animate">Agendamento profissional para seu negócio</h1>
-            <p class="animate delay-1">Gerencie seus agendamentos de forma simples e eficiente com nossa plataforma completa.</p>
+            <p class="animate delay-1">Gerencie seus agendamentos de forma simples e eficiente com nossa plataforma completa por apenas R$30/mês.</p>
             <div class="hero-cta animate delay-2">
                 <a href="https://horario.site/cadastro.html" class="btn">Experimente Grátis</a>
+                <a href="#pricing" class="btn btn-outline ml-20">Conheça o Plano</a>
             </div>
             
             <div class="hero-placeholder animate delay-3">
@@ -757,9 +656,10 @@
     <section id="features" class="section">
         <div class="container">
             <h2 class="section-title">Recursos do HORÁRIO</h2>
+            <p class="text-center mb-50">Tudo que você precisa para gerenciar seus agendamentos com eficiência</p>
             
             <div class="features">
-                <div class="feature-card hover-effect">
+                <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-calendar-alt"></i>
                     </div>
@@ -767,7 +667,7 @@
                     <p>Seus clientes podem marcar horários a qualquer momento, reduzindo perda de oportunidades. Receba notificações instantâneas de novos agendamentos.</p>
                 </div>
                 
-                <div class="feature-card hover-effect">
+                <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-users"></i>
                     </div>
@@ -775,7 +675,7 @@
                     <p>Gerencie vários profissionais em um único painel, cada um com sua agenda individual. Atribua serviços específicos para cada profissional.</p>
                 </div>
                 
-                <div class="feature-card hover-effect">
+                <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-mobile-alt"></i>
                     </div>
@@ -783,7 +683,7 @@
                     <p>Acesse sua agenda de qualquer dispositivo, sempre sincronizada. Disponível para desktop, tablet e smartphones com aplicativo dedicado.</p>
                 </div>
                 
-                <div class="feature-card hover-effect">
+                <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-bell"></i>
                     </div>
@@ -791,15 +691,15 @@
                     <p>Reduza faltas com lembretes por SMS e e-mail enviados automaticamente antes dos compromissos. Personalize o tempo dos lembretes.</p>
                 </div>
                 
-                <div class="feature-card hover-effect">
+                <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-chart-bar"></i>
-                    <div>
+                    </div>
                     <h3>Relatórios Avançados</h3>
                     <p>Acompanhe o desempenho do seu negócio com relatórios detalhados de ocupação, receita e histórico de clientes. Exporte dados para análise.</p>
                 </div>
                 
-                <div class="feature-card hover-effect">
+                <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-lock"></i>
                     </div>
@@ -814,8 +714,9 @@
     <section id="industries" class="section bg-light">
         <div class="container">
             <h2 class="section-title">Nossos Serviços</h2>
+            <p class="text-center mb-50">Uma solução completa para diversos tipos de negócios</p>
             
-            <div class="industry-content hover-effect">
+            <div class="industry-content">
                 <h3>Solução completa para seu negócio</h3>
                 <p>Oferecemos uma plataforma versátil que atende diversos tipos de negócios e profissionais, com configurações personalizadas para cada necessidade.</p>
                 
@@ -826,7 +727,7 @@
                 <p><strong>Perfeito para:</strong> Clínicas médicas e odontológicas, salões de beleza e barbearias, prestadores de serviço autônomos, consultórios, escolas, academias e empresas em geral.</p>
                 
                 <div class="mt-30">
-                    <a href="#pricing" class="btn">Conheça nossos planos</a>
+                    <a href="#pricing" class="btn">Conheça nosso plano</a>
                 </div>
             </div>
         </div>
@@ -835,54 +736,27 @@
     <!-- Seção Preços -->
     <section id="pricing" class="section">
         <div class="container">
-            <h2 class="section-title">Nossos Planos</h2>
-            <p class="text-center mb-50">Escolha o plano que melhor atende às necessidades do seu negócio</p>
+            <h2 class="section-title">Nosso Plano</h2>
+            <p class="text-center mb-50">Tudo que você precisa por um preço justo e acessível</p>
             
             <div class="pricing-cards">
-                <div class="pricing-card hover-effect">
-                    <h3>Básico</h3>
-                    <p>Ideal para profissionais autônomos</p>
-                    <div class="pricing-price">R$19<span>/mês</span></div>
-                    <ul class="pricing-features">
-                        <li>1 profissional</li>
-                        <li>Até 50 agendamentos/mês</li>
-                        <li>Lembretes por e-mail</li>
-                        <li>Suporte por e-mail</li>
-                        <li>Acesso web e mobile</li>
-                    </ul>
-                    <a href="https://horario.site/cadastro.html" class="btn btn-outline">Começar</a>
-                </div>
-                
-                <div class="pricing-card hover-effect popular">
-                    <h3>Completo</h3>
-                    <p>Para pequenas equipes e negócios</p>
+                <div class="pricing-card popular">
+                    <h3>Plano Completo</h3>
+                    <p>Todos os recursos por um preço único</p>
                     <div class="pricing-price">R$30<span>/mês</span></div>
                     <ul class="pricing-features">
                         <li>Até 10 profissionais</li>
                         <li>Agendamento ilimitado</li>
                         <li>Lembretes por SMS e e-mail</li>
                         <li>Relatórios avançados</li>
+                        <li>Multiplataforma</li>
                         <li>Suporte prioritário</li>
+                        <li>Segurança de dados</li>
                     </ul>
-                    <a href="https://horario.site/cadastro.html" class="btn">Começar</a>
-                </div>
-                
-                <div class="pricing-card hover-effect">
-                    <h3>Empresarial</h3>
-                    <p>Para grandes equipes e franquias</p>
-                    <div class="pricing-price">R$99<span>/mês</span></div>
-                    <ul class="pricing-features">
-                        <li>Profissionais ilimitados</li>
-                        <li>Agendamento ilimitado</li>
-                        <li>Integrações API</li>
-                        <li>Treinamento dedicado</li>
-                        <li>Suporte 24/7</li>
-                    </ul>
-                    <a href="https://horario.site/cadastro.html" class="btn btn-outline">Começar</a>
+                    <a href="https://horario.site/cadastro.html" class="btn">Comece Agora</a>
+                    <p class="mt-20" style="font-size:14px;color:#666;">Teste gratuito de 14 dias. Sem cobrança inicial.</p>
                 </div>
             </div>
-            
-            <p class="text-center mt-50" style="color:#666;">Teste gratuito de 14 dias em todos os planos. Não é necessário cartão de crédito.</p>
         </div>
     </section>
 
@@ -890,9 +764,10 @@
     <section id="testimonials" class="section bg-light">
         <div class="container">
             <h2 class="section-title">O que dizem nossos clientes</h2>
+            <p class="text-center mb-50">Veja como o HORÁRIO está transformando negócios</p>
             
             <div class="testimonials">
-                <div class="testimonial-card hover-effect">
+                <div class="testimonial-card">
                     <div class="testimonial-text">
                         <p>O HORÁRIO revolucionou nossa clínica. Reduzimos em 80% as falhas de agendamento e nossos pacientes adoram a facilidade de marcar consultas online a qualquer hora.</p>
                     </div>
@@ -900,7 +775,7 @@
                     <div class="testimonial-role">Clínica Médica Saúde Total</div>
                 </div>
                 
-                <div class="testimonial-card hover-effect">
+                <div class="testimonial-card">
                     <div class="testimonial-text">
                         <p>Como cabeleireira autônoma, o HORÁRIO me permite focar no que realmente importa: meus clientes. Não preciso mais ficar anotando horários em papel ou perdendo compromissos.</p>
                     </div>
@@ -908,20 +783,12 @@
                     <div class="testimonial-role">Cabeleireira Profissional</div>
                 </div>
                 
-                <div class="testimonial-card hover-effect">
+                <div class="testimonial-card">
                     <div class="testimonial-text">
                         <p>Implementamos o HORÁRIO em nossa rede de academias e a eficiência no agendamento de aulas melhorou drasticamente. Os alunos adoram a praticidade do aplicativo.</p>
                     </div>
                     <div class="testimonial-author">Carlos Eduardo</div>
                     <div class="testimonial-role">Rede de Academias FitLife</div>
-                </div>
-                
-                <div class="testimonial-card hover-effect">
-                    <div class="testimonial-text">
-                        <p>Depois de testar várias plataformas, encontrei no HORÁRIO a solução perfeita para meu consultório. Simples de usar mas com todos os recursos que preciso.</p>
-                    </div>
-                    <div class="testimonial-author">Dra. Fernanda Oliveira</div>
-                    <div class="testimonial-role">Psicóloga Clínica</div>
                 </div>
             </div>
         </div>
@@ -931,7 +798,7 @@
     <section class="cta">
         <div class="container">
             <h2>Pronto para transformar seu agendamento?</h2>
-            <p>Experimente gratuitamente por 14 dias e descubra como o HORÁRIO pode simplificar sua rotina.</p>
+            <p>Experimente gratuitamente por 14 dias e descubra como o HORÁRIO pode simplificar sua rotina por apenas R$30/mês.</p>
             <div class="mt-30">
                 <a href="https://horario.site/cadastro.html" class="btn">Comece Agora - Grátis</a>
             </div>
@@ -946,10 +813,10 @@
                     <h3>Sobre o HORÁRIO</h3>
                     <p>Plataforma de agendamento profissional desenvolvida para simplificar a gestão de compromissos em diversos tipos de negócios.</p>
                     <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
                 
@@ -961,6 +828,7 @@
                         <li><a href="#pricing">Preços</a></li>
                         <li><a href="#">Blog</a></li>
                         <li><a href="#">Termos de Uso</a></li>
+                        <li><a href="#">Política de Privacidade</a></li>
                     </ul>
                 </div>
                 
@@ -971,6 +839,7 @@
                         <li><a href="#">Tutoriais</a></li>
                         <li><a href="#">Perguntas Frequentes</a></li>
                         <li><a href="#">Contatar Suporte</a></li>
+                        <li><a href="#">Status do Serviço</a></li>
                     </ul>
                 </div>
                 
@@ -980,12 +849,13 @@
                         <li><i class="fas fa-envelope mr-10"></i> contato@horario.site</li>
                         <li><i class="fas fa-phone mr-10"></i> (11) 1234-5678</li>
                         <li><i class="fas fa-map-marker-alt mr-10"></i> São Paulo, Brasil</li>
+                        <li><i class="fas fa-clock mr-10"></i> Seg-Sex: 9h-18h</li>
                     </ul>
                 </div>
             </div>
             
             <div class="copyright">
-                <p>&copy; 2023 HORÁRIO. Todos os direitos reservados.</p>
+                <p>&copy; 2023 HORÁRIO. Todos os direitos reservados. CNPJ: 12.345.678/0001-99</p>
             </div>
         </div>
     </footer>
@@ -1034,21 +904,6 @@
         // Verifica a posição ao carregar e ao rolar
         window.addEventListener('load', animateOnScroll);
         window.addEventListener('scroll', animateOnScroll);
-        
-        // Efeito hover nos cards
-        const hoverCards = document.querySelectorAll('.hover-effect');
-        
-        hoverCards.forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-10px)';
-                this.style.boxShadow = '0 15px 30px rgba(0,0,0,0.1)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.05)';
-            });
-        });
     </script>
 </body>
 </html>
