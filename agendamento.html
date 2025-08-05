@@ -251,35 +251,47 @@
     }
 
     function verificarAgendamentoExistente(documento) {
-        const docNumerico = documento.replace(/\D/g, '');
-        
-        // Verifica em todos os documentos de atendentes
-        const promises = atendentes.map(atendente => {
-            return db.collection("usuarios").doc(atendente.docId)
-                .collection("agendamentos")
-                .where("clienteDocumento", "==", docNumerico)
-                .where("status", "==", "confirmado")
-                .get();
-        });
-
-        Promise.all(promises)
-            .then(results => {
-                const agendamentos = [];
-                results.forEach(querySnapshot => {
-                    querySnapshot.forEach(doc => {
-                        agendamentos.push({ id: doc.id, ...doc.data(), docRef: doc.ref });
+    const docNumerico = documento.replace(/\D/g, '');
+    
+    // Primeiro encontra todos os documentos de atendentes
+    db.collection("usuarios")
+        .where("atendente", "!=", null) // Assumindo que documentos de atendentes têm o campo "atendente"
+        .get()
+        .then(querySnapshot => {
+            const promises = [];
+            
+            querySnapshot.forEach(doc => {
+                promises.push(
+                    doc.ref.collection("agendamentos")
+                        .where("clienteDocumento", "==", docNumerico)
+                        .where("status", "==", "confirmado")
+                        .get()
+                );
+            });
+            
+            return Promise.all(promises);
+        })
+        .then(results => {
+            const agendamentos = [];
+            results.forEach(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    agendamentos.push({ 
+                        id: doc.id, 
+                        ...doc.data(), 
+                        docRef: doc.ref 
                     });
                 });
-
-                if (agendamentos.length > 0) {
-                    agendamentoExistente = agendamentos[0];
-                    exibirAgendamentoExistente(agendamentoExistente);
-                }
-            })
-            .catch(err => {
-                console.error("Erro ao verificar agendamentos:", err);
             });
-    }
+
+            if (agendamentos.length > 0) {
+                agendamentoExistente = agendamentos[0];
+                exibirAgendamentoExistente(agendamentoExistente);
+            }
+        })
+        .catch(err => {
+            console.error("Erro ao verificar agendamentos:", err);
+        });
+}
 
     function exibirAgendamentoExistente(agendamento) {
         const resumo = document.getElementById('resumo-agendamento-existente');
@@ -544,53 +556,64 @@
     }
     
     function carregarHorariosDisponiveis() {
-        if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado || !atendenteSelecionado) return;
-        
-        const container = document.getElementById('horarios-container');
-        container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3">Carregando...</p></div>';
-        
-        document.getElementById('horario-section').classList.remove('d-none');
-        document.getElementById('dados-section').classList.add('d-none');
-        document.getElementById('btn-confirmar').classList.add('d-none');
-        
-        const dataFormatada = formatarDataFirestore(dataSelecionada);
-        const hojeFormatado = formatarDataFirestore(new Date());
-        const isHoje = dataFormatada === hojeFormatado;
-        const agora = new Date();
-        
-        const select = document.getElementById('servico-atendente');
-        const selectedOption = select.options[select.selectedIndex];
-        const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
-        
-        // Busca todos os agendamentos do atendente naquela data
-        db.collection("usuarios").doc(atendenteInfo.docId)
-            .collection("agendamentos")
-            .where("data", "==", dataFormatada)
-            .where("prestador", "==", atendenteSelecionado)
-            .where("status", "==", "confirmado")
-            .get()
-            .then(querySnapshot => {
-                const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
+    if (!empresaSelecionada || !dataSelecionada || !servicoSelecionado || !atendenteSelecionado) return;
+    
+    const container = document.getElementById('horarios-container');
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3">Carregando...</p></div>';
+    
+    document.getElementById('horario-section').classList.remove('d-none');
+    document.getElementById('dados-section').classList.add('d-none');
+    document.getElementById('btn-confirmar').classList.add('d-none');
+    
+    const dataFormatada = formatarDataFirestore(dataSelecionada);
+    const hojeFormatado = formatarDataFirestore(new Date());
+    const isHoje = dataFormatada === hojeFormatado;
+    const agora = new Date();
+    
+    const select = document.getElementById('servico-atendente');
+    const selectedOption = select.options[select.selectedIndex];
+    const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
+    
+    // Busca o documento do atendente primeiro
+    db.collection("usuarios")
+        .where("atendente", "==", atendenteSelecionado)
+        .get()
+        .then(querySnapshot => {
+            if (querySnapshot.empty) {
+                throw new Error("Atendente não encontrado");
+            }
+            
+            const atendenteDoc = querySnapshot.docs[0];
+            
+            // Busca os agendamentos do atendente naquela data
+            return atendenteDoc.ref.collection("agendamentos")
+                .where("data", "==", dataFormatada)
+                .where("prestador", "==", atendenteSelecionado)
+                .where("status", "==", "confirmado")
+                .get();
+        })
+        .then(querySnapshot => {
+            const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
+            
+            const horariosBase = calcularHorariosDisponiveis(atendenteInfo);
+            
+            const horariosDisponiveis = horariosBase.map(horario => {
+                const [h, m] = horario.split(':').map(Number);
+                const horarioValido = !isHoje || (h > agora.getHours() || (h === agora.getHours() && m > agora.getMinutes()));
                 
-                const horariosBase = calcularHorariosDisponiveis(atendenteInfo);
-                
-                const horariosDisponiveis = horariosBase.map(horario => {
-                    const [h, m] = horario.split(':').map(Number);
-                    const horarioValido = !isHoje || (h > agora.getHours() || (h === agora.getHours() && m > agora.getMinutes()));
-                    
-                    return {
-                        horario,
-                        disponivel: horarioValido && !horariosOcupados.includes(horario)
-                    };
-                });
-                
-                exibirHorariosDisponiveis(horariosDisponiveis);
-            })
-            .catch(err => {
-                console.error("Erro ao carregar horários:", err);
-                container.innerHTML = '<div class="alert alert-danger">Erro ao carregar horários.</div>';
+                return {
+                    horario,
+                    disponivel: horarioValido && !horariosOcupados.includes(horario)
+                };
             });
-    }
+            
+            exibirHorariosDisponiveis(horariosDisponiveis);
+        })
+        .catch(err => {
+            console.error("Erro ao carregar horários:", err);
+            container.innerHTML = '<div class="alert alert-danger">Erro ao carregar horários.</div>';
+        });
+}
     
     function calcularHorariosDisponiveis(atendenteInfo) {
         const horarios = [];
@@ -669,47 +692,59 @@
     }
     
     function confirmarAgendamento() {
-        if (agendamentoConfirmado) return;
-        
-        const nome = document.getElementById('nome').value.trim();
-        const telefone = document.getElementById('telefone').value.trim();
-        const email = document.getElementById('email').value.trim();
-        
-        if (!nome || !telefone) {
-            mostrarErro("Preencha todos os campos obrigatórios.");
-            return;
-        }
-        
-        // Obtém as informações do atendente selecionado
-        const select = document.getElementById('servico-atendente');
-        const selectedOption = select.options[select.selectedIndex];
-        const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
-        
-        const agendamento = {
-            servico: servicoSelecionado,
-            prestador: atendenteSelecionado,
-            data: formatarDataFirestore(dataSelecionada),
-            horario: horarioSelecionado,
-            clienteNome: nome,
-            clienteDocumento: documentoCliente.replace(/\D/g, ''),
-            clienteTelefone: telefone,
-            clienteEmail: email || '',
-            status: "confirmado",
-            dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        db.collection("usuarios").doc(atendenteInfo.docId)
-            .collection("agendamentos")
-            .add(agendamento)
-            .then(() => {
-                agendamentoConfirmado = true;
-                preencherResumoAgendamento();
-            })
-            .catch(err => {
-                console.error("Erro ao confirmar:", err);
-                mostrarErro("Erro ao confirmar agendamento.");
-            });
+    if (agendamentoConfirmado) return;
+    
+    const nome = document.getElementById('nome').value.trim();
+    const telefone = document.getElementById('telefone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    
+    if (!nome || !telefone) {
+        mostrarErro("Preencha todos os campos obrigatórios.");
+        return;
     }
+    
+    // Obtém as informações do atendente selecionado
+    const select = document.getElementById('servico-atendente');
+    const selectedOption = select.options[select.selectedIndex];
+    const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
+    
+    const agendamento = {
+        servico: servicoSelecionado,
+        prestador: atendenteSelecionado,
+        data: formatarDataFirestore(dataSelecionada),
+        horario: horarioSelecionado,
+        clienteNome: nome,
+        clienteDocumento: documentoCliente.replace(/\D/g, ''),
+        clienteTelefone: telefone,
+        clienteEmail: email || '',
+        status: "confirmado",
+        dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    // Encontra o documento do atendente no Firestore
+    db.collection("usuarios")
+        .where("atendente", "==", atendenteSelecionado)
+        .get()
+        .then(querySnapshot => {
+            if (querySnapshot.empty) {
+                throw new Error("Documento do atendente não encontrado");
+            }
+            
+            // Usa o primeiro documento encontrado (deveria ser único)
+            const atendenteDoc = querySnapshot.docs[0];
+            
+            // Adiciona o agendamento na subcoleção do documento do atendente
+            return atendenteDoc.ref.collection("agendamentos").add(agendamento);
+        })
+        .then(() => {
+            agendamentoConfirmado = true;
+            preencherResumoAgendamento();
+        })
+        .catch(err => {
+            console.error("Erro ao confirmar:", err);
+            mostrarErro("Erro ao confirmar agendamento. Atendente não encontrado.");
+        });
+}
     
     function preencherResumoAgendamento() {
         const nome = document.getElementById('nome').value.trim();
