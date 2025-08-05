@@ -510,18 +510,19 @@
                 
                 <div class="form-group">
                     <label for="maquinas">Quantas máquinas irão usar? (Máximo 30)</label>
-                    <input type="number" id="maquinas" min="1" max="30" value="1" required>
-                    <div class="exemplo">Obs.: Se você for escolher mais de 1 máquina, então não precisa cadastrar atendentes e nem o seus serviços, caso usará apenas uma máquina porém tem vários atendentes e os horarios deles serão padrão então deve cadastrar os serviços e os atendentes. Para mais de 30 máquinas, entre em contato para negociar o valor.:</div>
+                    <input type="number" id="maquinas" min="1" max="30" value="1" required>          
                 </div>
                 
                 <div class="form-group">
-                    <label for="atendentes">Quantos serviços diferentes serão oferecidos?</label>
+                    <label for="atendentes">Quantos atendentes serão e quais serviços prestarão?</label>
+		    <div class="exemplo">Obs.: No seu painel de controle poderá solicitar a mudança, remoção ou modificação. Este campo é para quem tem vários prestadores, como uma clínica, que prestam serviços variados. Preenchendo este campo não precisa preencher o debaixo.</div>
                     <input type="number" id="atendentes" min="0" max="30" value="0">
                     <div id="atendentes-container" class="atendentes-container" style="display: none;"></div>
                 </div>
                 
                 <div class="form-group" id="servicos-group">
                     <label for="servicos">Quais serviços sua empresa presta?</label>
+		    <div class="exemplo">Obs.: Caso será somente um atendente, coloque seus serviços conforme o exemplo abaixo!</div>
                     <textarea id="servicos" rows="3"></textarea>
                     <div class="exemplo">Exemplo: Clínica médica geral / Odontologia / Dermatologia / Psicologia - Separe os serviços com barras (/)</div>
                 </div>
