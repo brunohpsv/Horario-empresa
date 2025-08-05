@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -213,6 +214,19 @@
     }
     
     const db = firebase.firestore();
+
+firebase.auth().signInAnonymously()
+    .then(() => {
+        console.log("Autenticado anonimamente");
+    })
+    .catch(error => {
+        console.error("Erro na autenticação anônima:", error);
+    });
+
+firebase.firestore().enablePersistence()
+    .catch(err => {
+        console.error("Erro ao ativar persistência:", err);
+    });
     
     // Variáveis globais
     let empresaSelecionada = null;
@@ -242,6 +256,11 @@
     // Funções auxiliares
     const formatarData = date => new Date(date).toLocaleDateString('pt-BR');
     const formatarDataFirestore = date => new Date(date).toISOString().split('T')[0];
+
+function sanitizeInput(input) {
+    if (typeof input !== 'string') return input;
+    return input.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
     
     function mostrarErro(mensagem) {
         const el = document.getElementById('error-message');
@@ -686,8 +705,20 @@
     const telefone = document.getElementById('telefone').value.trim();
     const email = document.getElementById('email').value.trim();
     
-    if (!nome || !telefone) {
-        mostrarErro("Preencha todos os campos obrigatórios.");
+    // VALIDAÇÕES ADICIONADAS AQUI
+    if (nome.length < 3 || nome.length > 100) {
+        mostrarErro("O nome deve ter entre 3 e 100 caracteres.");
+        return;
+    }
+    
+    const telefoneNumerico = telefone.replace(/\D/g, '');
+    if (telefoneNumerico.length < 10 || telefoneNumerico.length > 11) {
+        mostrarErro("Telefone inválido. Digite um telefone válido com DDD.");
+        return;
+    }
+    
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        mostrarErro("Formato de e-mail inválido.");
         return;
     }
     
@@ -702,14 +733,14 @@
     }
     
     const agendamento = {
-        servico: servicoSelecionado,
-        prestador: atendenteSelecionado,
+        servico: sanitizeInput(servicoSelecionado),
+        prestador: sanitizeInput(atendenteSelecionado),
         data: formatarDataFirestore(dataSelecionada),
         horario: horarioSelecionado,
-        clienteNome: nome,
+        clienteNome: sanitizeInput(nome),
         clienteDocumento: documentoCliente.replace(/\D/g, ''),
-        clienteTelefone: telefone,
-        clienteEmail: email || '',
+        clienteTelefone: telefoneNumerico,
+        clienteEmail: sanitizeInput(email || ''),
         status: "confirmado",
         dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
     };
