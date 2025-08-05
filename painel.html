@@ -8,6 +8,70 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
+        /* Menu de três pontos */
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            background-color: #333;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 100;
+            min-width: 200px;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .dropdown-menu ul {
+            list-style: none;
+        }
+        
+        .dropdown-menu li {
+            padding: 10px 20px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .dropdown-menu li:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-menu a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            transition: color 0.3s;
+        }
+        
+        .dropdown-menu a:hover {
+            color: #4CAF50;
+        }
+        
+        .dropdown-menu .logout-btn {
+            color: #f44336;
+        }
+        
+        .dropdown-menu .logout-btn:hover {
+            color: #d32f2f;
+        }
+
         /* Reset e estilos gerais */
         * {
             margin: 0;
@@ -27,95 +91,27 @@
         header {
             background-color: #000000;
             color: white;
-            padding: 15px 20px;
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
-            z-index: 100;
         }
         
         .logo {
-            font-size: 18px;
+            font-size: 24px;
             font-weight: bold;
             letter-spacing: 1px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 70%;
         }
         
-        /* Menu de três pontos */
-        .menu-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
+        .menu-container {
+            position: relative;
         }
         
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 10px;
-            background-color: #333;
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            display: none;
-            z-index: 100;
-            min-width: 200px;
-            max-width: 90vw;
-        }
-        
-        .dropdown-menu.show {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .dropdown-menu ul {
-            list-style: none;
-        }
-        
-        .dropdown-menu li {
-            padding: 10px 15px;
-            border-bottom: 1px solid #444;
-        }
-        
-        .dropdown-menu li:last-child {
-            border-bottom: none;
-        }
-        
-        .dropdown-menu a {
-            color: white;
-            text-decoration: none;
-            display: block;
-            transition: color 0.3s;
-            font-size: 14px;
-        }
-        
-        .dropdown-menu a:hover {
-            color: #4CAF50;
-        }
-        
-        .dropdown-menu .logout-btn {
-            color: #f44336;
-        }
-        
-        .dropdown-menu .logout-btn:hover {
-            color: #d32f2f;
-        }
-
         /* Container principal */
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 10px;
+            padding: 10px 20px;
             flex: 1;
             width: 100%;
         }
@@ -125,51 +121,32 @@
             background-color: white;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             width: 100%;
-            min-height: 400px;
+            height: 600px;
             margin-top: 0;
             border: 1px solid #e0e0e0;
         }
         
-        /* Estilos do FullCalendar - Responsivo */
+        /* Estilos do FullCalendar */
         .fc-toolbar {
-            margin-bottom: 5px;
-            padding: 8px;
+            margin-bottom: 10px;
+            padding: 10px;
             background: #f8f8f8;
             border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            flex-wrap: wrap;
         }
         
         .fc-toolbar h2 {
-            font-size: 1em;
+            font-size: 1.2em;
             font-weight: 500;
             color: #333;
-            margin: 5px 0;
-            order: 1;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .fc-left, .fc-right {
-            order: 2;
-            width: 50%;
-        }
-        
-        .fc-right {
-            text-align: right;
-        }
-        
-        .fc-center {
-            display: none;
+            margin: 0;
         }
         
         .fc-button {
             background: white;
             border: 1px solid #ddd;
             color: #555;
-            padding: 3px 8px;
+            padding: 5px 10px;
             height: auto;
-            font-size: 0.8em;
         }
         
         .fc-button:hover {
@@ -177,23 +154,23 @@
         }
         
         .fc-day-header {
-            padding: 5px 0;
+            padding: 8px 0;
             font-weight: 500;
             color: #555;
-            font-size: 0.7em;
+            font-size: 0.85em;
             background: #f8f8f8;
             border-color: #e0e0e0;
         }
         
         .fc-day {
             border-color: #f0f0f0;
-            min-height: 50px;
+            min-height: 70px;
             position: relative;
         }
         
         .fc-day-number {
-            font-size: 0.8em;
-            padding: 3px;
+            font-size: 0.9em;
+            padding: 5px;
             color: #333;
             font-weight: 500;
         }
@@ -204,30 +181,30 @@
         
         /* Dias com agendamentos */
         .fc-day.has-agendamento {
-            background-color: #e8f5e9 !important;
+            background-color: #e8f5e9 !important; /* Verde claro para agendamentos futuros */
         }
         
         .fc-day.past-agendamento {
-            background-color: #ffebee !important;
+            background-color: #ffebee !important; /* Vermelho claro para agendamentos passados */
         }
         
         /* Visualização de dia */
         .day-container {
             width: 100%;
-            min-height: calc(100vh - 150px);
+            height: calc(100vh - 180px);
             background-color: white;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 10px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         
-        /* Lista de agendamentos - Responsivo */
+        /* Lista de agendamentos - NOVO ESTILO */
         .day-agendamentos-container {
             width: 100%;
             max-width: 100%;
-            padding: 0 10px;
+            padding: 0 20px;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -237,9 +214,9 @@
         }
         
         .day-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-align: center;
         }
         
@@ -247,16 +224,17 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
         
         .agendamento-item {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
             background-color: #ffffff;
             border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 12px;
+            border-radius: 8px;
+            padding: 15px;
             transition: all 0.3s ease;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
@@ -276,7 +254,6 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
-            margin-bottom: 10px;
         }
         
         .agendamento-horario {
@@ -288,35 +265,31 @@
         .agendamento-detalhes {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
         }
         
         .agendamento-detalhe {
             display: flex;
             flex-direction: column;
-            min-width: 120px;
-            flex: 1 0 calc(50% - 10px);
         }
         
         .agendamento-detalhe strong {
-            font-size: 11px;
+            font-size: 12px;
             color: #666;
         }
         
         .agendamento-detalhe span {
-            font-size: 13px;
+            font-size: 14px;
             color: #333;
         }
         
         .agendamento-actions {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
+            gap: 10px;
         }
         
         .btn-action {
-            padding: 6px 10px;
+            padding: 8px 12px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -325,7 +298,6 @@
             align-items: center;
             gap: 5px;
             transition: all 0.3s;
-            font-size: 12px;
         }
         
         .btn-concluir {
@@ -358,10 +330,10 @@
         .no-agendamentos {
             text-align: center;
             color: #666;
-            padding: 15px;
-            font-size: 14px;
+            padding: 20px;
+            font-size: 16px;
             background: white;
-            border-radius: 6px;
+            border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
@@ -369,12 +341,11 @@
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 8px 16px;
             cursor: pointer;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             border-radius: 4px;
             transition: background-color 0.3s;
-            font-size: 14px;
         }
         
         #voltar-mes:hover {
@@ -422,221 +393,21 @@
         footer {
             background-color: #000000;
             color: white;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 30px;
             width: 100%;
         }
         
         .contato-rodape {
             max-width: 1200px;
             margin: 0 auto;
-            line-height: 1.5;
-            font-size: 14px;
+            line-height: 1.6;
         }
         
         .contato-rodape a {
             color: #4CAF50;
             text-decoration: none;
-        }
-        
-        /* Media Queries para diferentes tamanhos de tela */
-        @media (min-width: 576px) {
-            .logo {
-                font-size: 20px;
-            }
-            
-            .container {
-                padding: 15px;
-            }
-            
-            .fc-toolbar h2 {
-                font-size: 1.1em;
-            }
-            
-            .fc-button {
-                padding: 4px 10px;
-                font-size: 0.9em;
-            }
-            
-            .day-title {
-                font-size: 20px;
-            }
-            
-            .agendamento-item {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-            }
-            
-            .agendamento-info {
-                margin-bottom: 0;
-            }
-            
-            .agendamento-detalhe {
-                flex: 0 0 auto;
-            }
-        }
-        
-        @media (min-width: 768px) {
-            header {
-                padding: 20px 30px;
-            }
-            
-            .logo {
-                font-size: 22px;
-                max-width: none;
-            }
-            
-            .dropdown-menu {
-                right: 20px;
-            }
-            
-            .fc-toolbar h2 {
-                font-size: 1.2em;
-                order: 0;
-                width: auto;
-                margin: 0;
-            }
-            
-            .fc-left, .fc-right {
-                order: 0;
-                width: auto;
-            }
-            
-            .fc-center {
-                display: block;
-                flex: 1;
-                text-align: center;
-            }
-            
-            .fc-button {
-                padding: 5px 12px;
-            }
-            
-            .fc-day-header {
-                font-size: 0.8em;
-            }
-            
-            .fc-day-number {
-                font-size: 0.9em;
-            }
-            
-            .day-agendamentos-container {
-                padding: 0 20px;
-            }
-            
-            .agendamento-detalhe {
-                min-width: 150px;
-            }
-            
-            .btn-action {
-                padding: 8px 12px;
-                font-size: 14px;
-            }
-        }
-        
-        @media (min-width: 992px) {
-            .container {
-                padding: 20px;
-            }
-            
-            #calendar {
-                height: 600px;
-            }
-            
-            .fc-day {
-                min-height: 70px;
-            }
-            
-            .day-container {
-                padding: 20px;
-            }
-            
-            .day-title {
-                font-size: 22px;
-            }
-            
-            .agendamento-list {
-                gap: 10px;
-            }
-            
-            .agendamento-item {
-                padding: 15px;
-            }
-            
-            .agendamento-detalhe strong {
-                font-size: 12px;
-            }
-            
-            .agendamento-detalhe span {
-                font-size: 14px;
-            }
-        }
-        
-        @media (min-width: 1200px) {
-            .container {
-                padding: 20px 40px;
-            }
-            
-            .fc-toolbar {
-                padding: 10px;
-            }
-            
-            .fc-toolbar h2 {
-                font-size: 1.3em;
-            }
-        }
-        
-        @media (min-width: 1400px) {
-            /* Estilos para telas muito grandes (TVs) */
-            body {
-                font-size: 18px;
-            }
-            
-            .container {
-                max-width: 1400px;
-            }
-            
-            #calendar {
-                height: 800px;
-            }
-            
-            .fc-day-header {
-                font-size: 1em;
-                padding: 10px 0;
-            }
-            
-            .fc-day-number {
-                font-size: 1em;
-                padding: 5px;
-            }
-            
-            .fc-button {
-                padding: 8px 16px;
-                font-size: 1em;
-            }
-            
-            .agendamento-item {
-                padding: 20px;
-            }
-            
-            .agendamento-horario {
-                font-size: 20px;
-            }
-            
-            .agendamento-detalhe strong {
-                font-size: 14px;
-            }
-            
-            .agendamento-detalhe span {
-                font-size: 16px;
-            }
-            
-            .btn-action {
-                padding: 10px 15px;
-                font-size: 16px;
-            }
         }
     </style>
 </head>
@@ -778,8 +549,8 @@
                 selectHelper: false,
                 editable: false,
                 eventLimit: false,
-                height: 'auto',
-                aspectRatio: window.innerWidth < 768 ? 1 : 1.8,
+                height: 600,
+                aspectRatio: 1.8,
                 dayRender: function(date, cell) {
                     // Verifica se há agendamentos para este dia
                     checkDayForAgendamentos(date, cell, userData.id);
@@ -804,12 +575,6 @@
                         loadAgendamentosForDay(userData.id, dateKey, dateStr);
                     }
                 }
-            });
-            
-            // Ajusta o calendário quando a janela é redimensionada
-            $(window).resize(function() {
-                $('#calendar').fullCalendar('option', 'aspectRatio', window.innerWidth < 768 ? 1 : 1.8);
-                $('#calendar').fullCalendar('render');
             });
         }
 
