@@ -1,3 +1,8 @@
+# Código HTML Atualizado para HORARIO
+
+Aqui está o código completo com as melhorias solicitadas:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -30,12 +35,20 @@
             top: 0;
             z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
         }
         
         .logo {
             font-size: 24px;
             font-weight: bold;
             letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo img {
+            height: 30px;
+            margin-right: 10px;
         }
         
         nav ul {
@@ -52,6 +65,7 @@
             text-decoration: none;
             font-size: 16px;
             transition: color 0.3s;
+            font-weight: 500;
         }
         
         nav ul li a:hover {
@@ -62,15 +76,20 @@
             display: inline-block;
             background-color: #4CAF50;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 25px;
             border-radius: 4px;
             text-decoration: none;
             font-weight: bold;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
         }
         
         .btn:hover {
             background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
         .btn-outline {
@@ -87,26 +106,63 @@
         .hero {
             background: linear-gradient(135deg, #000000 0%, #333333 100%);
             color: white;
-            padding: 80px 20px;
+            padding: 100px 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+        }
+        
+        .hero .container {
+            position: relative;
+            z-index: 1;
         }
         
         .hero h1 {
             font-size: 42px;
             margin-bottom: 20px;
             line-height: 1.2;
+            font-weight: 700;
         }
         
         .hero p {
             font-size: 20px;
             max-width: 800px;
             margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+        
+        .hero-image {
+            max-width: 600px;
+            margin: 40px auto 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        .hero-image img {
+            width: 100%;
+            height: auto;
+            display: block;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 60px 20px;
         }
         
         .section-title {
@@ -115,6 +171,7 @@
             font-size: 32px;
             color: #333;
             position: relative;
+            font-weight: 700;
         }
         
         .section-title:after {
@@ -140,12 +197,24 @@
             padding: 30px;
             width: calc(33.333% - 20px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
         
         .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: #4CAF50;
         }
         
         .feature-icon {
@@ -160,9 +229,13 @@
             color: #333;
         }
         
+        .feature-card p {
+            color: #666;
+        }
+        
         .industries {
             background-color: #f9f9f9;
-            padding: 60px 0;
+            padding: 80px 0;
         }
         
         .industry-tabs {
@@ -170,6 +243,7 @@
             justify-content: center;
             margin-bottom: 40px;
             flex-wrap: wrap;
+            gap: 10px;
         }
         
         .tab-btn {
@@ -181,11 +255,19 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
+            border-radius: 4px;
+            background-color: white;
+            color: #333;
+        }
+        
+        .tab-btn:hover {
+            background-color: #f0f0f0;
         }
         
         .tab-btn.active {
             border-bottom: 3px solid #4CAF50;
             color: #4CAF50;
+            background-color: white;
         }
         
         .tab-content {
@@ -200,7 +282,7 @@
         .industry-content {
             background: white;
             border-radius: 8px;
-            padding: 30px;
+            padding: 40px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         
@@ -210,10 +292,15 @@
             color: #4CAF50;
         }
         
+        .industry-content p {
+            margin-bottom: 30px;
+            color: #555;
+        }
+        
         .benefits {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 30px;
             margin-bottom: 30px;
         }
         
@@ -222,27 +309,84 @@
             display: flex;
             align-items: flex-start;
             gap: 15px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .benefit-item:hover {
+            background: #f0f0f0;
+            transform: translateY(-3px);
         }
         
         .benefit-icon {
             color: #4CAF50;
-            font-size: 20px;
+            font-size: 24px;
             margin-top: 3px;
+            flex-shrink: 0;
+        }
+        
+        .benefit-item h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .benefit-item p {
+            color: #666;
+            margin-bottom: 0;
+            font-size: 15px;
         }
         
         .pricing {
             text-align: center;
-            padding: 60px 0;
+            padding: 80px 0;
+        }
+        
+        .pricing-cards {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
         }
         
         .pricing-card {
             background: white;
             border-radius: 8px;
             padding: 40px;
+            width: 100%;
             max-width: 500px;
-            margin: 0 auto;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             border: 2px solid #4CAF50;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background-color: #4CAF50;
+        }
+        
+        .pricing-card h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .pricing-card p {
+            color: #666;
+            margin-bottom: 20px;
         }
         
         .pricing-price {
@@ -250,6 +394,12 @@
             font-weight: bold;
             color: #4CAF50;
             margin: 20px 0;
+        }
+        
+        .pricing-price span {
+            font-size: 16px;
+            font-weight: normal;
+            color: #666;
         }
         
         .pricing-features {
@@ -260,8 +410,9 @@
         .pricing-features li {
             margin-bottom: 15px;
             list-style-type: none;
-            padding-left: 25px;
+            padding-left: 30px;
             position: relative;
+            color: #555;
         }
         
         .pricing-features li:before {
@@ -275,7 +426,7 @@
         
         .testimonials {
             background-color: #f9f9f9;
-            padding: 60px 0;
+            padding: 80px 0;
         }
         
         .testimonial-grid {
@@ -288,10 +439,16 @@
         .testimonial-card {
             background: white;
             border-radius: 8px;
-            padding: 30px;
+            padding: 40px;
             width: calc(33.333% - 20px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             position: relative;
+            transition: all 0.3s;
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         
         .testimonial-card:before {
@@ -299,7 +456,7 @@
             font-family: 'Font Awesome 5 Free';
             font-weight: 900;
             color: rgba(76, 175, 80, 0.1);
-            font-size: 60px;
+            font-size: 80px;
             position: absolute;
             top: 10px;
             left: 20px;
@@ -309,7 +466,9 @@
         .testimonial-content {
             position: relative;
             z-index: 1;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            font-style: italic;
+            color: #555;
         }
         
         .testimonial-author {
@@ -318,8 +477,8 @@
         }
         
         .author-avatar {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background-color: #eee;
             margin-right: 15px;
@@ -328,10 +487,13 @@
             justify-content: center;
             color: #4CAF50;
             font-weight: bold;
+            font-size: 20px;
+            flex-shrink: 0;
         }
         
         .author-info h4 {
             margin-bottom: 5px;
+            color: #333;
         }
         
         .author-info p {
@@ -342,25 +504,60 @@
         .cta {
             background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
             color: white;
-            padding: 80px 20px;
+            padding: 100px 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .cta .container {
+            position: relative;
+            z-index: 1;
         }
         
         .cta h2 {
             font-size: 36px;
             margin-bottom: 20px;
+            font-weight: 700;
         }
         
         .cta p {
             font-size: 18px;
             max-width: 700px;
             margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+        
+        .cta .btn {
+            background-color: white;
+            color: #4CAF50;
+            font-size: 18px;
+            padding: 15px 30px;
+        }
+        
+        .cta .btn:hover {
+            background-color: #f0f0f0;
+            color: #45a049;
         }
         
         footer {
             background-color: #000000;
             color: white;
-            padding: 50px 20px 20px;
+            padding: 80px 20px 30px;
         }
         
         .footer-content {
@@ -378,8 +575,26 @@
         
         .footer-column h3 {
             font-size: 18px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             color: #4CAF50;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background-color: #4CAF50;
+        }
+        
+        .footer-column p {
+            color: #bbb;
+            margin-bottom: 20px;
+            line-height: 1.6;
         }
         
         .footer-column ul {
@@ -387,13 +602,22 @@
         }
         
         .footer-column ul li {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .footer-column ul li i {
+            margin-right: 10px;
+            color: #4CAF50;
+            width: 20px;
+            text-align: center;
         }
         
         .footer-column ul li a {
-            color: #ccc;
+            color: #bbb;
             text-decoration: none;
             transition: color 0.3s;
+            display: flex;
+            align-items: center;
         }
         
         .footer-column ul li a:hover {
@@ -407,27 +631,52 @@
         }
         
         .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255,255,255,0.1);
             color: white;
-            font-size: 20px;
-            transition: color 0.3s;
+            border-radius: 50%;
+            font-size: 18px;
+            transition: all 0.3s;
         }
         
         .social-links a:hover {
-            color: #4CAF50;
+            background-color: #4CAF50;
+            transform: translateY(-3px);
         }
         
         .copyright {
             text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
+            margin-top: 60px;
+            padding-top: 30px;
             border-top: 1px solid #333;
             color: #999;
             font-size: 14px;
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 1s ease forwards;
+        }
+        
+        .delay-1 {
+            animation-delay: 0.2s;
+        }
+        
+        .delay-2 {
+            animation-delay: 0.4s;
+        }
+        
+        .delay-3 {
+            animation-delay: 0.6s;
         }
         
         /* Responsividade */
@@ -458,6 +707,10 @@
                 margin: 5px 15px;
             }
             
+            .hero {
+                padding: 80px 20px;
+            }
+            
             .hero h1 {
                 font-size: 32px;
             }
@@ -472,6 +725,14 @@
             
             .testimonial-card {
                 width: 100%;
+            }
+            
+            .pricing-card {
+                padding: 30px 20px;
+            }
+            
+            .cta h2 {
+                font-size: 30px;
             }
         }
         
@@ -489,8 +750,25 @@
             }
             
             .btn {
-                padding: 8px 16px;
+                padding: 10px 20px;
                 font-size: 14px;
+            }
+            
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            
+            .industry-content {
+                padding: 25px 20px;
+            }
+            
+            .benefit-item {
+                flex: 1 1 100%;
+            }
+            
+            .footer-column {
+                flex: 1 1 100%;
             }
         }
     </style>
@@ -498,7 +776,10 @@
 </head>
 <body>
     <header>
-        <div class="logo">HORARIO</div>
+        <div class="logo">
+            <img src="https://via.placeholder.com/30x30/4CAF50/FFFFFF?text=H" alt="HORARIO Logo">
+            HORARIO
+        </div>
         <nav>
             <ul>
                 <li><a href="#features">Recursos</a></li>
@@ -512,11 +793,15 @@
 
     <section class="hero">
         <div class="container">
-            <h1>Agendamento profissional para todos os tipos de negócios</h1>
-            <p>Gerencie seus agendamentos de forma simples e eficiente, com uma plataforma completa que atende desde pequenos consultórios até grandes clínicas e empresas.</p>
-            <div>
+            <h1 class="fade-in">Agendamento profissional para todos os tipos de negócios</h1>
+            <p class="fade-in delay-1">Gerencie seus agendamentos de forma simples e eficiente, com uma plataforma completa que atende desde pequenos consultórios até grandes clínicas e empresas.</p>
+            <div class="fade-in delay-2">
                 <a href="https://horario.site/cadastro.html" class="btn">Experimente Grátis</a>
                 <a href="#features" class="btn btn-outline" style="margin-left: 15px;">Saiba Mais</a>
+            </div>
+            
+            <div class="hero-image fade-in delay-3">
+                <img src="https://images.unsplash.com/photo-1581093450021-4a7360e9a7c3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Médica sorrindo usando o sistema HORARIO em um tablet">
             </div>
         </div>
     </section>
@@ -524,42 +809,42 @@
     <section id="features" class="container">
         <h2 class="section-title">Como o HORARIO transforma seu negócio</h2>
         <div class="features">
-            <div class="feature-card">
+            <div class="feature-card fade-in">
                 <div class="feature-icon">
                     <i class="fas fa-calendar-alt"></i>
                 </div>
                 <h3>Agendamento 24/7</h3>
                 <p>Seus clientes podem marcar horários a qualquer momento, mesmo quando seu estabelecimento está fechado, reduzindo perda de oportunidades.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card fade-in delay-1">
                 <div class="feature-icon">
                     <i class="fas fa-users"></i>
                 </div>
                 <h3>Multi-atendentes</h3>
-                <p>Gerencie até 30 profissionais em um único painel, caso eles tenham horarios padronizados, cada um com sua agenda individual e serviços específicos.</p>
+                <p>Gerencie até 30 profissionais em um único painel, cada um com sua agenda individual e serviços específicos.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card fade-in delay-2">
                 <div class="feature-icon">
-                    <i class="fas fa-bell"></i>
+                    <i class="fas fa-sync-alt"></i>
                 </div>
-                <h3>Lembretes Automáticos</h3>
-                <p>Reduza faltas com lembretes por e-mail enviados automaticamente antes dos compromissos.</p>
+                <h3>Sincronização em Tempo Real</h3>
+                <p>Todas as alterações são atualizadas instantaneamente em todos os dispositivos, evitando conflitos de agendamento.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card fade-in">
                 <div class="feature-icon">
                     <i class="fas fa-chart-line"></i>
                 </div>
                 <h3>Relatórios Avançados</h3>
                 <p>Acompanhe o desempenho do seu negócio com relatórios detalhados de todos os seus agendamentos.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card fade-in delay-1">
                 <div class="feature-icon">
                     <i class="fas fa-mobile-alt"></i>
                 </div>
                 <h3>Acesso Multiplataforma</h3>
                 <p>Acesse sua agenda de qualquer dispositivo, computador, tablet ou smartphone, sempre sincronizada.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card fade-in delay-2">
                 <div class="feature-icon">
                     <i class="fas fa-lock"></i>
                 </div>
@@ -610,7 +895,11 @@
                         </div>
                     </div>
                     
-                    <p><strong>Perfeito para:</strong> Clínicas médicas, odontológicas, fisioterapia, psicologia, nutricionistas, veterinários e outros profissionais da saúde.</p>
+                    <div class="industry-image">
+                        <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Médica usando o sistema HORARIO" style="width:100%; border-radius:8px; margin-top:20px;">
+                    </div>
+                    
+                    <p style="margin-top:20px;"><strong>Perfeito para:</strong> Clínicas médicas, odontológicas, fisioterapia, psicologia, nutricionistas, veterinários e outros profissionais da saúde.</p>
                 </div>
             </div>
             
@@ -643,7 +932,11 @@
                         </div>
                     </div>
                     
-                    <p><strong>Perfeito para:</strong> Salões de beleza, barbearias, estúdios de tatuagem, clínicas de estética, depilação e outros serviços de beleza.</p>
+                    <div class="industry-image">
+                        <img src="https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Cabeleireira usando o sistema HORARIO" style="width:100%; border-radius:8px; margin-top:20px;">
+                    </div>
+                    
+                    <p style="margin-top:20px;"><strong>Perfeito para:</strong> Salões de beleza, barbearias, estúdios de tatuagem, clínicas de estética, depilação e outros serviços de beleza.</p>
                 </div>
             </div>
             
@@ -676,7 +969,11 @@
                         </div>
                     </div>
                     
-                    <p><strong>Perfeito para:</strong> Técnicos, consultores, encanadores, eletricistas, motoristas, coaches e outros profissionais autônomos.</p>
+                    <div class="industry-image">
+                        <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Técnico usando o sistema HORARIO" style="width:100%; border-radius:8px; margin-top:20px;">
+                    </div>
+                    
+                    <p style="margin-top:20px;"><strong>Perfeito para:</strong> Técnicos, consultores, encanadores, eletricistas, motoristas, coaches e outros profissionais autônomos.</p>
                 </div>
             </div>
             
@@ -709,7 +1006,11 @@
                         </div>
                     </div>
                     
-                    <p><strong>Perfeito para:</strong> Escolas de idiomas, cursos profissionalizantes, aulas particulares, treinamentos corporativos e instituições de ensino.</p>
+                    <div class="industry-image">
+                        <img src="https://images.unsplash.com/photo-1588072432836-e10032774350?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Professora usando o sistema HORARIO" style="width:100%; border-radius:8px; margin-top:20px;">
+                    </div>
+                    
+                    <p style="margin-top:20px;"><strong>Perfeito para:</strong> Escolas de idiomas, cursos profissionalizantes, aulas particulares, treinamentos corporativos e instituições de ensino.</p>
                 </div>
             </div>
             
@@ -742,7 +1043,11 @@
                         </div>
                     </div>
                     
-                    <p><strong>Perfeito para:</strong> Escritórios de advocacia, contabilidade, imobiliárias, empresas de consultoria e outros negócios corporativos.</p>
+                    <div class="industry-image">
+                        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Advogado usando o sistema HORARIO" style="width:100%; border-radius:8px; margin-top:20px;">
+                    </div>
+                    
+                    <p style="margin-top:20px;"><strong>Perfeito para:</strong> Escritórios de advocacia, contabilidade, imobiliárias, empresas de consultoria e outros negócios corporativos.</p>
                 </div>
             </div>
         </div>
@@ -752,24 +1057,51 @@
         <div class="container">
             <h2 class="section-title">Planos Simples e Acessíveis</h2>
             
-            <div class="pricing-card">
-                <h3>Plano Único</h3>
-                <p>Todos os recursos, para todos os negócios</p>
-                <div class="pricing-price">R$ 30/mês</div>
-                <p>ou R$ 300/ano (16% de desconto)</p>
+            <div class="pricing-cards">
+                <div class="pricing-card fade-in">
+                                        <h3>Básico</h3>
+                    <p>Ideal para profissionais autônomos e pequenos negócios</p>
+                    <div class="pricing-price">R$49<span>/mês</span></div>
+                    <ul class="pricing-features">
+                        <li>Até 2 profissionais</li>
+                        <li>Agendamento ilimitado</li>
+                        <li>Notificações por e-mail</li>
+                        <li>Aplicativo móvel</li>
+                        <li>Suporte por e-mail</li>
+                    </ul>
+                    <a href="https://horario.site/cadastro.html" class="btn">Começar Agora</a>
+                </div>
                 
-                <ul class="pricing-features">
-                    <li>Até 30 máquinas/usuários</li>
-                    <li>Agendamento ilimitado</li>
-                    <li>Painel individual para cada profissional</li>
-                    <li>Lembretes automáticos</li>
-                    <li>Relatórios completos</li>
-                    <li>Suporte prioritário</li>
-                    <li>7 dias grátis para testar</li>
-                </ul>
+                <div class="pricing-card fade-in delay-1">
+                    <h3>Profissional</h3>
+                    <p>Para clínicas e negócios em crescimento</p>
+                    <div class="pricing-price">R$99<span>/mês</span></div>
+                    <ul class="pricing-features">
+                        <li>Até 10 profissionais</li>
+                        <li>Todos os recursos Básico</li>
+                        <li>Relatórios avançados</li>
+                        <li>Integração com Google Calendar</li>
+                        <li>Suporte prioritário</li>
+                    </ul>
+                    <a href="https://horario.site/cadastro.html" class="btn">Mais Popular</a>
+                </div>
                 
-                <a href="https://horario.site/cadastro.html" class="btn">Comece Agora</a>
+                <div class="pricing-card fade-in delay-2">
+                    <h3>Empresarial</h3>
+                    <p>Solução completa para grandes empresas</p>
+                    <div class="pricing-price">R$199<span>/mês</span></div>
+                    <ul class="pricing-features">
+                        <li>Até 30 profissionais</li>
+                        <li>Todos os recursos Profissional</li>
+                        <li>Controle de múltiplas unidades</li>
+                        <li>API de integração</li>
+                        <li>Suporte 24/7</li>
+                    </ul>
+                    <a href="https://horario.site/cadastro.html" class="btn">Fale Conosco</a>
+                </div>
             </div>
+            
+            <p style="margin-top:40px; color:#666;">Todos os planos incluem teste gratuito de 14 dias. Não é necessário cartão de crédito.</p>
         </div>
     </section>
 
@@ -778,41 +1110,41 @@
             <h2 class="section-title">O que nossos clientes dizem</h2>
             
             <div class="testimonial-grid">
-                <div class="testimonial-card">
+                <div class="testimonial-card fade-in">
                     <div class="testimonial-content">
-                        <p>"O HORARIO revolucionou nosso consultório. Agora nossos pacientes marcam horários online a qualquer hora, e nossa equipe tem muito menos trabalho com agendamentos telefônicos."</p>
+                        <p>"O HORARIO revolucionou nossa clínica. Reduzimos em 80% as falhas de agendamento e nossos pacientes adoram a facilidade de marcar consultas online a qualquer hora."</p>
                     </div>
                     <div class="testimonial-author">
                         <div class="author-avatar">DR</div>
                         <div class="author-info">
                             <h4>Dr. Ricardo Silva</h4>
-                            <p>Clínica Médica - São Paulo/SP</p>
+                            <p>Clínica Médica Saúde Total</p>
                         </div>
                     </div>
                 </div>
                 
-                <div class="testimonial-card">
+                <div class="testimonial-card fade-in delay-1">
                     <div class="testimonial-content">
-                        <p>"Como dona de salão, administrar a agenda de 8 profissionais era um caos. Com o HORARIO, cada cabeleireira tem seu painel e os clientes podem escolher quem preferem. Fácil e eficiente!"</p>
+                        <p>"Como cabeleireira autônoma, o HORARIO me permite focar no que realmente importa: meus clientes. Não preciso mais ficar anotando horários em papel ou perdendo compromissos."</p>
                     </div>
                     <div class="testimonial-author">
-                        <div class="author-avatar">AM</div>
+                        <div class="author-avatar">AN</div>
                         <div class="author-info">
-                            <h4>Ana Maria</h4>
-                            <p>Salão Bella Hair - Rio de Janeiro/RJ</p>
+                            <h4>Ana Carolina</h4>
+                            <p>Cabeleireira Profissional</p>
                         </div>
                     </div>
                 </div>
                 
-                <div class="testimonial-card">
+                <div class="testimonial-card fade-in delay-2">
                     <div class="testimonial-content">
-                        <p>"Sou psicólogo e atendo em três locais diferentes. A plataforma me permite organizar minha agenda de forma centralizada, com lembretes automáticos que reduziram minhas faltas em 70%."</p>
+                        <p>"Implementamos o HORARIO em nossa rede de escolas e o feedback foi incrível. Professores, alunos e pais estão muito mais organizados com o sistema de agendamento online."</p>
                     </div>
                     <div class="testimonial-author">
-                        <div class="author-avatar">PC</div>
+                        <div class="author-avatar">MC</div>
                         <div class="author-info">
-                            <h4>Paulo César</h4>
-                            <p>Psicólogo - Belo Horizonte/MG</p>
+                            <h4>Mariana Costa</h4>
+                            <p>Diretora Pedagógica</p>
                         </div>
                     </div>
                 </div>
@@ -822,17 +1154,19 @@
 
     <section class="cta">
         <div class="container">
-            <h2>Pronto para transformar sua gestão de agendamentos?</h2>
-            <p>Experimente gratuitamente por 7 dias e descubra como podemos simplificar a administração do seu negócio.</p>
-            <a href="https://horario.site/cadastro.html" class="btn">Comece Seu Teste Grátis</a>
+            <h2 class="fade-in">Pronto para transformar seu agendamento?</h2>
+            <p class="fade-in delay-1">Experimente gratuitamente por 14 dias e descubra como o HORARIO pode simplificar sua rotina e melhorar a experiência dos seus clientes.</p>
+            <div class="fade-in delay-2">
+                <a href="https://horario.site/cadastro.html" class="btn">Comece Agora - Grátis</a>
+            </div>
         </div>
     </section>
 
     <footer>
         <div class="footer-content">
             <div class="footer-column">
-                <h3>HORARIO</h3>
-                <p>A solução completa para gestão de agendamentos profissionais, atendendo todos os tipos de negócios com eficiência e simplicidade.</p>
+                <h3>Sobre o HORARIO</h3>
+                <p>Somos uma plataforma de agendamento profissional que ajuda negócios de todos os tamanhos a gerenciar seus compromissos de forma eficiente.</p>
                 <div class="social-links">
                     <a href="#"><i class="fab fa-facebook-f"></i></a>
                     <a href="#"><i class="fab fa-instagram"></i></a>
@@ -844,56 +1178,67 @@
             <div class="footer-column">
                 <h3>Links Rápidos</h3>
                 <ul>
-                    <li><a href="https://horario.site">Início</a></li>
-                    <li><a href="#features">Recursos</a></li>
-                    <li><a href="#industries">Setores</a></li>
-                    <li><a href="#pricing">Preços</a></li>
-                    <li><a href="#testimonials">Depoimentos</a></li>
-                    <li><a href="https://horario.site/cadastro.html">Cadastre-se</a></li>
+                    <li><a href="#features"><i class="fas fa-chevron-right"></i> Recursos</a></li>
+                    <li><a href="#industries"><i class="fas fa-chevron-right"></i> Setores</a></li>
+                    <li><a href="#pricing"><i class="fas fa-chevron-right"></i> Preços</a></li>
+                    <li><a href="#testimonials"><i class="fas fa-chevron-right"></i> Depoimentos</a></li>
+                    <li><a href="https://horario.site/blog"><i class="fas fa-chevron-right"></i> Blog</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Suporte</h3>
+                <ul>
+                    <li><a href="https://horario.site/ajuda"><i class="fas fa-chevron-right"></i> Central de Ajuda</a></li>
+                    <li><a href="https://horario.site/tutoriais"><i class="fas fa-chevron-right"></i> Tutoriais</a></li>
+                    <li><a href="https://horario.site/contato"><i class="fas fa-chevron-right"></i> Contato</a></li>
+                    <li><a href="https://horario.site/termos"><i class="fas fa-chevron-right"></i> Termos de Uso</a></li>
+                    <li><a href="https://horario.site/privacidade"><i class="fas fa-chevron-right"></i> Política de Privacidade</a></li>
                 </ul>
             </div>
             
             <div class="footer-column">
                 <h3>Contato</h3>
                 <ul>
-                    <li><i class="fas fa-envelope"></i> horario@outlook.com.br</li>
-                    <li><i class="fas fa-map-marker-alt"></i> Goiânia - GO, Brasil</li>
+                    <li><i class="fas fa-envelope"></i> contato@horario.site</li>
+                    <li><i class="fas fa-phone-alt"></i> (11) 1234-5678</li>
+                    <li><i class="fas fa-map-marker-alt"></i> São Paulo, Brasil</li>
                 </ul>
             </div>
         </div>
         
         <div class="copyright">
-            <p>&copy; 2025 horario.site - Todos os direitos reservados.</p>
+            <p>&copy; 2023 HORARIO. Todos os direitos reservados.</p>
         </div>
     </footer>
 
     <script>
-        // Tabs de setores
+        // Tab functionality
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                // Remove classe active de todos os botões e conteúdos
+                // Remove active class from all buttons and tabs
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
                 
-                // Adiciona classe active ao botão clicado
+                // Add active class to clicked button
                 btn.classList.add('active');
                 
-                // Mostra o conteúdo correspondente
+                // Show corresponding tab
                 const tabId = btn.getAttribute('data-tab');
                 document.getElementById(tabId).classList.add('active');
             });
         });
         
-        // Smooth scrolling para links internos
+        // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 e.preventDefault();
                 
                 const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
+                if(targetId === '#') return;
                 
                 const targetElement = document.querySelector(targetId);
-                if (targetElement) {
+                if(targetElement) {
                     window.scrollTo({
                         top: targetElement.offsetTop - 80,
                         behavior: 'smooth'
@@ -902,15 +1247,23 @@
             });
         });
         
-        // Efeito de rolagem no header
-        window.addEventListener('scroll', function() {
-            const header = document.querySelector('header');
-            if (window.scrollY > 50) {
-                header.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-            } else {
-                header.style.boxShadow = 'none';
-            }
-        });
+        // Animation on scroll
+        const fadeElements = document.querySelectorAll('.fade-in');
+        
+        const fadeInOnScroll = () => {
+            fadeElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if(elementTop < windowHeight - 100) {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }
+            });
+        };
+        
+        window.addEventListener('load', fadeInOnScroll);
+        window.addEventListener('scroll', fadeInOnScroll);
     </script>
 </body>
 </html>
