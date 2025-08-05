@@ -323,12 +323,18 @@
         }
 
         .servicos-lista {
-            color: #d32f2f; /* Vermelho escuro */
-            font-family: Arial, sans-serif;
-            font-size: var(--small-font-size);
-            margin-top: 0.3em;
-            line-height: 1.3;
-        }
+    color: #d32f2f; /* Vermelho escuro */
+    font-family: Arial, sans-serif;
+    font-size: var(--small-font-size);
+    margin-top: 0.5em;
+    line-height: 1.5;
+}
+
+.servicos-lista br {
+    display: block;
+    content: "";
+    margin: 0.3em 0;
+}
 
         /* Melhorias específicas para telas muito pequenas */
         @media (max-width: 768px) {
@@ -721,8 +727,8 @@
         
         // Cria lista de serviços únicos em vermelho
         const servicosHTML = servicosUnicos.length > 0 
-            ? `<div class="servicos-lista">Serviços: ${servicosUnicos.join(', ')}</div>`
-            : '';
+    ? `<div class="servicos-lista">Serviços:<br>${servicosUnicos.join(',<br>')}</div>`
+    : '';
         
         empresaElement.innerHTML = `
             <div class="empresa-info">
