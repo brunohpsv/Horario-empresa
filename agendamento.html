@@ -253,24 +253,16 @@
     function verificarAgendamentoExistente(documento) {
     const docNumerico = documento.replace(/\D/g, '');
     
-    // Primeiro encontra todos os documentos de atendentes
-    db.collection("usuarios")
-        .where("atendente", "!=", null) // Assumindo que documentos de atendentes têm o campo "atendente"
-        .get()
-        .then(querySnapshot => {
-            const promises = [];
-            
-            querySnapshot.forEach(doc => {
-                promises.push(
-                    doc.ref.collection("agendamentos")
-                        .where("clienteDocumento", "==", docNumerico)
-                        .where("status", "==", "confirmado")
-                        .get()
-                );
-            });
-            
-            return Promise.all(promises);
-        })
+    // Verifica em todos os documentos de atendentes que temos carregados
+    const promises = atendentes.map(atendente => {
+        return db.collection("usuarios").doc(atendente.docId)
+            .collection("agendamentos")
+            .where("clienteDocumento", "==", docNumerico)
+            .where("status", "==", "confirmado")
+            .get();
+    });
+
+    Promise.all(promises)
         .then(results => {
             const agendamentos = [];
             results.forEach(querySnapshot => {
@@ -574,24 +566,20 @@
     const selectedOption = select.options[select.selectedIndex];
     const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
     
-    // Busca o documento do atendente primeiro
-    db.collection("usuarios")
-        .where("atendente", "==", atendenteSelecionado)
+    // Verifica se temos o docId do atendente (já obtido durante o carregamento)
+    if (!atendenteInfo.docId) {
+        console.error("Documento do atendente não encontrado nas informações");
+        container.innerHTML = '<div class="alert alert-danger">Erro ao carregar horários. Atendente não encontrado.</div>';
+        return;
+    }
+    
+    // Busca os agendamentos diretamente usando o docId que já temos
+    db.collection("usuarios").doc(atendenteInfo.docId)
+        .collection("agendamentos")
+        .where("data", "==", dataFormatada)
+        .where("prestador", "==", atendenteSelecionado)
+        .where("status", "==", "confirmado")
         .get()
-        .then(querySnapshot => {
-            if (querySnapshot.empty) {
-                throw new Error("Atendente não encontrado");
-            }
-            
-            const atendenteDoc = querySnapshot.docs[0];
-            
-            // Busca os agendamentos do atendente naquela data
-            return atendenteDoc.ref.collection("agendamentos")
-                .where("data", "==", dataFormatada)
-                .where("prestador", "==", atendenteSelecionado)
-                .where("status", "==", "confirmado")
-                .get();
-        })
         .then(querySnapshot => {
             const horariosOcupados = querySnapshot.docs.map(doc => doc.data().horario);
             
@@ -611,7 +599,7 @@
         })
         .catch(err => {
             console.error("Erro ao carregar horários:", err);
-            container.innerHTML = '<div class="alert alert-danger">Erro ao carregar horários.</div>';
+            container.innerHTML = '<div class="alert alert-danger">Erro ao carregar horários disponíveis.</div>';
         });
 }
     
@@ -708,6 +696,11 @@
     const selectedOption = select.options[select.selectedIndex];
     const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
     
+    if (!atendenteInfo.docId) {
+        mostrarErro("Erro ao identificar o atendente. Por favor, recarregue a página e tente novamente.");
+        return;
+    }
+    
     const agendamento = {
         servico: servicoSelecionado,
         prestador: atendenteSelecionado,
@@ -721,28 +714,17 @@
         dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
     };
     
-    // Encontra o documento do atendente no Firestore
-    db.collection("usuarios")
-        .where("atendente", "==", atendenteSelecionado)
-        .get()
-        .then(querySnapshot => {
-            if (querySnapshot.empty) {
-                throw new Error("Documento do atendente não encontrado");
-            }
-            
-            // Usa o primeiro documento encontrado (deveria ser único)
-            const atendenteDoc = querySnapshot.docs[0];
-            
-            // Adiciona o agendamento na subcoleção do documento do atendente
-            return atendenteDoc.ref.collection("agendamentos").add(agendamento);
-        })
+    // Salva diretamente no documento do atendente usando o docId que já temos
+    db.collection("usuarios").doc(atendenteInfo.docId)
+        .collection("agendamentos")
+        .add(agendamento)
         .then(() => {
             agendamentoConfirmado = true;
             preencherResumoAgendamento();
         })
         .catch(err => {
             console.error("Erro ao confirmar:", err);
-            mostrarErro("Erro ao confirmar agendamento. Atendente não encontrado.");
+            mostrarErro("Erro ao confirmar agendamento. Por favor, tente novamente.");
         });
 }
     
