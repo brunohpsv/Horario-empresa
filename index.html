@@ -1011,84 +1011,107 @@
 
     // Função para carregar empresas do Firestore
     async function carregarEmpresas() {
-        try {
-            const listaEmpresas = document.getElementById('empresas-lista');
-            
-            if (isFirstLoad) {
-                listaEmpresas.innerHTML = `
-                    <div class="loading">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Carregando...</span>
-                        </div>
-                        <p>Carregando empresas...</p>
+    try {
+        const listaEmpresas = document.getElementById('empresas-lista');
+        
+        if (isFirstLoad) {
+            listaEmpresas.innerHTML = `
+                <div class="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
                     </div>
-                `;
-            }
-            
-            const querySnapshot = await db.collection("usuarios").get();
-            
-            todasEmpresas = [];
-            cidadesDisponiveis = new Set();
-            estadosDisponiveis = new Set();
-            servicosDisponiveis = new Set();
-            
-            querySnapshot.forEach((doc) => {
-                const empresaData = doc.data();
-                empresaData.id = doc.id;
-                todasEmpresas.push(empresaData);
-                
-                if (empresaData.cidade) cidadesDisponiveis.add(empresaData.cidade);
-                if (empresaData.estado) estadosDisponiveis.add(empresaData.estado);
-                
-                const servicos = extrairServicos(empresaData);
-                servicos.forEach(servico => {
-                    if (servico && typeof servico === 'string') {
-                        servicosDisponiveis.add(servico);
-                    }
-                });
-            });
-            
-            const selectServico = document.getElementById('servico');
-            selectServico.innerHTML = '<option value="">Todos os serviços</option>';
-            
-            Array.from(servicosDisponiveis)
-                .sort((a, b) => a.localeCompare(b))
-                .forEach(servico => {
-                    const option = document.createElement('option');
-                    option.value = servico.toLowerCase();
-                    option.textContent = servico;
-                    selectServico.appendChild(option);
-                });
-            
-            const selectEstado = document.getElementById('estado');
-            selectEstado.innerHTML = '<option value="">Todos os estados</option>';
-            Array.from(estadosDisponiveis)
-                .sort()
-                .forEach(estado => {
-                    const option = document.createElement('option');
-                    option.value = estado;
-                    option.textContent = estado;
-                    selectEstado.appendChild(option);
-                });
-            
-            atualizarCidades();
-            await filtrarEmpresas();
-            
-        } catch (error) {
-            console.error('Erro ao carregar empresas:', error);
-            
-            const errorMessage = document.getElementById('empresas-lista');
-            errorMessage.innerHTML = `
-                <div class="error-message" role="alert">
-                    Ocorreu um erro ao carregar as empresas.<br>
-                    <small>${error.message}</small><br>
-                    <button onclick="carregarEmpresas()" class="btn btn-sm btn-primary mt-2">Tentar novamente</button>
+                    <p>Carregando empresas...</p>
                 </div>
             `;
-            
-            if (!isFirstLoad) return;
         }
+        
+        // Limpa os dados anteriores
+        todasEmpresas = [];
+        cidadesDisponiveis = new Set();
+        estadosDisponiveis = new Set();
+        servicosDisponiveis = new Set();
+        
+        // Busca os documentos do Firestore
+        const querySnapshot = await db.collection("usuarios").get();
+        
+        // Processa cada documento
+        querySnapshot.forEach((doc) => {
+            const empresaData = doc.data();
+            
+            // Garante que temos um ID válido
+            if (!empresaData.id) {
+                empresaData.id = doc.id;
+            }
+            
+            // Adiciona à lista de empresas
+            todasEmpresas.push(empresaData);
+            
+            // Adiciona cidade e estado aos conjuntos
+            if (empresaData.cidade) {
+                cidadesDisponiveis.add(empresaData.cidade);
+            }
+            if (empresaData.estado) {
+                estadosDisponiveis.add(empresaData.estado);
+            }
+            
+            // Processa os serviços corretamente
+            const servicos = extrairServicos(empresaData);
+            servicos.forEach(servico => {
+                if (servico && typeof servico === 'string') {
+                    servicosDisponiveis.add(servico);
+                }
+            });
+        });
+        
+        // Atualiza os dropdowns de filtro
+        atualizarFiltros();
+        
+        // Exibe as empresas
+        await filtrarEmpresas();
+        
+    } catch (error) {
+        console.error('Erro ao carregar empresas:', error);
+        
+        const errorMessage = document.getElementById('empresas-lista');
+        errorMessage.innerHTML = `
+            <div class="error-message" role="alert">
+                Ocorreu um erro ao carregar as empresas.<br>
+                <small>${error.message}</small><br>
+                <button onclick="carregarEmpresas()" class="btn btn-sm btn-primary mt-2">Tentar novamente</button>
+            </div>
+        `;
     }
+}
+
+// Função auxiliar para atualizar os filtros
+function atualizarFiltros() {
+    // Atualiza dropdown de estados
+    const selectEstado = document.getElementById('estado');
+    selectEstado.innerHTML = '<option value="">Todos os estados</option>';
+    Array.from(estadosDisponiveis)
+        .sort()
+        .forEach(estado => {
+            const option = document.createElement('option');
+            option.value = estado;
+            option.textContent = estado;
+            selectEstado.appendChild(option);
+        });
+    
+    // Atualiza dropdown de serviços
+    const selectServico = document.getElementById('servico');
+    selectServico.innerHTML = '<option value="">Todos os serviços</option>';
+    Array.from(servicosDisponiveis)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach(servico => {
+            const option = document.createElement('option');
+            option.value = servico.toLowerCase();
+            option.textContent = servico;
+            selectServico.appendChild(option);
+        });
+    
+    // Atualiza cidades baseado no estado selecionado
+    atualizarCidades();
+}
 
     // Função para verificar atualização diária
     function verificarAtualizacaoDiaria() {
