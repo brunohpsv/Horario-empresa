@@ -25,6 +25,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
         }
 
         .logo {
@@ -68,21 +69,97 @@
         .nav-btn:hover {
             background-color: #45a049;
         }
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    transition: color 0.3s;
-    padding: 8px 0; /* Reduzi o padding horizontal para ficar mais clean */
-}
 
-nav ul li a:hover {
-    color: #cccccc;
-}
-
-       
         .back-btn::before {
             content: "←";
             margin-right: 5px;
+        }
+
+        /* Menu mobile */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            background-color: #000;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            min-width: 200px;
+        }
+
+        .mobile-menu ul {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 0;
+        }
+
+        .mobile-menu ul li {
+            margin: 0;
+        }
+
+        .mobile-menu ul li a {
+            display: block;
+            padding: 10px 20px;
+        }
+
+        #install-btn {
+            display: none;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 15px;
+            transition: background-color 0.3s;
+        }
+
+        #install-btn:hover {
+            background-color: #45a049;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+            }
+            
+            nav.desktop-nav {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            #install-btn.desktop {
+                display: none;
+            }
+            
+            #install-btn.mobile {
+                display: block;
+                width: 100%;
+                margin: 10px 0 0 0;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu {
+                display: none !important;
+            }
+            
+            #install-btn.desktop {
+                display: inline-block;
+            }
         }
 
         .container {
@@ -180,45 +257,28 @@ nav ul li a:hover {
         .btn-toggle-senha:hover {
             color: #333;
         }
-
-        /* Estilos para o botão de instalação PWA */
-        #install-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            display: none;
-            z-index: 1000;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        #install-btn:hover {
-            background-color: #45a049;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-        }
-
-        #install-btn:active {
-            transform: translateY(0);
-        }
     </style>
 </head>
 <body>
     <header>
         <div class="logo">HORÁRIO</div>
-        <nav>
+        
+        <nav class="desktop-nav">
             <ul>
                 <li><a href="https://horario.site" class="nav-btn">Início</a></li>
                 <li><a href="cadastro.html" class="nav-btn back-btn">Voltar para Cadastro</a></li>
+                <li><button id="install-btn" class="desktop">Instalar App</button></li>
             </ul>
         </nav>
+        
+        <button class="mobile-menu-btn">☰</button>
+        <div class="mobile-menu" id="mobileMenu">
+            <ul>
+                <li><a href="https://horario.site">Início</a></li>
+                <li><a href="cadastro.html" class="back-btn">Voltar para Cadastro</a></li>
+                <li><button id="install-btn" class="mobile">Instalar App</button></li>
+            </ul>
+        </div>
     </header>
 
     <div class="container">
@@ -252,10 +312,50 @@ nav ul li a:hover {
         </div>
     </div>
 
-    <!-- Botão de instalação PWA -->
-    <button id="install-btn" title="Instalar App">Instalar App</button>
-
     <script>
+        // Código para instalação PWA
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Mostra o botão de instalação
+            document.querySelectorAll('#install-btn').forEach(btn => {
+                btn.style.display = 'inline-block';
+            });
+        });
+        
+        document.querySelectorAll('#install-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('Usuário aceitou a instalação');
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            });
+        });
+
+        // Menu mobile
+        document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', function(e) {
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            const menu = document.getElementById('mobileMenu');
+            
+            if (!menu.contains(e.target) && e.target !== menuBtn) {
+                menu.style.display = 'none';
+            }
+        });
+
         // Função para carregar os termos do localStorage
         function carregarTermos() {
             const termosSalvos = localStorage.getItem('termosDeUso');
@@ -336,36 +436,6 @@ nav ul li a:hover {
 
         // Carregar os termos quando a página carregar
         window.addEventListener('DOMContentLoaded', carregarTermos);
-
-        // Código para instalação PWA
-        let deferredPrompt;
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            
-            // Mostra o botão de instalação
-            document.getElementById('install-btn').style.display = 'block';
-        });
-
-        document.getElementById('install-btn').addEventListener('click', () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('Usuário aceitou a instalação');
-                    }
-                    deferredPrompt = null;
-                    document.getElementById('install-btn').style.display = 'none';
-                });
-            }
-        });
-
-        // Esconder o botão se o app já estiver instalado
-        window.addEventListener('appinstalled', () => {
-            document.getElementById('install-btn').style.display = 'none';
-            deferredPrompt = null;
-        });
     </script>
 </body>
 </html>
