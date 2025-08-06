@@ -103,11 +103,6 @@
                 </div>
 
                 <div id="formulario-agendamento">
-                    <div class="mb-4">
-                        <label class="form-label">CPF/CNPJ</label>
-                        <input type="text" id="documento" class="form-control" placeholder="Digite seu CPF ou CNPJ" required>
-                    </div>
-
                     <div class="row">
                         <div class="col-md-6 mb-4">
                             <label class="form-label">Serviço</label>
@@ -228,7 +223,6 @@
     let atendenteSelecionado = null;
     let dataSelecionada = null;
     let horarioSelecionado = null;
-    let documentoCliente = null;
     let agendamentoExistente = null;
     let agendamentoConfirmado = false;
     let atendentes = [];
@@ -258,47 +252,10 @@
         setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
     }
 
-    function verificarAgendamentoExistente(documento) {
-        const docNumerico = documento.replace(/\D/g, '');
-
-        // Primeiro encontra todos os documentos de atendentes
-        db.collection("usuarios")
-            .where("atendente", "!=", null) // Assumindo que documentos de atendentes têm o campo "atendente"
-            .get()
-            .then(querySnapshot => {
-                const promises = [];
-                
-                querySnapshot.forEach(doc => {
-                    promises.push(
-                        doc.ref.collection("agendamentos")
-                            .where("clienteDocumento", "==", docNumerico)
-                            .where("status", "==", "confirmado")
-                            .get()
-                    );
-                });
-                
-                return Promise.all(promises);
-            })
-            .then(results => {
-                const agendamentos = [];
-                results.forEach(querySnapshot => {
-                    querySnapshot.forEach(doc => {
-                        agendamentos.push({ 
-                            id: doc.id, 
-                            ...doc.data(), 
-                            docRef: doc.ref 
-                        });
-                    });
-                });
-
-                if (agendamentos.length > 0) {
-                    agendamentoExistente = agendamentos[0];
-                    exibirAgendamentoExistente(agendamentoExistente);
-                }
-            })
-            .catch(err => {
-                console.error("Erro ao verificar agendamentos:", err);
-            });
+    function verificarAgendamentoExistente() {
+        // Esta função foi mantida caso queira verificar agendamentos por outros critérios
+        // Mas como removemos o CPF/CNPJ, não há como verificar agendamentos existentes
+        return;
     }
 
     function exibirAgendamentoExistente(agendamento) {
@@ -769,7 +726,6 @@
             data: formatarDataFirestore(dataSelecionada),
             horario: horarioSelecionado,
             clienteNome: nome,
-            clienteDocumento: documentoCliente.replace(/\D/g, ''),
             clienteTelefone: telefone,
             clienteEmail: email || '',
             status: "confirmado",
@@ -806,25 +762,6 @@
         document.getElementById('formulario-agendamento').classList.add('d-none');
         document.getElementById('resumo-agendamento').classList.remove('d-none');
     }
-
-    document.getElementById('documento').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-
-        if (value.length <= 11) {
-            value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-        } else {
-            value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-        }
-
-        e.target.value = value.substring(0, value.length > 14 ? 18 : 14);
-        documentoCliente = e.target.value;
-
-        // Verifica agendamento existente quando o documento estiver completo
-        const rawValue = e.target.value.replace(/\D/g, '');
-        if (rawValue.length === 11 || rawValue.length === 14) {
-            verificarAgendamentoExistente(rawValue);
-        }
-    });
 
     document.getElementById('telefone').addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
