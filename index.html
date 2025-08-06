@@ -442,6 +442,8 @@
             <ul>
                 <li><a id="geolocation-btn" class="location-btn" title="Ativar/Desativar Localização" aria-label="Localização"><i class="fas fa-map-marker-alt"></i></a></li>
                 <a href="https://horario.site/login.html" class="login-btn" onclick="event.preventDefault(); window.location.href='https://horario.site/login.html';">
+    <i class="fas fa-user"></i> Login/Cadastro
+</a>
                     <i class="fas fa-user"></i> Login/Cadastro
                 </a>
             </ul>
@@ -1114,11 +1116,7 @@ function extrairServicos(empresa) {
             }
         });
 
-        document.querySelector('.login-btn').addEventListener('click', function(e) {
-    e.preventDefault();
-    window.location.href = 'https://horario.site/login.html';
-});
-        
+               
         carregarEmpresas();
         setInterval(verificarAtualizacaoDiaria, 60000);
         
