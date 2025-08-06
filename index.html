@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -518,11 +519,14 @@
 function extrairServicos(empresa) {
     const servicos = [];
     
-    // Função auxiliar para processar um serviço (dividir por barra se necessário)
+    // Função auxiliar para processar um serviço (dividir por barra e remover valores)
     const processarServico = (servico) => {
         if (typeof servico !== 'string') return [String(servico).trim()];
         
-        return servico.split('/')
+        // Remove qualquer texto após " - " (incluindo valores)
+        const nomeServico = servico.split(' - ')[0].trim();
+        
+        return nomeServico.split('/')
             .map(s => s.trim())
             .filter(s => s.length > 0);
     };
