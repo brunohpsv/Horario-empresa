@@ -1115,20 +1115,9 @@ function extrairServicos(empresa) {
         });
 
         document.querySelector('.login-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            fetch('/login.html')
-                .then(response => {
-                    if (response.ok) {
-                        window.location.href = '/login.html';
-                    } else {
-                        alert('Página de login não encontrada. Entre em contato com o suporte.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    alert('Não foi possível acessar a página de login.');
-                });
-        });
+    e.preventDefault();
+    window.location.href = 'https://horario.site/login.html';
+});
         
         carregarEmpresas();
         setInterval(verificarAtualizacaoDiaria, 60000);
