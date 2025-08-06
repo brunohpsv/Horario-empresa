@@ -515,16 +515,9 @@
                 
                 <div class="form-group">
                     <label for="atendentes">Quantos atendentes serão e quais serviços prestarão?</label>
-		    <div class="exemplo">Obs.: No seu painel de controle poderá solicitar a mudança, remoção ou modificação. Este campo é para quem tem vários prestadores, como uma clínica, que prestam serviços variados. Preenchendo este campo não precisa preencher o debaixo.</div>
-                    <input type="number" id="atendentes" min="0" max="30" value="0">
+                    <div class="exemplo">Obs.: No seu painel de controle poderá solicitar a mudança, remoção ou modificação. Este campo é para quem tem vários prestadores, como uma clínica, que prestam serviços variados.</div>
+                    <input type="number" id="atendentes" min="0" max="30" value="0" required>
                     <div id="atendentes-container" class="atendentes-container" style="display: none;"></div>
-                </div>
-                
-                <div class="form-group" id="servicos-group">
-                    <label for="servicos">Quais serviços sua empresa presta?</label>
-		    <div class="exemplo">Obs.: Caso será somente um atendente, coloque seus serviços conforme o exemplo abaixo!</div>
-                    <textarea id="servicos" rows="3"></textarea>
-                    <div class="exemplo">Exemplo: Clínica médica geral / Odontologia / Dermatologia / Psicologia - Separe os serviços com barras (/)</div>
                 </div>
                 
                 <div class="form-group">
@@ -734,14 +727,8 @@
                     servicoDiv.appendChild(nomesDiv);
                     container.appendChild(servicoDiv);
                 }
-                
-                // Tornar campo de serviços não obrigatório
-                document.getElementById('servicos').required = false;
-                document.getElementById('servicos-group').style.opacity = '0.7';
             } else {
                 container.style.display = 'none';
-                document.getElementById('servicos').required = true;
-                document.getElementById('servicos-group').style.opacity = '1';
             }
         });
 
@@ -848,9 +835,6 @@
                     servicoAtendente = formatarServicosAtendentes(qtdServicos);
                 }
                 
-                // Coletar serviços gerais se não houver atendentes
-                const servicos = document.getElementById('servicos').value.trim();
-                
                 const formData = {
                     tipoPessoa: document.getElementById('tipo-pessoa').value,
                     identificacao: document.getElementById('identificacao').value,
@@ -866,7 +850,6 @@
                     login: login,
                     senha: senha, // Armazenando a senha no Firestore também
                     maquinas: document.getElementById('maquinas').value,
-                    servicos: qtdServicos > 0 ? '' : servicos, // Só preenche serviços se não houver atendentes
                     servicoAtendente: servicoAtendente, // Array de objetos com serviços e seus atendentes
                     documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
                     dataCadastro: new Date().toISOString(),
@@ -888,18 +871,18 @@
                 
                 // 2. Salvar dados no Firestore com a configuração de horários
                 const docId = `PP - ${formData.identificacao.replace(/\D/g, '')}`; // Remove caracteres não numéricos
-await setDoc(doc(db, "usuarios", docId), {
-    ...formData,
-    horariosConfig: horariosConfig,
-    userId: userId // Adiciona o UID do Authentication como referência
-});
+                await setDoc(doc(db, "usuarios", docId), {
+                    ...formData,
+                    horariosConfig: horariosConfig,
+                    userId: userId // Adiciona o UID do Authentication como referência
+                });
 
                 // 3. Criar um documento de exemplo na subcoleção "horarios" (para a data atual)
                 const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-await setDoc(doc(db, "usuarios", docId, "horarios", dataAtual), {
-    horariosDisponiveis: gerarHorariosPadrao(horariosConfig),
-    horariosAgendados: []
-});
+                await setDoc(doc(db, "usuarios", docId, "horarios", dataAtual), {
+                    horariosDisponiveis: gerarHorariosPadrao(horariosConfig),
+                    horariosAgendados: []
+                });
                 
                 // 4. Mostrar mensagem de sucesso
                 document.getElementById('mensagemSucesso').style.display = 'block';
@@ -910,7 +893,6 @@ await setDoc(doc(db, "usuarios", docId, "horarios", dataAtual), {
                 // 5. Limpar formulário
                 document.getElementById('formCadastro').reset();
                 document.getElementById('atendentes-container').style.display = 'none';
-                document.getElementById('servicos-group').style.opacity = '1';
                 window.scrollTo(0, document.body.scrollHeight);
                 
             } catch (error) {
