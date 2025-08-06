@@ -416,8 +416,8 @@
                             atendentes.push({
                                 nome: atendente.trim(),
                                 servico: servico,
-                                horarios: dados.horarios || dados.horariosConfig,
-                                diasFuncionamento: dados.diasFuncionamento || dados.horariosConfig?.diasFuncionamento,
+                                horarios: item.horarios || dados.horarios || dados.horariosConfig,
+                                diasFuncionamento: item.diasFuncionamento || dados.diasFuncionamento || dados.horariosConfig?.diasFuncionamento,
                                 docId: dados.docId || dados.id
                             });
                         }
@@ -447,7 +447,7 @@
                     nome: atendente,
                     servico: servico,
                     horarios: dados.horarios || dados.horariosConfig,
-                    diasFuncionamento: dados.diasFuncionamento || dados.horariosConfig?.diasFuncionamento,
+                    diasFuncionamento: dados.diasFuncionamento || (dados.horarios?.diasFuncionamento || dados.horariosConfig?.diasFuncionamento),
                     docId: dados.docId || dados.id
                 });
             }
@@ -551,10 +551,17 @@
 
             // Configura os dias desabilitados no calendário
             if (atendenteInfo.diasFuncionamento) {
-                const diasFuncionamento = Array.isArray(atendenteInfo.diasFuncionamento) 
-                    ? atendenteInfo.diasFuncionamento.map(d => parseInt(d))
-                    : atendenteInfo.diasFuncionamento.split(',').map(d => parseInt(d.trim()));
-
+                let diasFuncionamento = [];
+                
+                // Verifica se é array ou string
+                if (Array.isArray(atendenteInfo.diasFuncionamento)) {
+                    diasFuncionamento = atendenteInfo.diasFuncionamento.map(d => typeof d === 'string' ? parseInt(d) : d);
+                } else if (typeof atendenteInfo.diasFuncionamento === 'string') {
+                    diasFuncionamento = atendenteInfo.diasFuncionamento.split(',').map(d => parseInt(d.trim()));
+                }
+                
+                console.log("Dias de funcionamento configurados:", diasFuncionamento);
+                
                 calendar.set('disable', [
                     date => !diasFuncionamento.includes(date.getDay())
                 ]);
