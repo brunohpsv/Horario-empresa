@@ -180,6 +180,34 @@ nav ul li a:hover {
         .btn-toggle-senha:hover {
             color: #333;
         }
+
+        /* Estilos para o botão de instalação PWA */
+        #install-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        #install-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        #install-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -223,6 +251,9 @@ nav ul li a:hover {
             </div>
         </div>
     </div>
+
+    <!-- Botão de instalação PWA -->
+    <button id="install-btn" title="Instalar App">Instalar App</button>
 
     <script>
         // Função para carregar os termos do localStorage
@@ -305,6 +336,36 @@ nav ul li a:hover {
 
         // Carregar os termos quando a página carregar
         window.addEventListener('DOMContentLoaded', carregarTermos);
+
+        // Código para instalação PWA
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Mostra o botão de instalação
+            document.getElementById('install-btn').style.display = 'block';
+        });
+
+        document.getElementById('install-btn').addEventListener('click', () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Usuário aceitou a instalação');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('install-btn').style.display = 'none';
+                });
+            }
+        });
+
+        // Esconder o botão se o app já estiver instalado
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('install-btn').style.display = 'none';
+            deferredPrompt = null;
+        });
     </script>
 </body>
 </html>
