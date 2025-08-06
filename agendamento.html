@@ -102,6 +102,14 @@
                     </div>
                 </div>
 
+                <div id="empresa-pendente" class="alert alert-warning d-none">
+                    <h5>Empresa em análise</h5>
+                    <p>Esta empresa está com o cadastro em análise e não pode receber agendamentos no momento.</p>
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="https://horario.site" class="btn btn-primary">Voltar ao Início</a>
+                    </div>
+                </div>
+
                 <div id="formulario-agendamento">
                     <div class="row">
                         <div class="col-md-6 mb-4">
@@ -309,8 +317,17 @@
         db.collection("usuarios").doc(empresaId).get()
             .then(docPrincipal => {
                 if (docPrincipal.exists) {
+                    const dadosEmpresa = docPrincipal.data();
+                    
+                    // Verifica se o status é "pendente"
+                    if (dadosEmpresa.status === "pendente") {
+                        document.getElementById('empresa-pendente').classList.remove('d-none');
+                        document.getElementById('formulario-agendamento').classList.add('d-none');
+                        return;
+                    }
+                    
                     empresaSelecionada = {
-                        ...docPrincipal.data(),
+                        ...dadosEmpresa,
                         id: empresaId,
                         docId: empresaId
                     };
@@ -343,11 +360,15 @@
                 const documentos = [];
 
                 querySnapshot.forEach(doc => {
-                    documentos.push({
-                        ...doc.data(),
-                        id: doc.id,
-                        docId: doc.id
-                    });
+                    const dados = doc.data();
+                    // Verifica se o documento não está com status pendente
+                    if (dados.status !== "pendente") {
+                        documentos.push({
+                            ...dados,
+                            id: doc.id,
+                            docId: doc.id
+                        });
+                    }
                 });
 
                 console.log("Documentos com mesmo nomeFantasia encontrados:", documentos.length);
