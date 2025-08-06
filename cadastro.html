@@ -706,7 +706,7 @@
                     servicoInput.type = 'text';
                     servicoInput.id = `servico-${i}`;
                     servicoInput.required = true;
-                    servicoInput.placeholder = 'Ex: Oftalmologista';
+                    servicoInput.placeholder = 'Ex: Oftalmologista ou Consultas/Exames/Cirurgia';
                     
                     const nomesDiv = document.createElement('div');
                     nomesDiv.className = 'servico-nomes';
@@ -779,19 +779,25 @@
             const servicosAtendentes = [];
             
             for (let i = 0; i < qtdServicos; i++) {
-                const servico = document.getElementById(`servico-${i}`).value.trim();
+                const servicoInput = document.getElementById(`servico-${i}`).value.trim();
                 const nomesInputs = document.querySelectorAll(`#nomes-container-${i} input`);
+                
+                // Dividir os serviços por barra ("/") e remover espaços em branco
+                const servicos = servicoInput.split('/').map(s => s.trim()).filter(s => s);
                 
                 const nomes = Array.from(nomesInputs)
                     .map(input => input.value.trim())
                     .filter(nome => nome);
                 
-                if (servico && nomes.length > 0) {
-                    servicosAtendentes.push({
-                        servico: servico,
-                        atendentes: nomes
-                    });
-                }
+                // Para cada serviço dividido, criar um objeto separado com os mesmos atendentes
+                servicos.forEach(servico => {
+                    if (servico && nomes.length > 0) {
+                        servicosAtendentes.push({
+                            servico: servico,
+                            atendentes: nomes
+                        });
+                    }
+                });
             }
             
             return servicosAtendentes;
