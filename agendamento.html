@@ -549,29 +549,56 @@
             const selectedOption = this.options[this.selectedIndex];
             const atendenteInfo = JSON.parse(selectedOption.dataset.atendenteInfo || '{}');
 
-            // Configura os dias desabilitados no calendário
-            if (atendenteInfo.diasFuncionamento) {
-                let diasFuncionamento = [];
-                
-                // Verifica se é array ou string
-                if (Array.isArray(atendenteInfo.diasFuncionamento)) {
-                    diasFuncionamento = atendenteInfo.diasFuncionamento.map(d => typeof d === 'string' ? parseInt(d) : d);
-                } else if (typeof atendenteInfo.diasFuncionamento === 'string') {
-                    diasFuncionamento = atendenteInfo.diasFuncionamento.split(',').map(d => parseInt(d.trim()));
-                }
-                
-                console.log("Dias de funcionamento configurados:", diasFuncionamento);
-                
-                calendar.set('disable', [
-                    date => !diasFuncionamento.includes(date.getDay())
-                ]);
+            // Primeiro, vamos buscar os dados completos do atendente individual se necessário
+            if (atendenteInfo.docId && atendenteInfo.docId !== empresaSelecionada.id) {
+                db.collection("usuarios").doc(atendenteInfo.docId).get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            const dadosAtendente = doc.data();
+                            // Atualiza os dias de funcionamento com os dados do documento individual
+                            const diasFuncionamento = dadosAtendente.diasFuncionamento || 
+                                                   dadosAtendente.horarios?.diasFuncionamento || 
+                                                   dadosAtendente.horariosConfig?.diasFuncionamento;
+                            
+                            configurarDiasCalendario(diasFuncionamento);
+                        } else {
+                            // Se não encontrar o documento, usa os dados que já temos
+                            configurarDiasCalendario(atendenteInfo.diasFuncionamento);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Erro ao buscar dados do atendente:", err);
+                        configurarDiasCalendario(atendenteInfo.diasFuncionamento);
+                    });
             } else {
-                // Se não tiver dias específicos, permite todos os dias
-                calendar.set('disable', []);
+                // Se for o mesmo documento da empresa, usa os dados que já temos
+                configurarDiasCalendario(atendenteInfo.diasFuncionamento);
             }
 
             if (dataSelecionada) carregarHorariosDisponiveis();
         });
+    }
+
+    function configurarDiasCalendario(diasFuncionamento) {
+        if (diasFuncionamento) {
+            let dias = [];
+            
+            // Verifica se é array ou string
+            if (Array.isArray(diasFuncionamento)) {
+                dias = diasFuncionamento.map(d => typeof d === 'string' ? parseInt(d) : d);
+            } else if (typeof diasFuncionamento === 'string') {
+                dias = diasFuncionamento.split(',').map(d => parseInt(d.trim()));
+            }
+            
+            console.log("Dias de funcionamento configurados:", dias);
+            
+            calendar.set('disable', [
+                date => !dias.includes(date.getDay())
+            ]);
+        } else {
+            // Se não tiver dias específicos, permite todos os dias
+            calendar.set('disable', []);
+        }
     }
 
     function carregarHorariosDisponiveis() {
