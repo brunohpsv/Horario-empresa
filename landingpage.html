@@ -112,7 +112,22 @@
             align-items: center;
         }
         
-              
+        /* Menu Hamburger */
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            padding: 10px;
+        }
+        
+        .menu-toggle span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+        }
+        
         /* Navegação */
         nav ul {
             display: flex;
@@ -430,19 +445,38 @@
         }
         
         @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column;
-                text-align: center;
+            .menu-toggle {
+                display: block;
+                order: -1;
+            }
+            
+            nav {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 80%;
+                height: calc(100vh - 70px);
+                background-color: #000000;
+                transition: all 0.3s ease;
+                z-index: 999;
+                padding: 20px;
+            }
+            
+            nav.active {
+                left: 0;
             }
             
             nav ul {
+                flex-direction: column;
                 margin-top: 20px;
-                flex-wrap: wrap;
-                justify-content: center;
             }
             
             nav ul li {
-                margin: 5px 15px;
+                margin: 15px 0;
+            }
+            
+            .header-container {
+                position: relative;
             }
             
             .hero h1 {
@@ -530,10 +564,15 @@
     <!-- Cabeçalho -->
     <header>
         <div class="container header-container">
+            <div class="menu-toggle" id="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
             <div class="logo">
                 HORÁRIO
             </div>
-            <nav>
+            <nav id="nav">
                 <ul>
                     <li><a href="#features">Recursos</a></li>
                     <li><a href="#industries">Serviços</a></li>
@@ -735,6 +774,23 @@
     </section>
 
     <script>
+        // Menu mobile
+        const mobileMenu = document.getElementById('mobile-menu');
+        const nav = document.getElementById('nav');
+        
+        mobileMenu.addEventListener('click', () => {
+            nav.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        });
+        
+        // Fechar menu ao clicar em um link
+        document.querySelectorAll('#nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                nav.classList.remove('active');
+                mobileMenu.classList.remove('active');
+            });
+        });
+
         // Smooth scrolling para links âncora
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
