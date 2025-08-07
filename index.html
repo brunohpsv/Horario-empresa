@@ -831,26 +831,15 @@
         ? `<div class="servicos-lista">Serviços: ${servicosUnicos.join(', ')}</div>`
         : '';
 
-    // Sistema de avaliação por estrelas
-    const ratings = JSON.parse(localStorage.getItem('empresaRatings') || '{}');
-    const empresaRating = ratings[empresa.id] || { total: 0, count: 0 };
-    const average = empresaRating.count > 0 ? (empresaRating.total / empresaRating.count) : 0;
-    
-    let starsHTML = '<div class="rating-stars">';
-    for (let i = 1; i <= 5; i++) {
-        starsHTML += `<i class="fas fa-star ${i <= Math.round(average) ? 'active' : ''}"></i>`;
-    }
-    starsHTML += ` <small>(${average.toFixed(1)})</small></div>`;
-
     empresaElement.innerHTML = `
-        <div class="empresa-info">
-            <h2 class="empresa-nome">${nomeExibicao} ${distanciaBadge} ${starsHTML}</h2>
-            <address class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</address>
-            ${servicosHTML}
-        </div>
-        ${telefoneFormatado ? `<div class="empresa-telefone">${telefoneFormatado}</div>` : ''}
-        <div class="divider"></div>
-    `;
+    <div class="empresa-info">
+        <h2 class="empresa-nome">${nomeExibicao} ${distanciaBadge}</h2>
+        <address class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</address>
+        ${servicosHTML}
+    </div>
+    ${telefoneFormatado ? `<div class="empresa-telefone">${telefoneFormatado}</div>` : ''}
+    <div class="divider"></div>
+`;
 
     empresaElement.addEventListener('click', function() {
         window.location.href = `agendamento.html?id=${empresa.id}`;
