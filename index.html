@@ -264,6 +264,15 @@
             text-align: left;
         }
 
+        .empresa-telefone {
+            font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+            color: var(--dark-gray);
+            text-align: right;
+            white-space: nowrap;
+            margin-left: auto;
+            padding-left: var(--padding-base);
+        }
+
         .divider {
             display: none;
         }
@@ -442,6 +451,15 @@
 
             .empresa-item {
                 padding: var(--padding-base);
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .empresa-telefone {
+                text-align: left;
+                padding-left: 0;
+                margin-left: 0;
+                margin-top: 0.5em;
             }
 
             .loading {
@@ -781,6 +799,9 @@
             ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
             : '';
 
+        // Formata o telefone se existir
+        const telefoneFormatado = empresa.telefone ? formatarTelefone(empresa.telefone) : '';
+
         // Busca todos os serviços relacionados a este nomeFantasia no Firestore
         let servicosUnicos = empresa.servicosUnicos || [];
 
@@ -816,6 +837,7 @@
                 <address class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</address>
                 ${servicosHTML}
             </div>
+            ${telefoneFormatado ? `<div class="empresa-telefone">${telefoneFormatado}</div>` : ''}
             <div class="divider"></div>
         `;
 
@@ -831,6 +853,35 @@
         });
 
         return empresaElement;
+    }
+
+    // Função para formatar telefone
+    function formatarTelefone(telefone) {
+        if (!telefone) return '';
+        
+        // Remove tudo que não é dígito
+        const numeros = telefone.toString().replace(/\D/g, '');
+        
+        // Formatação para números com DDD (11 dígitos com 9 na frente)
+        if (numeros.length === 11) {
+            return `(${numeros.substring(0, 2)}) ${numeros.substring(2, 7)}-${numeros.substring(7)}`;
+        }
+        
+        // Formatação para números com DDD (10 dígitos)
+        if (numeros.length === 10) {
+            return `(${numeros.substring(0, 2)}) ${numeros.substring(2, 6)}-${numeros.substring(6)}`;
+        }
+        
+        // Formatação para números sem DDD (8 ou 9 dígitos)
+        if (numeros.length === 9) {
+            return `${numeros.substring(0, 5)}-${numeros.substring(5)}`;
+        }
+        if (numeros.length === 8) {
+            return `${numeros.substring(0, 4)}-${numeros.substring(4)}`;
+        }
+        
+        // Retorna o original se não for possível formatar
+        return telefone;
     }
 
     // Função para atualizar a paginação
