@@ -330,6 +330,67 @@
             line-height: 1.3;
         }
 
+        /* Estilos para paginação */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: var(--padding-large);
+            padding: var(--padding-base);
+            flex-wrap: wrap;
+        }
+
+        .pagination {
+            display: flex;
+            list-style: none;
+            gap: 0.5em;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .page-item {
+            margin: 0;
+        }
+
+        .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2.5em;
+            height: 2.5em;
+            padding: 0 0.75em;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            background-color: var(--white);
+            color: var(--text-color);
+            text-decoration: none;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .page-link:hover {
+            background-color: var(--light-gray);
+        }
+
+        .page-item.active .page-link {
+            background-color: var(--accent-color);
+            color: var(--white);
+            border-color: var(--accent-color);
+        }
+
+        .page-item.disabled .page-link {
+            color: var(--medium-gray);
+            pointer-events: none;
+            background-color: var(--light-gray);
+        }
+
+        .page-info {
+            display: flex;
+            align-items: center;
+            margin: 0 var(--padding-base);
+            color: var(--dark-gray);
+            font-size: var(--small-font-size);
+        }
+
         /* Melhorias específicas para telas muito pequenas */
         @media (max-width: 768px) {
             :root {
@@ -385,6 +446,17 @@
 
             .loading {
                 padding: var(--padding-large);
+            }
+
+            .pagination {
+                gap: 0.25em;
+            }
+
+            .page-link {
+                min-width: 2.25em;
+                height: 2.25em;
+                padding: 0 0.5em;
+                font-size: 0.9em;
             }
         }
 
@@ -485,6 +557,14 @@
             </div>
             <p>Carregando empresas...</p>
         </div>
+        <div id="pagination-container" class="pagination-container" style="display: none;">
+            <nav aria-label="Navegação de páginas">
+                <ul class="pagination" id="pagination">
+                    <!-- Pagination will be inserted here by JavaScript -->
+                </ul>
+            </nav>
+            <div class="page-info" id="page-info"></div>
+        </div>
     </main>
 
    <script>
@@ -513,60 +593,66 @@
     let geolocationActive = false;
     let watchId = null;
     let timeout = null;
+    
+    // Variáveis para paginação
+    const empresasPorPagina = 20;
+    let paginaAtual = 1;
+    let totalPaginas = 1;
+    let empresasFiltradasAtuais = [];
 
     // Função para extrair serviços de todas as fontes possíveis
-function extrairServicos(empresa) {
-    const servicos = [];
+    function extrairServicos(empresa) {
+        const servicos = [];
 
-    // Função auxiliar para processar um serviço (dividir por barra e remover valores)
-    const processarServico = (servico) => {
-        if (typeof servico !== 'string') return [String(servico).trim()];
+        // Função auxiliar para processar um serviço (dividir por barra e remover valores)
+        const processarServico = (servico) => {
+            if (typeof servico !== 'string') return [String(servico).trim()];
 
-        // Remove qualquer texto após " - " (incluindo valores)
-        const nomeServico = servico.split(' - ')[0].trim();
+            // Remove qualquer texto após " - " (incluindo valores)
+            const nomeServico = servico.split(' - ')[0].trim();
 
-        return nomeServico.split('/')
-            .map(s => s.trim())
-            .filter(s => s.length > 0);
-    };
+            return nomeServico.split('/')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+        };
 
-    // 1. Verifica servicoAtendente (para PP- e P1-P30)
-    if (empresa.servicoAtendente && Array.isArray(empresa.servicoAtendente)) {
-        empresa.servicoAtendente.forEach(item => {
-            if (item.servico) {
-                servicos.push(...processarServico(item.servico));
+        // 1. Verifica servicoAtendente (para PP- e P1-P30)
+        if (empresa.servicoAtendente && Array.isArray(empresa.servicoAtendente)) {
+            empresa.servicoAtendente.forEach(item => {
+                if (item.servico) {
+                    servicos.push(...processarServico(item.servico));
+                }
+            });
+        }
+
+        // 2. Verifica campo servico (string ou array)
+        if (empresa.servico) {
+            if (typeof empresa.servico === 'string') {
+                empresa.servico.split(',').forEach(servico => {
+                    servicos.push(...processarServico(servico));
+                });
+            } else if (Array.isArray(empresa.servico)) {
+                empresa.servico.forEach(servico => {
+                    servicos.push(...processarServico(servico));
+                });
             }
-        });
-    }
-
-    // 2. Verifica campo servico (string ou array)
-    if (empresa.servico) {
-        if (typeof empresa.servico === 'string') {
-            empresa.servico.split(',').forEach(servico => {
-                servicos.push(...processarServico(servico));
-            });
-        } else if (Array.isArray(empresa.servico)) {
-            empresa.servico.forEach(servico => {
-                servicos.push(...processarServico(servico));
-            });
         }
-    }
 
-    // 3. Verifica campo servicos (string ou array)
-    if (empresa.servicos) {
-        if (typeof empresa.servicos === 'string') {
-            empresa.servicos.split(',').forEach(servico => {
-                servicos.push(...processarServico(servico));
-            });
-        } else if (Array.isArray(empresa.servicos)) {
-            empresa.servicos.forEach(servico => {
-                servicos.push(...processarServico(servico));
-            });
+        // 3. Verifica campo servicos (string ou array)
+        if (empresa.servicos) {
+            if (typeof empresa.servicos === 'string') {
+                empresa.servicos.split(',').forEach(servico => {
+                    servicos.push(...processarServico(servico));
+                });
+            } else if (Array.isArray(empresa.servicos)) {
+                empresa.servicos.forEach(servico => {
+                    servicos.push(...processarServico(servico));
+                });
+            }
         }
-    }
 
-    return servicos;
-}
+        return servicos;
+    }
 
     // Função para agrupar empresas com o mesmo nome (removendo PP-, P1-, etc)
     async function agruparEmpresas(empresas) {
@@ -747,31 +833,163 @@ function extrairServicos(empresa) {
         return empresaElement;
     }
 
-    // Função para exibir empresas
-    async function exibirEmpresas(empresas) {
-        const listaEmpresas = document.getElementById('empresas-lista');
+    // Função para atualizar a paginação
+    function atualizarPaginacao() {
+        const paginationContainer = document.getElementById('pagination-container');
+        const pagination = document.getElementById('pagination');
+        const pageInfo = document.getElementById('page-info');
+        
+        // Calcula o total de páginas
+        totalPaginas = Math.ceil(empresasFiltradasAtuais.length / empresasPorPagina);
+        
+        // Se não houver empresas ou apenas uma página, esconde a paginação
+        if (empresasFiltradasAtuais.length === 0 || totalPaginas <= 1) {
+            paginationContainer.style.display = 'none';
+            return;
+        }
+        
+        // Mostra a paginação
+        paginationContainer.style.display = 'flex';
+        
+        // Limpa a paginação anterior
+        pagination.innerHTML = '';
+        
+        // Cria botão "Anterior"
+        const prevItem = document.createElement('li');
+        prevItem.className = `page-item ${paginaAtual === 1 ? 'disabled' : ''}`;
+        prevItem.innerHTML = `<a class="page-link" href="#" aria-label="Anterior"><span aria-hidden="true">&laquo;</span></a>`;
+        prevItem.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (paginaAtual > 1) {
+                paginaAtual--;
+                exibirEmpresasPagina();
+            }
+        });
+        pagination.appendChild(prevItem);
+        
+        // Cria os botões de página
+        const maxButtons = 5; // Número máximo de botões de página a mostrar
+        let startPage, endPage;
+        
+        if (totalPaginas <= maxButtons) {
+            // Mostrar todas as páginas
+            startPage = 1;
+            endPage = totalPaginas;
+        } else {
+            // Calcular quais páginas mostrar
+            const maxButtonsBeforeCurrent = Math.floor(maxButtons / 2);
+            const maxButtonsAfterCurrent = Math.ceil(maxButtons / 2) - 1;
+            
+            if (paginaAtual <= maxButtonsBeforeCurrent) {
+                // Páginas iniciais
+                startPage = 1;
+                endPage = maxButtons;
+            } else if (paginaAtual + maxButtonsAfterCurrent >= totalPaginas) {
+                // Páginas finais
+                startPage = totalPaginas - maxButtons + 1;
+                endPage = totalPaginas;
+            } else {
+                // Páginas intermediárias
+                startPage = paginaAtual - maxButtonsBeforeCurrent;
+                endPage = paginaAtual + maxButtonsAfterCurrent;
+            }
+        }
+        
+        // Adiciona botão para a primeira página se necessário
+        if (startPage > 1) {
+            const firstItem = document.createElement('li');
+            firstItem.className = 'page-item';
+            firstItem.innerHTML = `<a class="page-link" href="#">1</a>`;
+            firstItem.addEventListener('click', (e) => {
+                e.preventDefault();
+                paginaAtual = 1;
+                exibirEmpresasPagina();
+            });
+            pagination.appendChild(firstItem);
+            
+            if (startPage > 2) {
+                const ellipsisItem = document.createElement('li');
+                ellipsisItem.className = 'page-item disabled';
+                ellipsisItem.innerHTML = `<span class="page-link">...</span>`;
+                pagination.appendChild(ellipsisItem);
+            }
+        }
+        
+        // Cria os botões das páginas
+        for (let i = startPage; i <= endPage; i++) {
+            const pageItem = document.createElement('li');
+            pageItem.className = `page-item ${i === paginaAtual ? 'active' : ''}`;
+            pageItem.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            pageItem.addEventListener('click', (e) => {
+                e.preventDefault();
+                paginaAtual = i;
+                exibirEmpresasPagina();
+            });
+            pagination.appendChild(pageItem);
+        }
+        
+        // Adiciona botão para a última página se necessário
+        if (endPage < totalPaginas) {
+            if (endPage < totalPaginas - 1) {
+                const ellipsisItem = document.createElement('li');
+                ellipsisItem.className = 'page-item disabled';
+                ellipsisItem.innerHTML = `<span class="page-link">...</span>`;
+                pagination.appendChild(ellipsisItem);
+            }
+            
+            const lastItem = document.createElement('li');
+            lastItem.className = 'page-item';
+            lastItem.innerHTML = `<a class="page-link" href="#">${totalPaginas}</a>`;
+            lastItem.addEventListener('click', (e) => {
+                e.preventDefault();
+                paginaAtual = totalPaginas;
+                exibirEmpresasPagina();
+            });
+            pagination.appendChild(lastItem);
+        }
+        
+        // Cria botão "Próxima"
+        const nextItem = document.createElement('li');
+        nextItem.className = `page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}`;
+        nextItem.innerHTML = `<a class="page-link" href="#" aria-label="Próxima"><span aria-hidden="true">&raquo;</span></a>`;
+        nextItem.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (paginaAtual < totalPaginas) {
+                paginaAtual++;
+                exibirEmpresasPagina();
+            }
+        });
+        pagination.appendChild(nextItem);
+        
+        // Atualiza informações da página
+        const startIndex = (paginaAtual - 1) * empresasPorPagina + 1;
+        const endIndex = Math.min(paginaAtual * empresasPorPagina, empresasFiltradasAtuais.length);
+        pageInfo.textContent = `${startIndex}-${endIndex} de ${empresasFiltradasAtuais.length} empresas`;
+    }
 
-        if (empresas.length === 0) {
+    // Função para exibir empresas da página atual
+    async function exibirEmpresasPagina() {
+        const listaEmpresas = document.getElementById('empresas-lista');
+        
+        if (empresasFiltradasAtuais.length === 0) {
             if (isFirstLoad) {
                 listaEmpresas.innerHTML = '<div class="error-message" role="alert">Nenhuma empresa cadastrada no momento.</div>';
             } else {
                 listaEmpresas.innerHTML = '<div class="error-message" role="alert">Nenhuma empresa encontrada com os critérios selecionados.</div>';
             }
+            document.getElementById('pagination-container').style.display = 'none';
             return;
         }
 
-        const empresasAgrupadas = await agruparEmpresas(empresas);
+        // Calcula as empresas a serem exibidas na página atual
+        const startIndex = (paginaAtual - 1) * empresasPorPagina;
+        const endIndex = startIndex + empresasPorPagina;
+        const empresasPagina = empresasFiltradasAtuais.slice(startIndex, endIndex);
+
+        const empresasAgrupadas = await agruparEmpresas(empresasPagina);
 
         listaEmpresas.innerHTML = '<div class="empresas-grid" id="empresas-grid" role="list"></div>';
         const gridEmpresas = document.getElementById('empresas-grid');
-
-        if (geolocationActive && userLocation) {
-            empresasAgrupadas.sort((a, b) => {
-                const distA = a.distancia || Infinity;
-                const distB = b.distancia || Infinity;
-                return distA - distB;
-            });
-        }
 
         for (const empresa of empresasAgrupadas) {
             const empresaElement = await createEmpresaElement(empresa);
@@ -780,7 +998,19 @@ function extrairServicos(empresa) {
             gridEmpresas.appendChild(empresaElement);
         }
 
+        // Atualiza a paginação
+        atualizarPaginacao();
+
         isFirstLoad = false;
+    }
+
+    // Função para exibir empresas (filtradas)
+    async function exibirEmpresas(empresas) {
+        // Reseta para a primeira página quando os filtros mudam
+        paginaAtual = 1;
+        empresasFiltradasAtuais = empresas;
+        
+        await exibirEmpresasPagina();
     }
 
     // Função para atualizar dropdown de cidades
