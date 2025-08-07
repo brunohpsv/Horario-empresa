@@ -3,273 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avaliação</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Sistema de Avaliação de Empresas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --primary-color: #000000;
-            --secondary-color: #4CAF50;
-            --accent-color: #2196F3;
-            --text-color: #333333;
-            --light-gray: #f5f5f5;
-            --medium-gray: #dddddd;
-            --dark-gray: #666666;
-            --white: #ffffff;
-            --error-color: #d32f2f;
-            --error-bg: #fde8e8;
-            --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
-            --star-color: #FFD700;
-            --star-hover: #FFC107;
-        }
-
-        body {
-            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
             padding: 20px;
+            background-color: #f5f5f5;
         }
-
-        .avaliacao-container {
-            background-color: var(--white);
-            border-radius: 10px;
-            box-shadow: var(--box-shadow);
-            padding: 25px;
-            max-width: 500px;
-            width: 100%;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .avaliacao-header {
+        
+        h1 {
             text-align: center;
             margin-bottom: 20px;
+            color: #333;
         }
-
-        .avaliacao-header h2 {
-            color: var(--primary-color);
+        
+        .empresa {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .empresa-nome {
+            font-size: 18px;
+            font-weight: bold;
             margin-bottom: 10px;
         }
-
-        .empresa-nome {
-            font-weight: bold;
-            color: var(--accent-color);
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .rating-container {
+        
+        .rating {
             display: flex;
-            justify-content: center;
-            margin: 20px 0;
-            direction: rtl; /* Para permitir a seleção de estrelas da direita para a esquerda */
-        }
-
-        .rating-star {
-            font-size: 2.5rem;
-            color: var(--medium-gray);
-            cursor: pointer;
-            transition: var(--transition);
-            margin: 0 5px;
-        }
-
-        .rating-star:hover,
-        .rating-star:hover ~ .rating-star,
-        .rating-star.selected,
-        .rating-star.selected ~ .rating-star {
-            color: var(--star-color);
-        }
-
-        .avaliacao-texto {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--medium-gray);
-            border-radius: 5px;
-            resize: none;
-            margin-bottom: 20px;
-            min-height: 100px;
-        }
-
-        .avaliacao-texto:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
-        }
-
-        .btn-enviar {
-            background-color: var(--accent-color);
-            color: var(--white);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-            transition: var(--transition);
-        }
-
-        .btn-enviar:hover {
-            background-color: #0b7dda;
-        }
-
-        .aviso {
-            font-size: 0.8rem;
-            color: var(--dark-gray);
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .rating-info {
-            text-align: center;
+            align-items: center;
             margin-top: 10px;
-            font-size: 0.9rem;
-            color: var(--dark-gray);
         }
-
-        .ja-avaliou {
-            color: var(--secondary-color);
-            font-weight: bold;
+        
+        .stars {
+            display: flex;
+            margin-right: 10px;
+        }
+        
+        .star {
+            color: #ccc;
+            cursor: pointer;
+            font-size: 20px;
+            transition: color 0.2s;
+        }
+        
+        .star.active {
+            color: #ffc107;
+        }
+        
+        .average-rating {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .reset-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 12px;
+        }
+        
+        .reset-btn:hover {
+            background-color: #d32f2f;
         }
     </style>
 </head>
 <body>
-    <div class="avaliacao-container">
-        <div class="avaliacao-header">
-            <h2>Avalie esta empresa</h2>
-            <div class="empresa-nome" id="empresa-nome">Carregando...</div>
-        </div>
-
-        <div class="rating-info" id="rating-info">
-            Sua avaliação ajuda outros clientes a fazerem melhores escolhas.
-        </div>
-
-        <div class="rating-container">
-            <i class="fas fa-star rating-star" data-rating="5"></i>
-            <i class="fas fa-star rating-star" data-rating="4"></i>
-            <i class="fas fa-star rating-star" data-rating="3"></i>
-            <i class="fas fa-star rating-star" data-rating="2"></i>
-            <i class="fas fa-star rating-star" data-rating="1"></i>
-        </div>
-
-        <textarea class="avaliacao-texto" id="avaliacao-texto" placeholder="Deixe um comentário sobre sua experiência (opcional)"></textarea>
-
-        <button class="btn-enviar" id="btn-enviar">Enviar Avaliação</button>
-
-        <div class="aviso">
-            Sua avaliação será armazenada localmente no seu navegador e visível apenas para você.
-        </div>
+    <h1>Avaliação de Empresas</h1>
+    
+    <div id="empresas-container">
+        <!-- As empresas serão adicionadas aqui pelo JavaScript -->
     </div>
-
+    
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Obtém o ID da empresa da URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const empresaId = urlParams.get('id');
-            const empresaNome = urlParams.get('nome') || 'Esta empresa';
-
-            // Exibe o nome da empresa
-            document.getElementById('empresa-nome').textContent = empresaNome;
-
-            // Configura as estrelas de avaliação
-            const stars = document.querySelectorAll('.rating-star');
-            let selectedRating = 0;
-            let hoverRating = 0;
-
-            // Verifica se já existe uma avaliação para esta empresa
-            const avaliacoes = JSON.parse(localStorage.getItem('avaliacoes')) || {};
-            if (avaliacoes[empresaId]) {
-                selectedRating = avaliacoes[empresaId].rating;
-                document.getElementById('avaliacao-texto').value = avaliacoes[empresaId].comentario || '';
-                document.getElementById('rating-info').innerHTML = 
-                    `<span class="ja-avaliou">Você já avaliou esta empresa com ${selectedRating} estrela(s).</span> 
-                    <br>Atualize sua avaliação se desejar.`;
+        // Dados de exemplo das empresas (substitua pelos seus dados reais)
+        const empresas = [
+            { id: 1, nome: "Empresa A" },
+            { id: 2, nome: "Empresa B" },
+            { id: 3, nome: "Empresa C" },
+            { id: 4, nome: "Empresa D" },
+            { id: 5, nome: "Empresa E" }
+        ];
+        
+        // Carrega as avaliações do localStorage
+        function loadRatings() {
+            const ratings = localStorage.getItem('empresaRatings');
+            return ratings ? JSON.parse(ratings) : {};
+        }
+        
+        // Salva as avaliações no localStorage
+        function saveRatings(ratings) {
+            localStorage.setItem('empresaRatings', JSON.stringify(ratings));
+        }
+        
+        // Renderiza as empresas na tela
+        function renderEmpresas() {
+            const container = document.getElementById('empresas-container');
+            const ratings = loadRatings();
+            
+            container.innerHTML = '';
+            
+            empresas.forEach(empresa => {
+                const empresaEl = document.createElement('div');
+                empresaEl.className = 'empresa';
                 
-                // Marca as estrelas correspondentes à avaliação existente
+                // Verifica se já existe avaliação para esta empresa
+                const empresaRating = ratings[empresa.id] || { total: 0, count: 0 };
+                const average = empresaRating.count > 0 ? (empresaRating.total / empresaRating.count) : 0;
+                
+                empresaEl.innerHTML = `
+                    <div class="empresa-nome">${empresa.nome}</div>
+                    <div class="rating">
+                        <div class="stars" data-id="${empresa.id}">
+                            <i class="fas fa-star star" data-value="1"></i>
+                            <i class="fas fa-star star" data-value="2"></i>
+                            <i class="fas fa-star star" data-value="3"></i>
+                            <i class="fas fa-star star" data-value="4"></i>
+                            <i class="fas fa-star star" data-value="5"></i>
+                        </div>
+                        <div class="average-rating">
+                            Média: ${average.toFixed(1)} (${empresaRating.count} avaliações)
+                        </div>
+                        <button class="reset-btn" data-id="${empresa.id}">Resetar</button>
+                    </div>
+                `;
+                
+                container.appendChild(empresaEl);
+                
+                // Ativa as estrelas conforme a avaliação média
+                const stars = empresaEl.querySelectorAll('.star');
                 stars.forEach(star => {
-                    if (parseInt(star.dataset.rating) <= selectedRating) {
-                        star.classList.add('selected');
+                    if (star.dataset.value <= Math.round(average)) {
+                        star.classList.add('active');
                     }
                 });
-            }
-
-            stars.forEach(star => {
+            });
+            
+            // Adiciona eventos para as estrelas
+            document.querySelectorAll('.star').forEach(star => {
                 star.addEventListener('click', function() {
-                    selectedRating = parseInt(this.dataset.rating);
-                    
-                    // Remove todas as seleções primeiro
-                    stars.forEach(s => s.classList.remove('selected'));
-                    
-                    // Adiciona a classe 'selected' para a estrela clicada e todas à esquerda
-                    stars.forEach(s => {
-                        if (parseInt(s.dataset.rating) <= selectedRating) {
-                            s.classList.add('selected');
-                        }
-                    });
-                });
-
-                star.addEventListener('mouseover', function() {
-                    hoverRating = parseInt(this.dataset.rating);
-                    
-                    stars.forEach(s => {
-                        s.style.color = parseInt(s.dataset.rating) <= hoverRating ? 
-                            'var(--star-hover)' : 'var(--medium-gray)';
-                    });
-                });
-
-                star.addEventListener('mouseout', function() {
-                    stars.forEach(s => {
-                        s.style.color = parseInt(s.dataset.rating) <= selectedRating ? 
-                            'var(--star-color)' : 'var(--medium-gray)';
-                    });
+                    const value = parseInt(this.dataset.value);
+                    const empresaId = parseInt(this.parentElement.dataset.id);
+                    rateEmpresa(empresaId, value);
                 });
             });
-
-            // Configura o botão de enviar
-            document.getElementById('btn-enviar').addEventListener('click', function() {
-                if (selectedRating === 0) {
-                    alert('Por favor, selecione uma avaliação de 1 a 5 estrelas.');
-                    return;
-                }
-
-                const comentario = document.getElementById('avaliacao-texto').value.trim();
-                
-                // Salva a avaliação no localStorage
-                const avaliacoes = JSON.parse(localStorage.getItem('avaliacoes')) || {};
-                avaliacoes[empresaId] = {
-                    rating: selectedRating,
-                    comentario: comentario,
-                    data: new Date().toISOString(),
-                    empresaNome: empresaNome
-                };
-                
-                localStorage.setItem('avaliacoes', JSON.stringify(avaliacoes));
-                
-                // Fecha a janela após 1 segundo
-                setTimeout(() => {
-                    window.close();
-                }, 1000);
-                
-                // Exibe mensagem de sucesso
-                this.textContent = 'Avaliação enviada com sucesso!';
-                this.style.backgroundColor = 'var(--secondary-color)';
+            
+            // Adiciona eventos para os botões de reset
+            document.querySelectorAll('.reset-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const empresaId = parseInt(this.dataset.id);
+                    resetRating(empresaId);
+                });
             });
-
-            // Fecha a janela se clicar fora (opcional)
-            document.body.addEventListener('click', function(e) {
-                if (e.target === document.body) {
-                    window.close();
-                }
-            });
-        });
+        }
+        
+        // Avalia uma empresa
+        function rateEmpresa(empresaId, rating) {
+            const ratings = loadRatings();
+            
+            if (!ratings[empresaId]) {
+                ratings[empresaId] = { total: 0, count: 0 };
+            }
+            
+            // Adiciona a nova avaliação
+            ratings[empresaId].total += rating;
+            ratings[empresaId].count += 1;
+            
+            saveRatings(ratings);
+            renderEmpresas();
+            
+            alert(`Obrigado por avaliar a empresa ${empresaId} com ${rating} estrelas!`);
+        }
+        
+        // Reseta a avaliação de uma empresa
+        function resetRating(empresaId) {
+            if (confirm(`Tem certeza que deseja resetar as avaliações da empresa ${empresaId}?`)) {
+                const ratings = loadRatings();
+                delete ratings[empresaId];
+                saveRatings(ratings);
+                renderEmpresas();
+            }
+        }
+        
+        // Inicializa a aplicação
+        document.addEventListener('DOMContentLoaded', renderEmpresas);
     </script>
 </body>
 </html>
