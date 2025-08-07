@@ -774,86 +774,134 @@
 
     // Função para criar elemento de empresa
     async function createEmpresaElement(empresa) {
-        const empresaElement = document.createElement('article');
-        empresaElement.className = 'empresa-item';
-        empresaElement.dataset.id = empresa.id || Math.random().toString(36).substring(2, 9);
-        empresaElement.setAttribute('role', 'button');
-        empresaElement.setAttribute('aria-label', `Empresa ${empresa.nomeFantasia || 'sem nome'}`);
-        empresaElement.tabIndex = 0;
+    const empresaElement = document.createElement('article');
+    empresaElement.className = 'empresa-item';
+    empresaElement.dataset.id = empresa.id || Math.random().toString(36).substring(2, 9);
+    empresaElement.setAttribute('role', 'button');
+    empresaElement.setAttribute('aria-label', `Empresa ${empresa.nomeFantasia || 'sem nome'}`);
+    empresaElement.tabIndex = 0;
 
-        // Remove prefixos como PP-, P1-, etc para exibição
-        const nomeExibicao = (empresa.nomeFantasia || '')
-            .replace(/^(PP|P\d+)\s*-\s*/i, '')
-            .trim() || 'Nome não informado';
+    // Remove prefixos como PP-, P1-, etc para exibição
+    const nomeExibicao = (empresa.nomeFantasia || '')
+        .replace(/^(PP|P\d+)\s*-\s*/i, '')
+        .trim() || 'Nome não informado';
 
-        const enderecoCompleto = [
-            empresa.endereco,
-            empresa.numero ? ', ' + empresa.numero : '',
-            empresa.complemento ? ', ' + empresa.complemento : '',
-            empresa.bairro ? ', ' + empresa.bairro : '',
-            empresa.cidade ? ', ' + empresa.cidade : '',
-            empresa.estado ? ' - ' + empresa.estado : ''
-        ].join('');
+    const enderecoCompleto = [
+        empresa.endereco,
+        empresa.numero ? ', ' + empresa.numero : '',
+        empresa.complemento ? ', ' + empresa.complemento : '',
+        empresa.bairro ? ', ' + empresa.bairro : '',
+        empresa.cidade ? ', ' + empresa.cidade : '',
+        empresa.estado ? ' - ' + empresa.estado : ''
+    ].join('');
 
-        const distanciaBadge = empresa.distancia 
-            ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
-            : '';
+    const distanciaBadge = empresa.distancia 
+        ? `<span class="distance-badge">${empresa.distancia.toFixed(1)} km</span>` 
+        : '';
 
-        // Formata o telefone se existir
-        const telefoneFormatado = empresa.telefone ? formatarTelefone(empresa.telefone) : '';
+    // Formata o telefone se existir
+    const telefoneFormatado = empresa.telefone ? formatarTelefone(empresa.telefone) : '';
 
-        // Busca todos os serviços relacionados a este nomeFantasia no Firestore
-        let servicosUnicos = empresa.servicosUnicos || [];
+    // Busca todos os serviços relacionados a este nomeFantasia no Firestore
+    let servicosUnicos = empresa.servicosUnicos || [];
 
-        if (!servicosUnicos.length) {
-            try {
-                // Busca no Firestore por documentos com o mesmo nomeFantasia (incluindo variantes com prefixos)
-                const nomeBase = nomeExibicao;
-                const querySnapshot = await db.collection("usuarios")
-                    .where("nomeFantasia", ">=", nomeBase)
-                    .where("nomeFantasia", "<=", nomeBase + "\uf8ff")
-                    .get();
+    if (!servicosUnicos.length) {
+        try {
+            // Busca no Firestore por documentos com o mesmo nomeFantasia (incluindo variantes com prefixos)
+            const nomeBase = nomeExibicao;
+            const querySnapshot = await db.collection("usuarios")
+                .where("nomeFantasia", ">=", nomeBase)
+                .where("nomeFantasia", "<=", nomeBase + "\uf8ff")
+                .get();
 
-                const servicosAdicionais = [];
-                querySnapshot.forEach(doc => {
-                    const empresaData = doc.data();
-                    servicosAdicionais.push(...extrairServicos(empresaData));
-                });
+            const servicosAdicionais = [];
+            querySnapshot.forEach(doc => {
+                const empresaData = doc.data();
+                servicosAdicionais.push(...extrairServicos(empresaData));
+            });
 
-                servicosUnicos = [...new Set([...servicosUnicos, ...servicosAdicionais])];
-            } catch (error) {
-                console.error(`Erro ao buscar serviços adicionais para ${nomeExibicao}:`, error);
-            }
+            servicosUnicos = [...new Set([...servicosUnicos, ...servicosAdicionais])];
+        } catch (error) {
+            console.error(`Erro ao buscar serviços adicionais para ${nomeExibicao}:`, error);
         }
-
-        // Cria lista de serviços únicos em vermelho
-        const servicosHTML = servicosUnicos.length > 0 
-            ? `<div class="servicos-lista">Serviços: ${servicosUnicos.join(', ')}</div>`
-            : '';
-
-        empresaElement.innerHTML = `
-            <div class="empresa-info">
-                <h2 class="empresa-nome">${nomeExibicao} ${distanciaBadge}</h2>
-                <address class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</address>
-                ${servicosHTML}
-            </div>
-            ${telefoneFormatado ? `<div class="empresa-telefone">${telefoneFormatado}</div>` : ''}
-            <div class="divider"></div>
-        `;
-
-        empresaElement.addEventListener('click', function() {
-            window.location.href = `agendamento.html?id=${empresa.id}`;
-        });
-
-        empresaElement.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                window.location.href = `agendamento.html?id=${empresa.id}`;
-            }
-        });
-
-        return empresaElement;
     }
+
+    // Cria lista de serviços únicos em vermelho
+    const servicosHTML = servicosUnicos.length > 0 
+        ? `<div class="servicos-lista">Serviços: ${servicosUnicos.join(', ')}</div>`
+        : '';
+
+    // Calcula a média das avaliações
+    const avaliacoes = JSON.parse(localStorage.getItem('avaliacoes')) || {};
+    const todasAvaliacoes = Object.values(avaliacoes)
+        .filter(av => av.empresaNome === nomeExibicao)
+        .map(av => av.rating);
+    
+    const mediaAvaliacoes = todasAvaliacoes.length > 0 
+        ? Math.round(todasAvaliacoes.reduce((a, b) => a + b, 0) / todasAvaliacoes.length)
+        : 0;
+
+    // Cria as estrelas de avaliação
+    const estrelasHTML = `
+        <div class="rating-stars" aria-label="Avaliação média: ${mediaAvaliacoes.toFixed(1)} de 5 estrelas">
+            ${[1, 2, 3, 4, 5].map(i => 
+                `<i class="fas fa-star${i <= mediaAvaliacoes ? ' filled' : ''}"></i>`
+            ).join('')}
+            ${todasAvaliacoes.length > 0 ? 
+                `<span class="rating-count">(${todasAvaliacoes.length})</span>` : ''}
+        </div>
+    `;
+
+    empresaElement.innerHTML = `
+        <div class="empresa-info">
+            <h2 class="empresa-nome">${nomeExibicao} ${distanciaBadge}</h2>
+            ${estrelasHTML}
+            <address class="empresa-endereco">${enderecoCompleto || 'Endereço não informado'}</address>
+            ${servicosHTML}
+        </div>
+        ${telefoneFormatado ? `<div class="empresa-telefone">${telefoneFormatado}</div>` : ''}
+        <div class="divider"></div>
+    `;
+
+    empresaElement.addEventListener('click', function() {
+        // Abre a janela de avaliação em uma pequena janela
+        const avaliacaoWindow = window.open(
+            `avaliacao.html?id=${empresa.id}&nome=${encodeURIComponent(nomeExibicao)}`,
+            'Avaliação',
+            'width=500,height=600,top=100,left=100'
+        );
+        
+        // Depois que a avaliação é feita, recarrega a lista
+        const checkAvaliacao = setInterval(() => {
+            if (avaliacaoWindow.closed) {
+                clearInterval(checkAvaliacao);
+                filtrarEmpresas(); // Atualiza a lista para mostrar a nova avaliação
+            }
+        }, 500);
+    });
+
+    empresaElement.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            // Abre a janela de avaliação em uma pequena janela
+            const avaliacaoWindow = window.open(
+                `avaliacao.html?id=${empresa.id}&nome=${encodeURIComponent(nomeExibicao)}`,
+                'Avaliação',
+                'width=500,height=600,top=100,left=100'
+            );
+            
+            // Depois que a avaliação é feita, recarrega a lista
+            const checkAvaliacao = setInterval(() => {
+                if (avaliacaoWindow.closed) {
+                    clearInterval(checkAvaliacao);
+                    filtrarEmpresas(); // Atualiza a lista para mostrar a nova avaliação
+                }
+            }, 500);
+        }
+    });
+
+    return empresaElement;
+}
 
     // Função para formatar telefone
     function formatarTelefone(telefone) {
