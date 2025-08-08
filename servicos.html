@@ -357,14 +357,6 @@
             display: none;
         }
         
-        .document-upload {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            border: 1px dashed #ccc;
-        }
-        
         .two-columns {
             display: flex;
             gap: 20px;
@@ -380,9 +372,25 @@
             }
         }
         
-        .pp-prefix {
-            color: #666;
-            font-weight: normal;
+        .info-card {
+            background-color: #e9f7ef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .info-card h3 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        
+        .info-card p {
+            margin-bottom: 5px;
+        }
+        
+        .info-card strong {
+            color: #333;
         }
     </style>
 </head>
@@ -406,11 +414,24 @@
     <div class="container">
         <h1 class="page-title">Gerenciar Serviços e Atendentes</h1>
         
+        <!-- Card de informações da empresa -->
+        <div class="info-card" id="empresaInfoCard">
+            <h3>Informações da Empresa</h3>
+            <p><strong>Nome:</strong> <span id="empresaNome">Carregando...</span></p>
+            <p><strong>Total de Serviços:</strong> <span id="totalServicos">0</span></p>
+            <p><strong>Total de Atendentes:</strong> <span id="totalAtendentes">0</span></p>
+        </div>
+        
         <!-- Seção de Formulário de Modificação -->
         <div class="section">
             <div class="section-title">Formulário de modificação, remoção ou adição de Atendentes e Serviços</div>
             
             <div id="alertMessage" class="alert hidden"></div>
+            
+            <div class="form-group">
+                <label for="nomeCompletoInput">Nome Completo da Empresa</label>
+                <input type="text" id="nomeCompletoInput" class="form-control" placeholder="Nome completo da empresa">
+            </div>
             
             <div class="two-columns">
                 <div>
@@ -444,14 +465,6 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="document-upload">
-                    <div class="form-group">
-                        <label for="documentoIdentidade">Documento de Identificação</label>
-                        <input type="file" id="documentoIdentidade" class="form-control" accept="image/*,.pdf">
-                        <small>Envie um documento de identificação do atendente (RG, CPF ou CNH)</small>
-                    </div>
-                </div>
             </div>
             
             <button id="enviarSolicitacaoBtn" class="btn btn-primary">Enviar Solicitação</button>
@@ -478,7 +491,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <script>
@@ -495,12 +507,12 @@
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const storage = firebase.storage();
     
     let currentUser = null;
     let servicosAtendentes = [];
     let empresaDocId = ''; // Armazenará o ID do documento da empresa
-    
+    let empresaData = {}; // Armazenará os dados da empresa
+
     document.addEventListener('DOMContentLoaded', function() {
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
@@ -510,6 +522,7 @@
                 try {
                     // Primeiro, precisamos encontrar o documento da empresa (PP - CNPJ)
                     await findEmpresaDoc();
+                    await loadEmpresaData();
                     await loadServicosAtendentes();
                     setupEventListeners();
                     document.getElementById('loaderOverlay').style.display = 'none';
@@ -559,6 +572,29 @@
         }
     }
     
+    // Carrega os dados da empresa
+    async function loadEmpresaData() {
+        try {
+            const empresaDoc = await db.collection('usuarios').doc(empresaDocId).get();
+            
+            if (!empresaDoc.exists) {
+                throw new Error('Dados da empresa não encontrados');
+            }
+            
+            empresaData = empresaDoc.data();
+            
+            // Atualiza o campo de nome completo
+            document.getElementById('nomeCompletoInput').value = empresaData.nomeCompleto || '';
+            
+            // Atualiza o card de informações
+            document.getElementById('empresaNome').textContent = empresaData.nomeCompleto || 'Não informado';
+            
+        } catch (error) {
+            console.error('Erro ao carregar dados da empresa:', error);
+            throw error;
+        }
+    }
+    
     async function loadServicosAtendentes() {
         try {
             const container = document.getElementById('servicosAtendentesContainer');
@@ -575,7 +611,7 @@
                 throw new Error('Dados da empresa não encontrados');
             }
             
-            const empresaData = empresaDoc.data();
+            empresaData = empresaDoc.data();
             
             // Verifica se existe o campo servicoAtendente
             if (empresaData.servicoAtendente && Array.isArray(empresaData.servicoAtendente)) {
@@ -583,6 +619,13 @@
             } else {
                 servicosAtendentes = [];
             }
+            
+            // Calcula totais para exibição
+            const totalServicos = new Set(servicosAtendentes.map(item => item.servico)).size;
+            const totalAtendentes = new Set(servicosAtendentes.flatMap(item => item.atendentes)).size;
+            
+            document.getElementById('totalServicos').textContent = totalServicos;
+            document.getElementById('totalAtendentes').textContent = totalAtendentes;
             
             // Exibe a lista de serviços e atendentes
             displayServicosAtendentes();
@@ -711,15 +754,19 @@
     }
     
     async function enviarSolicitacaoModificacao() {
+        const nomeCompleto = document.getElementById('nomeCompletoInput').value.trim();
         let atendente = document.getElementById('atendenteInput').value.trim();
         let servico = document.getElementById('servicoInput').value.trim();
         const acao = document.getElementById('acaoSelect').value;
         let novoAtendente = document.getElementById('novoAtendente').value.trim();
         let novoServico = document.getElementById('novoServico').value.trim();
-        const documentoInput = document.getElementById('documentoIdentidade');
-        const documentoFile = documentoInput.files[0];
         
         // Validações básicas
+        if (!nomeCompleto) {
+            showAlert('Informe o nome completo da empresa', 'danger');
+            return;
+        }
+        
         if (!atendente && !servico) {
             showAlert('Informe pelo menos um atendente ou um serviço', 'danger');
             return;
@@ -733,6 +780,14 @@
         try {
             document.getElementById('loaderOverlay').style.display = 'flex';
             
+            // Atualiza o nome completo da empresa
+            await db.collection('usuarios').doc(empresaDocId).update({
+                nomeCompleto: nomeCompleto
+            });
+            
+            // Atualiza o card de informações
+            document.getElementById('empresaNome').textContent = nomeCompleto;
+            
             // Adiciona o prefixo "PP - " se não existir
             if (atendente && !atendente.startsWith('PP - ')) {
                 atendente = 'PP - ' + atendente;
@@ -745,15 +800,6 @@
             }
             if (novoServico && !novoServico.startsWith('PP - ')) {
                 novoServico = 'PP - ' + novoServico;
-            }
-            
-            // Upload do documento (se fornecido)
-            let documentoUrl = null;
-            if (documentoFile) {
-                const storageRef = storage.ref();
-                const documentoRef = storageRef.child(`documentos_identidade/${currentUser.uid}/${Date.now()}_${documentoFile.name}`);
-                await documentoRef.put(documentoFile);
-                documentoUrl = await documentoRef.getDownloadURL();
             }
             
             // Carrega os dados atuais da empresa
@@ -838,20 +884,6 @@
                     ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // Registra a ação no histórico
-                await db.collection('historicoModificacoes').add({
-                    empresaId: empresaDocId,
-                    userId: currentUser.uid,
-                    emailUsuario: currentUser.email,
-                    acao: acao,
-                    atendenteOriginal: atendente,
-                    servicoOriginal: servico,
-                    novoAtendente: novoAtendente,
-                    novoServico: novoServico,
-                    documentoUrl: documentoUrl,
-                    data: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
                 showAlert('Alterações realizadas com sucesso!', 'success');
                 
                 // Limpa o formulário
@@ -860,7 +892,6 @@
                 document.getElementById('acaoSelect').value = 'adicionar';
                 document.getElementById('novoAtendente').value = '';
                 document.getElementById('novoServico').value = '';
-                documentoInput.value = '';
                 document.getElementById('modificarCampos').classList.add('hidden');
                 
                 // Recarrega a lista
