@@ -436,7 +436,7 @@
             <div id="loginAlertMessage" class="alert hidden"></div>
 
             <div class="form-group">
-                <label for="empresaLoginInput">Login da Empresa (PP - CNPJ)</label>
+                <label for="empresaLoginInput">Documento (PP - CNPJ) caso não tenha peça ao suporte!</label>
                 <input type="text" id="empresaLoginInput" class="form-control" placeholder="Ex: PP - 12345678000190">
             </div>
 
@@ -446,8 +446,8 @@
         <!-- Card de informações da empresa (inicialmente oculto) -->
         <div class="info-card hidden" id="empresaInfoCard">
             <h3>Informações da Empresa</h3>
-            <p><strong>Login:</strong> <span id="empresaLogin">-</span></p>
-            <p><strong>Nome:</strong> <span id="empresaNome">-</span></p>
+            <p><strong>Documento</strong> <span id="empresaLogin">-</span></p>
+            <p><strong>Nome:</strong> <span id="nomeFantasia">-</span></p>
             <p><strong>Documento</strong> <span id="empresaLogin">-</span></p>
             <p><strong>Total de Serviços:</strong> <span id="totalServicos">0</span></p>
             <p><strong>Total de Atendentes:</strong> <span id="totalAtendentes">0</span></p>
@@ -459,11 +459,6 @@
 
             <div id="alertMessage" class="alert hidden"></div>
 
-            <div class="form-group">
-                <label for="nomeCompletoInput">Nome Completo da Empresa</label>
-                <input type="text" id="nomeCompletoInput" class="form-control" placeholder="Nome completo da empresa">
-            </div>
-            
             <div class="two-columns">
                 <div>
                     <div class="form-group">
@@ -592,7 +587,7 @@
 
             // Atualiza a interface
             document.getElementById('empresaLogin').textContent = empresaDocId;
-            document.getElementById('empresaNome').textContent = empresaData.nomeCompleto || 'Não informado';
+            document.getElementById('nomeFantasia').textContent = empresaData.nomeCompleto || 'Não informado';
 
             // Mostra as seções após carregar os dados
             document.getElementById('empresaInfoCard').classList.remove('hidden');
@@ -811,7 +806,7 @@
             });
 
             // Atualiza o card de informações
-            document.getElementById('empresaNome').textContent = nomeCompleto;
+            document.getElementById('nomeFantasia').textContent = nomeCompleto;
 
             // Adiciona o prefixo "PP - " se não existir
             if (atendente && !atendente.startsWith('PP - ')) {
