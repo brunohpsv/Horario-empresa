@@ -313,6 +313,12 @@
             border: 1px solid #bee5eb;
         }
         
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
         .spinner-border {
             display: inline-block;
             width: 2rem;
@@ -404,9 +410,7 @@
         <div class="section">
             <div class="section-title">Formulário de modificação, remoção ou adição de Atendentes e Serviços</div>
             
-            <div class="alert alert-info">
-                <strong>Atenção:</strong> Suas alterações serão processadas e atualizadas em no máximo 1 hora.
-            </div>
+            <div id="alertMessage" class="alert hidden"></div>
             
             <div class="two-columns">
                 <div>
@@ -444,7 +448,7 @@
                 <div class="document-upload">
                     <div class="form-group">
                         <label for="documentoIdentidade">Documento de Identificação</label>
-                        <input type="file" id="documentoIdentidade" class="form-control" accept="image/*,.pdf" required>
+                        <input type="file" id="documentoIdentidade" class="form-control" accept="image/*,.pdf">
                         <small>Envie um documento de identificação do atendente (RG, CPF ou CNH)</small>
                     </div>
                 </div>
@@ -511,13 +515,27 @@
                     document.getElementById('loaderOverlay').style.display = 'none';
                 } catch (error) {
                     console.error('Erro ao carregar dados:', error);
-                    alert('Erro ao carregar dados. Por favor, faça login novamente.');
-                    auth.signOut();
-                    window.location.href = 'https://horario.site/login.html';
+                    showAlert('Erro ao carregar dados. Por favor, faça login novamente.', 'danger');
+                    setTimeout(() => {
+                        auth.signOut();
+                        window.location.href = 'https://horario.site/login.html';
+                    }, 3000);
                 }
             }
         });
     });
+
+    // Função para mostrar mensagens de alerta
+    function showAlert(message, type) {
+        const alertDiv = document.getElementById('alertMessage');
+        alertDiv.textContent = message;
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.classList.remove('hidden');
+        
+        setTimeout(() => {
+            alertDiv.classList.add('hidden');
+        }, 5000);
+    }
 
     // Função para encontrar o documento da empresa (PP - CNPJ)
     async function findEmpresaDoc() {
@@ -533,7 +551,6 @@
             }
             
             // Assume que o usuário atual está associado a apenas uma empresa
-            // (Se houver mais de uma, você precisará de lógica adicional para determinar qual é a correta)
             empresaDocId = querySnapshot.docs[0].id;
             
         } catch (error) {
@@ -702,94 +719,161 @@
         const documentoInput = document.getElementById('documentoIdentidade');
         const documentoFile = documentoInput.files[0];
         
-        if (!documentoFile) {
-            alert('Por favor, envie o documento de identificação do atendente');
+        // Validações básicas
+        if (!atendente && !servico) {
+            showAlert('Informe pelo menos um atendente ou um serviço', 'danger');
             return;
         }
         
         if (acao === 'modificar' && !novoAtendente && !novoServico) {
-            alert('Para modificar, informe pelo menos um novo nome de atendente ou serviço');
+            showAlert('Para modificar, informe pelo menos um novo nome de atendente ou serviço', 'danger');
             return;
-        }
-        
-        // Adiciona o prefixo "PP - " se não existir
-        if (atendente && !atendente.startsWith('PP - ')) {
-            atendente = 'PP - ' + atendente;
-        }
-        if (servico && !servico.startsWith('PP - ')) {
-            servico = 'PP - ' + servico;
-        }
-        if (novoAtendente && !novoAtendente.startsWith('PP - ')) {
-            novoAtendente = 'PP - ' + novoAtendente;
-        }
-        if (novoServico && !novoServico.startsWith('PP - ')) {
-            novoServico = 'PP - ' + novoServico;
         }
         
         try {
             document.getElementById('loaderOverlay').style.display = 'flex';
             
-            // Upload do documento
-            const storageRef = storage.ref();
-            const documentoRef = storageRef.child(`documentos_identidade/${currentUser.uid}/${Date.now()}_${documentoFile.name}`);
-            await documentoRef.put(documentoFile);
-            const documentoUrl = await documentoRef.getDownloadURL();
+            // Adiciona o prefixo "PP - " se não existir
+            if (atendente && !atendente.startsWith('PP - ')) {
+                atendente = 'PP - ' + atendente;
+            }
+            if (servico && !servico.startsWith('PP - ')) {
+                servico = 'PP - ' + servico;
+            }
+            if (novoAtendente && !novoAtendente.startsWith('PP - ')) {
+                novoAtendente = 'PP - ' + novoAtendente;
+            }
+            if (novoServico && !novoServico.startsWith('PP - ')) {
+                novoServico = 'PP - ' + novoServico;
+            }
             
-            // Cria a solicitação no Firestore
-            const solicitacaoRef = await db.collection('solicitacoesAtendentes').add({
-                userId: currentUser.uid,
-                empresaId: empresaDocId, // Adiciona o ID do documento da empresa
-                atendente: atendente,
-                servico: servico,
-                acao: acao,
-                novoAtendente: acao === 'modificar' ? novoAtendente : null,
-                novoServico: acao === 'modificar' ? novoServico : null,
-                documentoUrl: documentoUrl,
-                status: 'pendente',
-                dataSolicitacao: firebase.firestore.FieldValue.serverTimestamp(),
-                dataAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            // Upload do documento (se fornecido)
+            let documentoUrl = null;
+            if (documentoFile) {
+                const storageRef = storage.ref();
+                const documentoRef = storageRef.child(`documentos_identidade/${currentUser.uid}/${Date.now()}_${documentoFile.name}`);
+                await documentoRef.put(documentoFile);
+                documentoUrl = await documentoRef.getDownloadURL();
+            }
             
-            // Envia e-mail (simulado - na prática você precisaria de um backend para isso)
-            const emailBody = `
-                Nova solicitação de ${acao} de atendente/serviço:
+            // Carrega os dados atuais da empresa
+            const empresaDoc = await db.collection('usuarios').doc(empresaDocId).get();
+            const empresaData = empresaDoc.data();
+            let servicoAtendenteArray = empresaData.servicoAtendente || [];
+            
+            // Processa a ação solicitada
+            let updated = false;
+            
+            if (acao === 'adicionar') {
+                // Verifica se já existe um registro com o mesmo serviço
+                const existingIndex = servicoAtendenteArray.findIndex(item => 
+                    item.servico === servico
+                );
                 
-                Usuário: ${currentUser.email}
-                Empresa: ${empresaDocId}
-                ID do documento: ${solicitacaoRef.id}
+                if (existingIndex >= 0) {
+                    // Adiciona o atendente ao serviço existente
+                    if (atendente && !servicoAtendenteArray[existingIndex].atendentes.includes(atendente)) {
+                        servicoAtendenteArray[existingIndex].atendentes.push(atendente);
+                        updated = true;
+                    }
+                } else if (servico) {
+                    // Cria um novo registro de serviço com o atendente
+                    servicoAtendenteArray.push({
+                        servico: servico,
+                        atendentes: atendente ? [atendente] : []
+                    });
+                    updated = true;
+                }
+            } 
+            else if (acao === 'remover') {
+                // Remove atendente de um serviço específico
+                if (atendente && servico) {
+                    const serviceIndex = servicoAtendenteArray.findIndex(item => item.servico === servico);
+                    if (serviceIndex >= 0) {
+                        const atendenteIndex = servicoAtendenteArray[serviceIndex].atendentes.indexOf(atendente);
+                        if (atendenteIndex >= 0) {
+                            servicoAtendenteArray[serviceIndex].atendentes.splice(atendenteIndex, 1);
+                            updated = true;
+                            
+                            // Se não houver mais atendentes, remove o serviço
+                            if (servicoAtendenteArray[serviceIndex].atendentes.length === 0) {
+                                servicoAtendenteArray.splice(serviceIndex, 1);
+                            }
+                        }
+                    }
+                }
+                // Remove um serviço completo (se não especificar atendente)
+                else if (servico && !atendente) {
+                    const serviceIndex = servicoAtendenteArray.findIndex(item => item.servico === servico);
+                    if (serviceIndex >= 0) {
+                        servicoAtendenteArray.splice(serviceIndex, 1);
+                        updated = true;
+                    }
+                }
+            } 
+            else if (acao === 'modificar') {
+                // Modifica atendentes e/ou serviços
+                servicoAtendenteArray = servicoAtendenteArray.map(item => {
+                    // Modifica o nome do serviço
+                    if (item.servico === servico && novoServico) {
+                        item.servico = novoServico;
+                        updated = true;
+                    }
+                    
+                    // Modifica o nome dos atendentes
+                    if (atendente && novoAtendente && item.atendentes.includes(atendente)) {
+                        const index = item.atendentes.indexOf(atendente);
+                        item.atendentes[index] = novoAtendente;
+                        updated = true;
+                    }
+                    
+                    return item;
+                });
+            }
+            
+            if (updated) {
+                // Atualiza o Firestore
+                await db.collection('usuarios').doc(empresaDocId).update({
+                    servicoAtendente: servicoAtendenteArray,
+                    ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
+                });
                 
-                Detalhes:
-                - Atendente: ${atendente || 'Não informado'}
-                - Serviço: ${servico || 'Não informado'}
-                - Ação: ${acao}
-                ${acao === 'modificar' ? `- Novo Atendente: ${novoAtendente || 'Não alterado'}` : ''}
-                ${acao === 'modificar' ? `- Novo Serviço: ${novoServico || 'Não alterado'}` : ''}
+                // Registra a ação no histórico
+                await db.collection('historicoModificacoes').add({
+                    empresaId: empresaDocId,
+                    userId: currentUser.uid,
+                    emailUsuario: currentUser.email,
+                    acao: acao,
+                    atendenteOriginal: atendente,
+                    servicoOriginal: servico,
+                    novoAtendente: novoAtendente,
+                    novoServico: novoServico,
+                    documentoUrl: documentoUrl,
+                    data: firebase.firestore.FieldValue.serverTimestamp()
+                });
                 
-                Documento de identificação: ${documentoUrl}
-            `;
-            
-            // Simula envio de e-mail (na prática, você precisaria de um backend para isso)
-            console.log('E-mail enviado para horario@outlook.com.br com o conteúdo:', emailBody);
-            
-            alert('Solicitação enviada com sucesso! As alterações serão processadas em até 1 hora.');
-            
-            // Limpa o formulário
-            document.getElementById('atendenteInput').value = '';
-            document.getElementById('servicoInput').value = '';
-            document.getElementById('acaoSelect').value = 'adicionar';
-            document.getElementById('novoAtendente').value = '';
-            document.getElementById('novoServico').value = '';
-            documentoInput.value = '';
-            document.getElementById('modificarCampos').classList.add('hidden');
-            
-            // Recarrega a lista
-            await loadServicosAtendentes();
+                showAlert('Alterações realizadas com sucesso!', 'success');
+                
+                // Limpa o formulário
+                document.getElementById('atendenteInput').value = '';
+                document.getElementById('servicoInput').value = '';
+                document.getElementById('acaoSelect').value = 'adicionar';
+                document.getElementById('novoAtendente').value = '';
+                document.getElementById('novoServico').value = '';
+                documentoInput.value = '';
+                document.getElementById('modificarCampos').classList.add('hidden');
+                
+                // Recarrega a lista
+                await loadServicosAtendentes();
+            } else {
+                showAlert('Nenhuma alteração foi necessária. Os dados já estão conforme solicitado.', 'info');
+            }
             
             document.getElementById('loaderOverlay').style.display = 'none';
             
         } catch (error) {
-            console.error('Erro ao enviar solicitação:', error);
-            alert('Erro ao enviar solicitação. Por favor, tente novamente.');
+            console.error('Erro ao processar solicitação:', error);
+            showAlert('Erro ao processar solicitação: ' + error.message, 'danger');
             document.getElementById('loaderOverlay').style.display = 'none';
         }
     }
