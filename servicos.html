@@ -392,6 +392,21 @@
         .info-card strong {
             color: #333;
         }
+        
+        .login-section {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .login-section h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -414,16 +429,31 @@
     <div class="container">
         <h1 class="page-title">Gerenciar Serviços e Atendentes</h1>
         
-        <!-- Card de informações da empresa -->
-        <div class="info-card" id="empresaInfoCard">
+        <!-- Seção de Login da Empresa -->
+        <div class="section" id="loginEmpresaSection">
+            <div class="section-title">Acessar dados da empresa</div>
+            
+            <div id="loginAlertMessage" class="alert hidden"></div>
+            
+            <div class="form-group">
+                <label for="empresaLoginInput">Login da Empresa (PP - CNPJ)</label>
+                <input type="text" id="empresaLoginInput" class="form-control" placeholder="Ex: PP - 12345678000190">
+            </div>
+            
+            <button id="carregarDadosBtn" class="btn btn-primary">Carregar Dados</button>
+        </div>
+        
+        <!-- Card de informações da empresa (inicialmente oculto) -->
+        <div class="info-card hidden" id="empresaInfoCard">
             <h3>Informações da Empresa</h3>
-            <p><strong>Nome:</strong> <span id="empresaNome">Carregando...</span></p>
+            <p><strong>Login:</strong> <span id="empresaLogin">-</span></p>
+            <p><strong>Nome:</strong> <span id="empresaNome">-</span></p>
             <p><strong>Total de Serviços:</strong> <span id="totalServicos">0</span></p>
             <p><strong>Total de Atendentes:</strong> <span id="totalAtendentes">0</span></p>
         </div>
         
-        <!-- Seção de Formulário de Modificação -->
-        <div class="section">
+        <!-- Seção de Formulário de Modificação (inicialmente oculto) -->
+        <div class="section hidden" id="modificacaoSection">
             <div class="section-title">Formulário de modificação, remoção ou adição de Atendentes e Serviços</div>
             
             <div id="alertMessage" class="alert hidden"></div>
@@ -470,8 +500,8 @@
             <button id="enviarSolicitacaoBtn" class="btn btn-primary">Enviar Solicitação</button>
         </div>
         
-        <!-- Seção de Visualização Atual -->
-        <div class="section">
+        <!-- Seção de Visualização Atual (inicialmente oculto) -->
+        <div class="section hidden" id="visualizacaoSection">
             <div class="section-title">Lista Atual de Serviços e Atendentes</div>
             <div id="servicosAtendentesContainer" class="list-container">
                 <!-- Os serviços e atendentes serão carregados aqui -->
@@ -519,28 +549,15 @@
                 window.location.href = 'https://horario.site/login.html';
             } else {
                 currentUser = user;
-                try {
-                    // Primeiro, precisamos encontrar o documento da empresa (PP - CNPJ)
-                    await findEmpresaDoc();
-                    await loadEmpresaData();
-                    await loadServicosAtendentes();
-                    setupEventListeners();
-                    document.getElementById('loaderOverlay').style.display = 'none';
-                } catch (error) {
-                    console.error('Erro ao carregar dados:', error);
-                    showAlert('Erro ao carregar dados. Por favor, faça login novamente.', 'danger');
-                    setTimeout(() => {
-                        auth.signOut();
-                        window.location.href = 'https://horario.site/login.html';
-                    }, 3000);
-                }
+                setupEventListeners();
+                document.getElementById('loaderOverlay').style.display = 'none';
             }
         });
     });
 
     // Função para mostrar mensagens de alerta
-    function showAlert(message, type) {
-        const alertDiv = document.getElementById('alertMessage');
+    function showAlert(message, type, elementId = 'alertMessage') {
+        const alertDiv = document.getElementById(elementId);
         alertDiv.textContent = message;
         alertDiv.className = `alert alert-${type}`;
         alertDiv.classList.remove('hidden');
@@ -550,48 +567,52 @@
         }, 5000);
     }
 
-    // Função para encontrar o documento da empresa (PP - CNPJ)
-    async function findEmpresaDoc() {
-        try {
-            // Busca todos os documentos que começam com "PP - " na coleção de usuários
-            const querySnapshot = await db.collection('usuarios')
-                .where(firebase.firestore.FieldPath.documentId(), '>=', 'PP - ')
-                .where(firebase.firestore.FieldPath.documentId(), '<=', 'PP - \uf8ff')
-                .get();
-            
-            if (querySnapshot.empty) {
-                throw new Error('Nenhum documento de empresa encontrado');
-            }
-            
-            // Assume que o usuário atual está associado a apenas uma empresa
-            empresaDocId = querySnapshot.docs[0].id;
-            
-        } catch (error) {
-            console.error('Erro ao encontrar documento da empresa:', error);
-            throw error;
+    // Função para carregar os dados da empresa
+    async function carregarDadosEmpresa() {
+        const empresaLogin = document.getElementById('empresaLoginInput').value.trim();
+        
+        if (!empresaLogin) {
+            showAlert('Informe o login da empresa (PP - CNPJ)', 'danger', 'loginAlertMessage');
+            return;
         }
-    }
-    
-    // Carrega os dados da empresa
-    async function loadEmpresaData() {
+        
         try {
-            const empresaDoc = await db.collection('usuarios').doc(empresaDocId).get();
+            document.getElementById('loaderOverlay').style.display = 'flex';
+            
+            // Verifica se o documento existe
+            const empresaDoc = await db.collection('usuarios').doc(empresaLogin).get();
             
             if (!empresaDoc.exists) {
-                throw new Error('Dados da empresa não encontrados');
+                throw new Error('Empresa não encontrada com este login');
             }
             
+            empresaDocId = empresaLogin;
             empresaData = empresaDoc.data();
             
-            // Atualiza o campo de nome completo
+            // Atualiza a interface
+            document.getElementById('empresaLogin').textContent = empresaDocId;
+            document.getElementById('empresaNome').textContent = empresaData.nomeCompleto || 'Não informado';
+            
+            // Mostra as seções após carregar os dados
+            document.getElementById('empresaInfoCard').classList.remove('hidden');
+            document.getElementById('modificacaoSection').classList.remove('hidden');
+            document.getElementById('visualizacaoSection').classList.remove('hidden');
+            
+            // Oculta a seção de login
+            document.getElementById('loginEmpresaSection').classList.add('hidden');
+            
+            // Preenche o campo de nome completo
             document.getElementById('nomeCompletoInput').value = empresaData.nomeCompleto || '';
             
-            // Atualiza o card de informações
-            document.getElementById('empresaNome').textContent = empresaData.nomeCompleto || 'Não informado';
+            // Carrega os serviços e atendentes
+            await loadServicosAtendentes();
+            
+            document.getElementById('loaderOverlay').style.display = 'none';
             
         } catch (error) {
             console.error('Erro ao carregar dados da empresa:', error);
-            throw error;
+            showAlert('Erro ao carregar dados: ' + error.message, 'danger', 'loginAlertMessage');
+            document.getElementById('loaderOverlay').style.display = 'none';
         }
     }
     
@@ -736,6 +757,9 @@
                 window.location.href = 'https://horario.site/login.html';
             });
         });
+        
+        // Carregar dados da empresa
+        document.getElementById('carregarDadosBtn').addEventListener('click', carregarDadosEmpresa);
         
         // Mostrar/ocultar campos de modificação
         document.getElementById('acaoSelect').addEventListener('change', function() {
