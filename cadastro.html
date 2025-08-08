@@ -520,12 +520,6 @@
                     <div id="atendentes-container" class="atendentes-container" style="display: none;"></div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="documento">Documento de Identificação</label>
-                    <input type="file" id="documento" required>
-                    <small>Envie Identidade, CNH ou Cartão CNPJ (PDF ou imagem)</small>
-                </div>
-                
                 <div class="termos">
                     <input type="checkbox" id="concordo" required>
                     <label for="concordo">Concordo com os <a href="termos.html">termos</a> adotados para utilização dessa plataforma, respeitando todos os direitos do site</label>
@@ -857,7 +851,6 @@
                     senha: senha, // Armazenando a senha no Firestore também
                     maquinas: document.getElementById('maquinas').value,
                     servicoAtendente: servicoAtendente, // Array de objetos com serviços e seus atendentes
-                    documento: document.getElementById('documento').files[0]?.name || 'Nenhum arquivo enviado',
                     dataCadastro: new Date().toISOString(),
                     status: 'pendente'
                 };
